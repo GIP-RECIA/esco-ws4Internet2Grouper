@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Title: ws4Internet2Grouper
+Implementation-Version: 0.1.0
+Implementation-Vendor: ESUP-Portail consortium

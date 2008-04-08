@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Grouper's subject resolver configuration
+$Id: sources.xml,v 1.2 2007/12/07 17:09:46 ardem Exp $
+-->
+
+<sources>
+
+   <!-- Group Subject Resolver -->
+   <!-- 
+         NOTE: It is recommended that you **not** change the default
+          values for this source adapter.
+    -->
+   <source adapterClass="edu.internet2.middleware.grouper.GrouperSourceAdapter">
+      <id>g:gsa</id>
+      <name>Grouper: Group Source Adapter</name>
+      <type>group</type>
+   </source>
+   <!-- Group Subject Resolver -->
+
+   <source adapterClass="edu.internet2.middleware.subject.provider.JNDISourceAdapter">
+      <id>esco:ldap</id>
+      <name>JNDI Source Adapter</name>
+      <type>person</type>
+      <init-param>
+         <param-name>INITIAL_CONTEXT_FACTORY</param-name>
+         <param-value>com.sun.jndi.ldap.LdapCtxFactory</param-value>
+      </init-param>
+
+      <init-param>
+         <param-name>PROVIDER_URL</param-name>
+         <param-value>ldap://mahler.recia.fr:389</param-value>
+      </init-param>
+
+      <init-param>
+         <param-name>SECURITY_AUTHENTICATION</param-name>
+         <param-value>simple</param-value>
+      </init-param>
+    
+      <init-param>
+         <param-name>SECURITY_PRINCIPAL</param-name>
+         <param-value>cn=admin,dc=esco-centre,dc=fr</param-value>
+      </init-param>
+
+      <init-param>
+         <param-name>SECURITY_CREDENTIALS</param-name>
+         <param-value>LplmENT</param-value>
+      </init-param>
+
+      <init-param>
+         <param-name>SubjectID_AttributeType</param-name>
+	 <param-value>uid</param-value>
+      </init-param>
+
+      <init-param>
+         <param-name>Name_AttributeType</param-name>
+         <param-value>ENTPersonLogin</param-value>
+      </init-param>
+
+      <init-param>
+         <param-name>Description_AttributeType</param-name>
+         <param-value>displayName</param-value>
+      </init-param>
+
+      <search>
+         <searchType>searchSubject</searchType>
+         <param>
+            <param-name>filter</param-name>
+	    <param-value>
+	       (&amp; (uid=%TERM%)(objectclass=inetOrgPerson))
+            </param-value>
+         </param>
+         <param>
+            <param-name>scope</param-name>
+            <param-value>ONELEVEL_SCOPE</param-value>
+         </param>
+         <param>
+            <param-name>base</param-name>
+	    <param-value>ou=people,dc=esco-centre,dc=fr</param-value>
+         </param>
+      </search>
+
+      <search>
+         <searchType>searchSubjectByIdentifier</searchType>
+         <param>
+            <param-name>filter</param-name>
+	    <param-value>
+	       (&amp; (uid=%TERM%)(objectclass=inetOrgPerson))
+	    </param-value>
+         </param>
+         <param>
+            <param-name>scope</param-name>
+	    <param-value>ONELEVEL_SCOPE</param-value>
+         </param>
+         <param>
+            <param-name>base</param-name>
+            <param-value>ou=people,dc=esco-centre,dc=fr</param-value>
+         </param>
+      </search>
+
+
+    <search>
+       <searchType>search</searchType>
+         <param>
+            <param-name>filter</param-name>
+            <param-value>
+	           (&amp; (|(uid=%TERM%)(ENTPersonLogin=%TERM%))(objectclass=inetOrgPerson))
+            </param-value>
+        </param>
+        <param>
+            <param-name>scope</param-name>
+            <param-value>ONELEVEL_SCOPE </param-value>
+        </param>
+         <param>
+            <param-name>base</param-name>
+            <param-value>ou=people,dc=esco-centre,dc=fr</param-value>
+        </param>
+    </search>
+    <attribute>displayName</attribute>
+    <attribute>ENTPersonLogin</attribute>
+    <attribute>ENTTitle</attribute>
+    <attribute>ENTPersonFonctions</attribute>
+
+    
+
+   </source>
+
+</sources>
+

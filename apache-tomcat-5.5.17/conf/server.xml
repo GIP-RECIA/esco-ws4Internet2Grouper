@@ -1,0 +1,45 @@
+<Server port="9009" shutdown="SHUTDOWN">
+
+	<Listener className="org.apache.catalina.core.AprLifecycleListener" />
+	<Listener
+		className="org.apache.catalina.mbeans.ServerLifecycleListener" />
+	<Listener
+		className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+	<Listener
+		className="org.apache.catalina.storeconfig.StoreConfigLifecycleListener" />
+
+	<Service name="Catalina">
+		<Connector 
+			port="9080" 
+			maxHttpHeaderSize="8192"
+			maxThreads="150" 
+			minSpareThreads="25" 
+			maxSpareThreads="75"
+			enableLookups="false" 
+			redirectPort="8443" 
+			acceptCount="100"
+			connectionTimeout="20000" 
+			disableUploadTimeout="true" />
+		<Engine 
+			name="Catalina" 
+			defaultHost="localhost">
+			<Host 
+				name="localhost" 
+				appBase="webapps"
+				unpackWARs="true" 
+				autoDeploy="true" 
+				xmlValidation="false"
+				xmlNamespaceAware="false">
+				<Context 
+					path="" 
+					docBase="/home/arnaud/.Travaux/RECIA/ESCO-ws4I2Grouper/deploy"
+					crossContext="true" 
+					reloadable="false">
+					<Manager
+						className="org.apache.catalina.session.StandardManager"
+						pathname="" />
+				</Context>
+			</Host>
+		</Engine>
+	</Service>
+</Server>
