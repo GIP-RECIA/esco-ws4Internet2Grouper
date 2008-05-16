@@ -24,11 +24,11 @@ public interface IGrouperAPIExposer {
 	boolean hasMember(final String groupName, final String subjectId);
 	
 	/**
-	 * Returns an instance of the Group from the data store.
-	 * @param key The key of the group to search for.
+	 * Returns the DTO that denotes a group or a stem.
+	 * @param key The key of the group or stem to search for.
 	 * @return The group if it can be found, null otherwise.
 	 */
-	GrouperDTO findGroup(final String key); 
+	GrouperDTO findGroupOrStem(final String key); 
 	
 	
 	/**
@@ -47,9 +47,9 @@ public interface IGrouperAPIExposer {
 	GrouperDTO[] getMemberSubjects(final String key);
 	
 	/**
-	 * Gives the groups members of the group.
+	 * Gives the groups members of a group or stem.
 	 * @param key The key of the group/stem.
-	 * @return subgroups.
+	 * @return subgroups/stems.
 	 */
 	GrouperDTO[] getMemberGroups(final String key);
 	
@@ -60,7 +60,7 @@ public interface IGrouperAPIExposer {
 	  * @return The list of the groups which the group identified by key belongs to, 
 	  * or the parent stem in the case of a stem.
 	  */ 
-	GrouperDTO[] getMembershipsForGroup(final String key);
+	GrouperDTO[] getMembershipsForGroupOrStem(final String key);
 	
 	/**
 	 * Gives the groups description of the groups to which a given subject belongs to.
@@ -70,13 +70,13 @@ public interface IGrouperAPIExposer {
 	GrouperDTO[] getMembershipsForSubject(final String subjectKey);
 	
 	/**
-	 * Search groups whose name matches the query string according to the specified method.
+	 * Search groups or stems whose name matches the query string according to the specified method.
 	 * @param query The part of the name of the group.
 	 * @param method The method used to perform the comparison.
-	 * @return The array of groups descriptions whose name match query according 
+	 * @return The array of groups or stems descriptions whose name match query according 
 	 * to the method of comparison.
 	 */
-	GrouperDTO[]searchForGroups(final String query, final int method);
+	GrouperDTO[]searchForGroupsOrStems(final String query, final int method);
 	
 	/**
 	 * Search subjects whose name matches the query string according to the specified method.
