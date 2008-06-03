@@ -16,14 +16,59 @@ public class GrouperOperationResultDTO implements Serializable {
     /** Serial version UID.*/
     private static final long serialVersionUID = 3643694431079789466L;
 
-    /** key of the stem or Group. */
-//    private String key;
-    
     /** Flag of error.*/
     private boolean error;
     
     /** Exception if there is an error. */
     private Exception exception;
+    
+    /**
+     * Constructor for GrouperOperationResultDTO.
+     */
+    public GrouperOperationResultDTO() {
+        /* */
+    }
+    
+    /**
+     * Constructor for GrouperOperationResultDTO.
+     * @param exception The exception thrown during the Grouper operation.
+     */
+    public GrouperOperationResultDTO(final Exception exception) {
+        this.error = true;
+        this.exception = exception;
+    }
+
+    /**
+     * Getter for error.
+     * @return the error
+     */
+    public boolean isError() {
+        return error;
+    }
+
+    /**
+     * Setter for error.
+     * @param error the error to set
+     */
+    public void setError(final boolean error) {
+        this.error = error;
+    }
+
+    /**
+     * Getter for exception.
+     * @return the exception
+     */
+    public Exception getException() {
+        return exception;
+    }
+
+    /**
+     * Setter for exception.
+     * @param exception the exception to set
+     */
+    public void setException(final Exception exception) {
+        this.exception = exception;
+    }
     
     
     

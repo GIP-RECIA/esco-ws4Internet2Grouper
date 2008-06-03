@@ -1,6 +1,5 @@
 package org.esco.ws4Internet2Grouper.services.remote;
 
-import org.esco.ws4Internet2Grouper.domain.beans.GrouperDTO;
 import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
 
 /**

@@ -218,6 +218,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
      * @param groupName the name of the group to retrieve.
      * @return The group if found, null otherwise.
      */
+    @SuppressWarnings("unused")
     private Group fetchGroup(final GrouperSession session, final String groupName) {
 
         Group g = null;
@@ -689,6 +690,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
      * @see org.esco.ws4Internet2Grouper.services.remote.IGrouperAPIExposer
      * #searchForGroupsOrStems(java.lang.String, int)
      */
+    @SuppressWarnings("unchecked")
     public GrouperDTO[] searchForGroupsOrStems(final String query, final int method) {
 
         final GrouperSession session = createSession();
