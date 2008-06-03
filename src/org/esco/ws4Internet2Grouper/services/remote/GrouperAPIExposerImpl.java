@@ -704,7 +704,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             final GrouperQuery gQuery = GrouperQuery.createQuery(session,  groupFilter);
             final GrouperQuery sQuery = GrouperQuery.createQuery(session,  stemFilter);
             final Set candidates = gQuery.getGroups();
-            candidates.addAll(sQuery.getGroups());
+            candidates.addAll(sQuery.getStems());
             
 
             // Filters the candidates according to the specified method.
