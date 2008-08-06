@@ -30,5 +30,23 @@
 	<bean 
 		id="GrouperServiceExposer" 
 		class="org.esco.ws4Internet2Grouper.services.remote.GrouperAPIExposerImpl"/>
+		
+	<bean id="UserParameters"
+		class="org.esco.ws4Internet2Grouper.util.SGSParameters"
+		scope="singleton"/>
+		
+	<bean id="GrouperUtil"
+		class="org.esco.ws4Internet2Grouper.util.GrouperUtil"
+		scope="singleton">
+		<property name="parameters" ref="UserParameters"/>		
+	</bean>
+	
+	<bean id="EstablishmentHandler"
+		class="org.esco.ws4Internet2Grouper.domain.EstablishmentHandlerImpl"
+		scope="singleton">
+		<property name="parameters" ref="UserParameters"/>		
+		<property name="grouperUtil" ref="GrouperUtil"/>		
+	</bean>
+		
 
 </beans>
