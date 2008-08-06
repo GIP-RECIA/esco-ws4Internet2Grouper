@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT sarapis-group-service (comment?, (folder|folder-template)+) >
+<!ELEMENT folder (comment?, administrated-by?,(folder|folder-template|group|group-template)*) >
+<!ELEMENT folder-template (comment?, administrated-by?,(folder|folder-template|group|group-template)*) >
+<!ELEMENT group (comment?, administrated-by?, member-of*, members*) >
+<!ELEMENT group-template (comment?, administrated-by?, member-of*, members*) >
+<!ELEMENT comment ANY>
+<!ELEMENT administrated-by ANY>
+<!ELEMENT member-of ANY>
+<!ELEMENT members ANY>
+
+
+<!ATTLIST folder
+	extension CDATA #REQUIRED
+	display-extension CDATA #REQUIRED 
+	description CDATA #REQUIRED
+	preexisting CDATA #IMPLIED>
+
+<!ATTLIST folder-template
+	extension CDATA #REQUIRED
+	display-extension CDATA #REQUIRED 
+	description CDATA #REQUIRED>
+	
+<!ATTLIST group
+	extension CDATA #REQUIRED
+	display-extension CDATA #REQUIRED 
+	description CDATA #REQUIRED
+	preexisting CDATA #IMPLIED>
+	
+<!ATTLIST group-template
+	extension CDATA #REQUIRED
+	display-extension CDATA #REQUIRED 
+	description CDATA #REQUIRED>
+	
+<!ATTLIST administrated-by
+		  path CDATA #REQUIRED
+		  recursive CDATA #IMPLIED>	
+		  
+<!ATTLIST member-of
+		  path CDATA #REQUIRED>	
+
+<!ATTLIST members
+		  type CDATA #REQUIRED
+		  distribution-by CDATA #IMPLIED>	
+

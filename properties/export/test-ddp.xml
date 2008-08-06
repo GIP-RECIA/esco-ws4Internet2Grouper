@@ -1,0 +1,72 @@
+<sarapis-group-service>
+	<folder name="ESCO" display-name="ESCO-PORTAIL"
+		description="Racine ESCO-PORTAIL" pre-existant="true">
+
+		<administrated-by path="Etablissements:Admin:Centrale"
+			recursive="true" />
+
+		<folder name="Admin" display-name="Administration"
+			description="Racine des groupes d'administration"
+			pre-existant="true">
+
+			<group name="Centrale"
+				display-name="Groupe d'administratoin centrale" pre-existant="true" />
+
+			<folder name="Locale" display-name="Administration locale"
+				descriptin="Racine pour les groupes d'administration locale"
+				pre-existant="false">
+
+				<group-template name="Admin_%NOM_ETAB%_%UAI_ETAB%"
+					display-name="Administration établissement %NOM_ETAB%"
+					description="Administration locale pour l'établissement %NOM_ETAB%" />
+
+			</folder>
+		</folder>
+		<folder name="Etablissements" display-name="Etablissements"
+			description="Racine pour les groupes d'établissement"
+			pre-existant="false">
+			<folder-template name="%NOM_ETAB%_%UAI_ETAB%"
+				display-name="%NOM_ETAB% (%UAI_ETAB%)"
+				description="Racine pour les groupes de l'établissement %NOM_ETAB%">
+
+				<folder-template name="%NIVEAU%"
+					display-name="Niveau %NIVEAU%"
+					description="Racine pour les groupes de niveau">
+					
+					<administrated-by
+						path="ESCO:Etablissements:Admin:Admin_%NOM_ETAB%_%UAI_ETAB"
+						recursive="true" />
+
+					<group-template name="Profs_%CLASSE%"
+						display-name="Prof. %CLASSE%"
+						description="Enseignants de la classe %CLASSE%">
+						<member-of path="ESCO:Etablissements:%NOM_ETAB%_%UAI_ETAB%:Tous_%CLASSE%" />
+						<member-of path="ESCO:Etablissements:%NOM_ETAB%_%UAI_ETAB%:Profs" />
+						<members type="Teacher" distribution-attribute="%CLASSE%" />
+					</group-template>
+
+					<group-template name="%CLASSE%"
+						display-name="%CLASSE%"
+						description="Elèves de la classe %CLASSE%">
+						<member-of path="Tous_%CLASSE %" />
+						<members type="Student" distribution-attribute="%CLASSE%" />
+					</group-template>
+
+					<group-template name="Tous_%CLASSE%"
+						display-name="Tous %CLASSE%"
+						description="Enseignants et élèves de la classe %CLASSE%" />
+
+
+				</folder-template>
+
+				<group-template name="Profs" display-name="Profs"
+					description="Enseignants de l'établissment %ETABLISSEMENT%" />
+
+			</folder-template>
+		</folder>
+
+
+
+
+	</folder>
+</sarapis-group-service>

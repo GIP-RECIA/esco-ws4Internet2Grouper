@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+   <comment>
+    
+   </comment>
+
+        <entry key="sgs.root">ESCO</entry>
+        <entry key="sgs.user">GrouperSystem</entry>
+        <entry key="sgs.sep">:</entry>
+        
+        <entry key="sgs.admin.root">${sgs.root}${sgs.sep}Admin</entry>
+        <entry key="sgs.central.admin.group">${sgs.admin.root}${sgs.sep}Centrale</entry>
+       
+       
+        <entry key="sgs.local.admin.extension">Administration Locale</entry>
+        <entry key="sgs.local.admin.displayname">Administration Locale</entry>
+         <entry key="sgs.local.admin.description">Groupe d'administration locale pour l'établissement.</entry>
+        
+        <entry key="sgs.establishments.extension">Etablissements</entry>
+        <entry key="sgs.establishments.displayname">Etablissements</entry>
+        <entry key="sgs.establishments.description">Racine pour les groupes d'établissement</entry>
+        
+        <entry key="sgs.inter.establishments.extension">InterEtablissements</entry>
+        <entry key="sgs.inter.establishments.displayname">InterEtablissements</entry>
+        <entry key="sgs.inter.establishments.description">Racine pour les groupes inter-établissements</entry>
+        
+        <entry key="sgs.establishment.description">Groupe d'établissement</entry>
+        
+        <entry key="sgs.teachers.extension">Profs</entry>
+        <entry key="sgs.teachers.displayname">Professeurs</entry>
+        <entry key="sgs.teachers.description">Ensemble des Professeurs de l'établissement</entry>
+        
+        <entry key="sgs.students.extension">Eleves</entry>
+        <entry key="sgs.students.displayname">Eleves</entry>
+        <entry key="sgs.students.description">Ensemble des éleves de l'établissement</entry>
+        
+        <entry key="sgs.administrative.extension">Administratifs</entry>
+        <entry key="sgs.administrative.displayname">Administratifs</entry>
+        <entry key="sgs.administrative.description">Ensemble du personnel administratif</entry>
+        
+        <entry key="sgs.TOS.extension">TOS</entry>
+        <entry key="sgs.TOS.displayname">TOS</entry>
+        <entry key="sgs.TOS.description">Ensemble du personnel TOS</entry>
+        
+        <entry key="sgs.parents.extension">Parents</entry>
+        <entry key="sgs.parents.displayname">Parents</entry>
+        <entry key="sgs.parents.description">Ensemble des parents</entry>
+        
+         <entry key="sgs.all.extension.prefix">Tous_</entry>
+        <entry key="sgs.all.displayname.prefix">Tous_</entry>
+        <entry key="sgs.all.description.prefix">Tout l'établissement</entry>
+        
+        <entry key="sgs.discipline.extension">Disciplines</entry>
+        <entry key="sgs.discipline.displayname">Disciplines</entry>
+        <entry key="sgs.discipline.description">Racine pour les groupes basés sur les disciplines</entry>
+        
+        
+
+</properties>
+
+

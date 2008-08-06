@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sarapis-group-service SYSTEM "sarapis-groups.dtd">
+
+<sarapis-group-service>
+
+	<comment> Paramétrage du module d'alimentation des groupes de Sarapis.</comment>
+
+	<folder extension="ESCO" 
+            display-extension="ESCO-PORTAIL"
+		    description="Racine ESCO-PORTAIL" 
+            preexisting="true">
+
+        <comment>Racine des groupes pour ESCO-Portail</comment>
+
+		<administrated-by 
+             path="Etablissements:Admin:Centrale" 
+             recursive="true"/>
+
+
+		<folder extension="Admin" 
+                display-extension="Administration"
+			    description="Racine des groupes d'administration"
+			    preexisting="true">
+
+			<group extension="Centrale"
+				   description="Groupe des administrateurs centraux"
+				   display-extension="Groupe d'administration centrale" 
+                   preexisting="true" />
+            
+			<folder extension="Locale" 
+                    display-extension="Administration locale"
+				    description="Racine pour les groupes d'administration locale"
+				    preexisting="false">
+
+				<group-template extension="Admin_%NOM_ETAB%_%UAI_ETAB%"
+					            display-extension="Administration établissement %NOM_ETAB%"
+					            description="Administration locale pour l'établissement %NOM_ETAB%" />
+
+			</folder>
+
+		</folder>
+	
+
+	    <folder extension="Etablissements" 
+                display-extension="Etablissements"
+		        description="Racine pour les groupes d'établissement"
+		        preexisting="false">
+
+		    <folder-template extension="%NOM_ETAB%_%UAI_ETAB%"
+			                 display-extension="%NOM_ETAB% (%UAI_ETAB%)"
+			                 description="Racine pour les groupes de l'établissement %NOM_ETAB%">
+			                 
+                <administrated-by path="ESCO:Etablissements:Admin:Admin_%NOM_ETAB%_%UAI_ETAB"
+				                  recursive="true" />
+				                  
+			    <folder-template extension="%NIVEAU%"
+				                 display-extension="Niveau %NIVEAU%"
+				                 description="Racine pour les groupes de niveau">
+
+				    
+
+				    <group-template extension="Profs_%NOM_CLASSE%"  
+					                display-extension="Prof. %NOM_CLASSE%"
+					                description="Enseignants de la classe %NOM_CLASSE%">
+					    <member-of path="ESCO:Etablissements:%NOM_ETAB%_%UAI_ETAB%:Tous_%NOM_CLASSE%" />
+					    <member-of path="ESCO:Etablissements:%NOM_ETAB%_%UAI_ETAB%:Profs" />
+					    <members type="Teacher" distribution-by="%NOM_CLASSE%" />
+				    </group-template> 
+
+				    <group-template extension="%NOM_CLASSE%" 
+                                    display-extension="%NOM_CLASSE%" 
+					                description="Elèves de la classe %NOM_CLASSE%">
+					    <member-of path="Tous_%CLASSE %" />
+					    <members type="Student" distribution-by="%NOM_CLASSE%" />
+				    </group-template>
+
+			        <group-template extension="Tous_%NOM_CLASSE%"
+					                display-extension="Tous %NOM_CLASSE%"
+					                description="Enseignants et élèves de la classe %NOM_CLASSE%" />
+			    </folder-template>
+			    
+                <group extension="Profs" 
+                       display-extension="Profs"
+				       description="Enseignants de l'établissment %ETABLISSEMENT%" />
+
+		    </folder-template>
+	    </folder>
+    </folder>
+</sarapis-group-service>
+
+
