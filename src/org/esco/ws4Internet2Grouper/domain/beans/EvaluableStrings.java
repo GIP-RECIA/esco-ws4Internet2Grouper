@@ -4,20 +4,22 @@
 package org.esco.ws4Internet2Grouper.domain.beans;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Class used to facilitate the management of Evaluale strings arrays.
+ * Class used to group and facilitate the management of evaluable strings.
  * @author GIP RECIA - A. Deman
  * 1 août 08
  *
  */
-public class EvaluableStringArray implements Serializable {
+public class EvaluableStrings implements Serializable {
 
     /** Serial version UID.*/
     private static final long serialVersionUID = 949887214078985250L;
     
     /** The evaluable strings. */
-    private EvaluableString[] strings;
+    private List<EvaluableString> strings;
     
     /** Flag to determine if the instance is evaluated or not. 
      * This flags is not updated when one EvaluableString is evaluated directly.
@@ -25,12 +27,20 @@ public class EvaluableStringArray implements Serializable {
     private boolean evaluated;
     
     /**
-     * Builds an instance of EvaluableStringArray.
+     * Builds an instance of EvaluableStrings.
+     */
+    public EvaluableStrings() {
+        this.strings = new ArrayList<EvaluableString>();
+    }
+    
+    /**
+     * Builds an instance of EvaluableStrings.
      * @param strings The evaluable strings.
      */
-    public EvaluableStringArray(final EvaluableString[] strings) {
-        this.strings = strings;
+    public EvaluableStrings(final EvaluableString[] strings) {
+        this.strings = new ArrayList<EvaluableString>(strings.length);
         for (int i = 0; i < strings.length && evaluated; i++) {
+            this.strings.add(strings[i]);
             if (!strings[i].isEvaluated()) {
                 evaluated = false;
             }
@@ -38,16 +48,16 @@ public class EvaluableStringArray implements Serializable {
     }
     
     /**
-     * Builds an instance of EvaluableStringArray.
+     * Builds an instance of EvaluableStrings.
      * @param strings The strings to use.
      */
-    public EvaluableStringArray(final String[] strings) {
+    public EvaluableStrings(final String[] strings) {
         evaluated = true;
         if (strings != null) {
-            this.strings = new EvaluableString[strings.length];
+            this.strings = new ArrayList<EvaluableString>(strings.length);
             for (int i = 0; i < strings.length && evaluated; i++) {
-                this.strings[i] = new EvaluableString(strings[i]);
-                if (!this.strings[i].isEvaluated()) {
+                this.strings.add(new EvaluableString(strings[i]));
+                if (!this.strings.get(i).isEvaluated()) {
                     evaluated = false;
                 }
             }
@@ -55,35 +65,26 @@ public class EvaluableStringArray implements Serializable {
     }
     
     /**
-     * Builds an instance of EvaluableStringArray.
+     * Builds an instance of EvaluableStrings.
      * @param strings The string to use.
      * @param evaluated The evaluated flag.
      */
-    private EvaluableStringArray(final EvaluableString[] strings, final boolean evaluated) {
+    private EvaluableStrings(final List<EvaluableString> strings, final boolean evaluated) {
         this.strings = strings;
         this.evaluated = evaluated;
     }
     
     /**
      * Evaluates the evaluable strings contained in this instance.
-     * @param establishmentUAI The value to use as establishment UAI.
-     * @param establishmentName  The value to use as establishment name.
-     * @param level  The value to use as level.
-     * @param className  The value to use as class name.
-     * @param classDescription The value to use as class description.
+     * @param values The values to substitue to the template elements.
      * @return The evaluated instance.
      */
-    public EvaluableStringArray evaluate(final String establishmentUAI,
-            final String establishmentName,
-            final String level,
-            final String className,
-            final String classDescription) {
-        EvaluableString[] newEvalStrings = new EvaluableString[countEvaluableStrings()];
+    public EvaluableStrings evaluate(final String...values) {
+        List<EvaluableString> newEvalStrings = new ArrayList<EvaluableString>(countEvaluableStrings());
         for (int i = 0; i < countEvaluableStrings(); i++) {
-            newEvalStrings[i] = getEvaluableString(i).evaluate(establishmentUAI, 
-                    establishmentName, level, className, classDescription);
+            newEvalStrings.add(getEvaluableString(i).evaluate(values));
         }
-        return new EvaluableStringArray(newEvalStrings, true);
+        return new EvaluableStrings(newEvalStrings, true);
     }
     
     /**
@@ -112,7 +113,7 @@ public class EvaluableStringArray implements Serializable {
         if (strings == null) {
             return 0;
         }
-        return strings.length;
+        return strings.size();
     }
     
     /**
@@ -121,7 +122,23 @@ public class EvaluableStringArray implements Serializable {
      * @return The EvaluableString instance.
      */
     public EvaluableString getEvaluableString(final int index) {
-        return strings[index];
+        return strings.get(index);
+    }
+    
+    /**
+     * Adds an evaluable string.
+     * @param string The string to add.
+     */
+    public void addEvaluableString(final EvaluableString string) {
+        strings.add(string);
+    }
+    
+    /**
+     * Adds an evaluable string.
+     * @param string The string to add.
+     */
+    public void addEvaluableString(final String string) {
+        strings.add(new EvaluableString(string));
     }
 
     /**

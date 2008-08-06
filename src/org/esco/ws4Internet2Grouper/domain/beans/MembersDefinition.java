@@ -22,6 +22,9 @@ public class MembersDefinition implements Serializable {
 
     /** The type of subject that are members of a group. */
     public static enum MembersType {
+        /** All type.*/
+        ALL, 
+        
         /** The members are the teachers.*/
         TEACHER, 
 
@@ -35,7 +38,18 @@ public class MembersDefinition implements Serializable {
         TOS,
 
         /** The members are the parents. */
-        PARENT 
+        PARENT;
+
+        /**
+         * Parse a string to a MembersTypeInstance.
+         * @param value The value to parse.
+         * @return The MembersType that is equal to the value if it exists,
+         * null otherwise.
+         */
+        public static MembersType parseIgnoreCase(final String value) {
+                return valueOf(value.trim().toUpperCase());
+        } 
+           
     }
 
     /** The type of members of the group. */
@@ -71,7 +85,7 @@ public class MembersDefinition implements Serializable {
     public MembersDefinition(final TemplateElement distributionElement) {
         this.distributionElement = distributionElement;
     }
-
+    
     /**
      * Gives the string representation of this members definition.
      * @return The String that represents this members definition.

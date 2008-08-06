@@ -5,6 +5,8 @@ package org.esco.ws4Internet2Grouper.domain.beans;
 
 import edu.internet2.middleware.grouper.Stem;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -20,24 +22,11 @@ import java.io.Serializable;
  *
  */
 public class GroupOrFolderDefinition implements Serializable, Cloneable {
-    
-   
-    
-    /** Type of the definition. */
-    public static enum DefinitionType {
-
-        /** The definition denotes a group. */
-        GROUP, 
-
-        /** The definition denotes a folder. */
-        FOLDER
-    }
-    
     /** Serial version UID.*/
     private static final long serialVersionUID = 5441857690289508441L;
 
     /** Flag used to determine if the definition denotes a group or a folder. */
-    private DefinitionType definitionType;
+    private boolean folder;
    
     /** The description of the group or folder. */
     private EvaluableString description;
@@ -52,13 +41,16 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     private EvaluableString containingPath;
     
     /** The definition of the members of the group. */
-    private MembersDefinition[] membersDefinitions;
+    private List<MembersDefinition> membersDefinitions;
 
-    /** The groups that administrate this group or folder. */
-    private GroupOrFolderDefinition[] administratingGroups;
+    /** The paths of the groups that administrate this group or folder. */
+    private EvaluableStrings administratingGroupsPaths;
     
     /** The path of the groups that contains this group (may be a template). */
-    private EvaluableStringArray containingGroupsPaths;
+    private EvaluableStrings containingGroupsPaths;
+    
+    /** Flag used to determine if the group or folder is preexisting. */
+    private boolean preexisting = true;
 
     /** The hash code.*/
     private int hashcode;
@@ -72,87 +64,31 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     
     /**
      * Builds an instance of GroupOrFolderDefinition.
-     * @param definitionType The definition type, folder or group.
+     * @param folder True if the definition denotes a folder.
+     * @param preexisting The flag used to determine if the folder is built or is preexisting.
      * @param containingPath The containing path.
      * @param extension The extension of the group or folder.
      * @param displayExtension The display extension of the group or folder.
      * @param description The description of the group or folder.
      */
-    public GroupOrFolderDefinition(final DefinitionType definitionType,
+    public GroupOrFolderDefinition(final boolean folder, 
+            final boolean preexisting,
             final String containingPath,
             final String extension, 
             final String displayExtension,
             final String description) {
-        this.definitionType = definitionType;
-        this.containingPath = new EvaluableString(containingPath);
+        this.folder = folder;
+        this.preexisting = preexisting;
+        if (containingPath == null) {
+            this.containingPath = new EvaluableString(containingPath);
+        } else {
+            this.containingPath = new EvaluableString(containingPath);
+        }
         this.extension = new EvaluableString(extension);
         this.displayExtension = new EvaluableString(displayExtension);
         this.description = new EvaluableString(description);
     }
     
-   
-    
-    /**
-     * Builds an instance of Group Definition.
-     * @param containingPath The containing path.
-     * @param extension The extension of the group or folder.
-     * @param displayExtension The display extension of the group or folder.
-     * @param description The description of the group or folder.
-     * @param membersDefinitions The definitions for the members of the group (can be null if there
-     * is no members definition).
-     * @param containingGroupsPaths the paths of the groups this group belongs to (can also be null if there is 
-     * no membership).
-     * @param administratingGroups the groups with administrating privile on
-     * the group(s) denoted by this definition. This parameter can be null if there is
-     * no administrating group. 
-     * @return the instance of group definition.
-     */
-    public static GroupOrFolderDefinition buildGroupDefinition(final String containingPath,
-            final String extension, 
-            final String displayExtension,
-            final String description,
-            final MembersDefinition[] membersDefinitions,
-            final EvaluableStringArray containingGroupsPaths,
-            final GroupOrFolderDefinition[] administratingGroups) {
-        final GroupOrFolderDefinition groupDef = new GroupOrFolderDefinition(DefinitionType.GROUP,
-                containingPath,
-                extension,
-                displayExtension,
-                description);
-        groupDef.administratingGroups = administratingGroups;
-        groupDef.membersDefinitions = membersDefinitions;
-        groupDef.containingGroupsPaths = containingGroupsPaths;
-        return groupDef;
-    }
-    
-    /**
-     * Builds an instance of folder Definition.
-     * @param containingPath The containing path.
-     * @param extension The extension of the group or folder.
-     * @param displayExtension The display extension of the group or folder.
-     * @param description The description of the group or folder.
-     * @param membersDefinitions The definitions for the members of the group (can be null if there
-     * is no members definition).
-     * @param administratingGroups the groups with administrating privile on
-     * the group(s) denoted by this definition. This parameter can be null if there is
-     * no administrating group. 
-     * @return the instance of folder definition.
-     */
-    public static GroupOrFolderDefinition buildFolderDefinition(final String containingPath,
-            final String extension, 
-            final String displayExtension,
-            final String description,
-            final MembersDefinition[] membersDefinitions,
-            final GroupOrFolderDefinition[] administratingGroups) {
-        final GroupOrFolderDefinition folderDef = new GroupOrFolderDefinition(DefinitionType.GROUP,
-                containingPath,
-                extension,
-                displayExtension,
-                description);
-        folderDef.administratingGroups = administratingGroups;
-        folderDef.membersDefinitions = membersDefinitions;
-        return folderDef;
-    }
     
     /**
      * Evaluates a template by replacing the template elements by a value.
@@ -183,38 +119,30 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
                 level, className, classDescription);
         
         // Evaluates the containing Groups paths
-        EvaluableStringArray newContainingGroupsPaths = null;
+        EvaluableStrings newContainingGroupsPaths = null;
         if (countContainingGroupsPaths() > 0) {
             newContainingGroupsPaths = containingGroupsPaths.evaluate(establishmentUAI,
                          establishmentName, level, className, classDescription);
         }
         
         // Evaluates all the definitions corresponding to the groups with administrative privileges.
-        GroupOrFolderDefinition[] newAdministratingGroups = null;
-        if (countAdministratingGroups() > 0) {
-            newAdministratingGroups = new GroupOrFolderDefinition[countAdministratingGroups()];
-            for (int i = 0; i < countAdministratingGroups(); i++) {
-                if (administratingGroups[i].isTemplate()) {
-                    newAdministratingGroups[i] = administratingGroups[i].evaluateTemplate(establishmentUAI, 
-                            establishmentName, 
-                            level, 
-                            className, 
-                            classDescription);
-                } else {
-                    newAdministratingGroups[i] = administratingGroups[i];
-                }
-            }
+        EvaluableStrings newAdministratingGroupsPaths = null;
+        if (countAdministratingGroupsPaths() > 0) {
+            newAdministratingGroupsPaths = administratingGroupsPaths.evaluate(establishmentUAI, 
+                    establishmentName, level, className, classDescription);
+            
         }
         
         GroupOrFolderDefinition gofd = new GroupOrFolderDefinition();
-        gofd.definitionType = definitionType;
+        gofd.folder = folder;
+        gofd.preexisting = preexisting;
         gofd.containingPath = newContainingPath;
         gofd.extension = newExtension;
         gofd.displayExtension = newDisplayExtension;
         gofd.description = newDescription;
         gofd.membersDefinitions = membersDefinitions;
         gofd.containingGroupsPaths = newContainingGroupsPaths;
-        gofd.administratingGroups = newAdministratingGroups;
+        gofd.administratingGroupsPaths = newAdministratingGroupsPaths;
         
         return gofd;
  
@@ -227,6 +155,9 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      * @return The path.
      */
     public String getPath() {
+        if (isRoot()) {
+            return extension.getString();
+        }
         return containingPath + Stem.DELIM + extension;
     }
     
@@ -270,34 +201,26 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     }
     
     /**
-     * Adds Administrating groups.
-     * @param administratingGroups  The administrating groups.
-     */
-    public void setAdministratingGroups(final GroupOrFolderDefinition[] administratingGroups) {
-            this.administratingGroups = administratingGroups;
-    }
-        
-    /**
      * Tests if the definition denotes a group.
      * @return True if the definition denotes a group.
      */
-    boolean isGroup() {
-        return definitionType == DefinitionType.GROUP;
+    public boolean isGroup() {
+        return !folder;
     }
 
     /**
      * Tests if the definition denotes a folder.
      * @return True if the definition denotes a folder.
      */
-    boolean isFolder() {
-        return definitionType == DefinitionType.FOLDER;
+    public boolean isFolder() {
+        return folder;
     }
 
     /**
      * Tests if the method denotes a template definition.
      * @return True if the definition denotes a template.
      */
-    boolean isTemplate() {
+    public boolean isTemplate() {
         if (!extension.isEvaluated()) {
             return true;
         }
@@ -350,11 +273,11 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      * on the group or folder denoted by this definition.
      * @return The number of groups that have administration privileges.
      */
-    public int countAdministratingGroups() {
-        if (administratingGroups == null) {
+    public int countAdministratingGroupsPaths() {
+        if (administratingGroupsPaths == null) {
             return 0;
         }
-        return administratingGroups.length;
+        return administratingGroupsPaths.countEvaluableStrings();
     }
     
     /**
@@ -362,8 +285,19 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      * @param index The position of the group in the list.
      * @return the administrating group at the specified position
      */
-    public GroupOrFolderDefinition getAdministrativeGroup(final int index) {
-        return administratingGroups[index];
+    public String getAdministratingGroupPath(final int index) {
+        return administratingGroupsPaths.getEvaluableString(index).getString();
+    }
+    
+    /**
+     * Adds an administrating group path.
+     * @param administratingGroupPath The path of the group with administration privileges.
+     */
+    public void addAdministratingGroupPath(final String administratingGroupPath) {
+        if (administratingGroupsPaths == null) {
+            administratingGroupsPaths = new EvaluableStrings();
+        }
+        administratingGroupsPaths.addEvaluableString(administratingGroupPath);
     }
     
     /**
@@ -375,7 +309,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         if (membersDefinitions == null) {
             return 0;
         }
-        return membersDefinitions.length;
+        return membersDefinitions.size();
     }
     
     /**
@@ -384,7 +318,18 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      * @return The members definiton at the specified position.
      */
     public MembersDefinition getMembersDefiniton(final int index) {
-        return membersDefinitions[index];
+        return membersDefinitions.get(index);
+    }
+    
+    /**
+     * Adds a definition of members.
+     * @param membersDefinition The members definition to add to this group.
+     */
+    public void addMembersDefinition(final MembersDefinition membersDefinition) {
+        if (membersDefinitions == null) {
+            membersDefinitions = new ArrayList<MembersDefinition>();
+        }
+        membersDefinitions.add(membersDefinition);
     }
     
     /**
@@ -409,6 +354,17 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     }
     
     /**
+     * Adds a containing group path.
+     * @param containingGroupPath The path of the containing group.
+     */
+    public void addContainingGroupPath(final String containingGroupPath) {
+        if (containingGroupsPaths == null) {
+            containingGroupsPaths = new EvaluableStrings();
+        }
+        containingGroupsPaths.addEvaluableString(containingGroupPath);
+    }
+    
+    /**
      * Gives the string representaton of this group or folder definition.
      * @return The string that represents this definition.
      * @see java.lang.Object#toString()
@@ -416,15 +372,22 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     @Override
     public String toString() {
 
-        final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder("(");
 
-        if (isGroup()) {
-            sb.append("(Group, ");
-        } else {
-            sb.append("(Folder,");
+        if (isPreexisting()) {
+            sb.append("Preexisting ");
         }
         
-        sb.append(containingPath);
+        if (isGroup()) {
+            sb.append("Group, ");
+        } else {
+            sb.append("Folder,");
+        }
+        if (isRoot()) {
+            sb.append("<root>");
+        } else {
+            sb.append(containingPath);
+        }
         sb.append(", ");
         sb.append(extension);
         sb.append(", ");
@@ -448,13 +411,13 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
             sb.append(containingGroupsPaths);
         }
 
-        if (countAdministratingGroups() > 0) {
+        if (countAdministratingGroupsPaths() > 0) {
             sb.append(", Admin. grp: ");
-            for (int i = 0; i < countAdministratingGroups(); i++) {
+            for (int i = 0; i < countAdministratingGroupsPaths(); i++) {
                 if (i > 0) {
                     sb.append(", ");
                 }
-                sb.append(getAdministrativeGroup(i));
+                sb.append(getAdministratingGroupPath(i));
             }
             
         }
@@ -462,22 +425,20 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         sb.append(")");
         return sb.toString();
     }
-    
-   
-    
-//    public static final void main(final String[] argsv) {
-//       GroupOrFolderDefinition gof1 = new GroupOrFolderDefinition(GroupOrFolderDefinition.DefinitionType.GROUP,
-//               "eraezra/araeraae", "erareara%NOM_ETAB%_%UAI_ETAB% erea%NOM_CLASSE%zrae",
-//               "%NOM_ETAB%_%UAI_ETAB%", "description %DESC_CLASSE%"); 
-//        System.out.println("1=>" + gof1);
-//        System.out.println("2=>" 
-//                + gof1.evaluateTemplate("establishmentUAI", 
-//                        "establishmentName", 
-//                        "level", 
-//                        "className", 
-//                        "classDescription"));
-//        
-//    }
-    
 
+    /**
+     * Getter for preexisting.
+     * @return preexisting.
+     */
+    public boolean isPreexisting() {
+        return preexisting;
+    }
+    
+    /**
+     * Tests if the current definition is a root.
+     * @return True if the definition has no containing path.
+     */
+    public boolean isRoot() {
+        return containingPath.isEmpty();
+    }
 }

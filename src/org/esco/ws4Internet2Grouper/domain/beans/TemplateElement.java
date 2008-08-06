@@ -3,6 +3,9 @@
  */
 package org.esco.ws4Internet2Grouper.domain.beans;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 /**
  * Element of a template definition.
@@ -11,32 +14,31 @@ package org.esco.ws4Internet2Grouper.domain.beans;
  */
 public class TemplateElement {
     
-    /** Template element for the etablishment name. */
-    public static final TemplateElement ETAB_NAME = new TemplateElement("NOM_ETAB");
-    
-    /** Template element for the etablishment UAI. */
-    public static final TemplateElement ETAB_UAI = new TemplateElement("UAI_ETAB");
-
-    /** Template element for the level. */
-    public static final TemplateElement LEVEL = new TemplateElement("NIVEAU");
-
-    /** Template element for the class. */
-    public static final TemplateElement CLASS_NAME = new TemplateElement("NOM_CLASSE");
-
-    /** Template element for the class description. */
-    public static final TemplateElement CLASS_DESC = new TemplateElement("DESC_CLASSE");
-    
     /** Separator for the template elements. */
     private static final char SEPARATOR = '%';
     
     /** Counter used to buikd the masks. */
     private static int maskCount;
-
+    
+    /** The available elements (ordered for the evaluation process).*/
+    private static  Set<TemplateElement> availableTemplateElements = new HashSet<TemplateElement>();
+    
     /** Key for the template. */
     private String key;
     
     /** Mask associated to this template element. */
     private int mask = nextMask();
+    
+    /** Registers default template elements. */
+    static {
+        
+        // The order is important.
+        registerTemplateElement(new TemplateElement("UAI_ETAB"));
+        registerTemplateElement(new TemplateElement("NOM_ETAB"));
+        registerTemplateElement(new TemplateElement("NIVEAU"));
+        registerTemplateElement(new TemplateElement("NOM_CLASSE"));
+        registerTemplateElement(new TemplateElement("DESC_CLASSE"));
+    }
     
     /**
      * Builds an instance of TemplateElement.
@@ -138,6 +140,38 @@ public class TemplateElement {
     }
     
     /**
+     * Adds a template element, so this elements can be used in the static methods.
+     * <b>Note :</b> The order of the registration is important as it as consequences
+     * on the evaluation process.
+     * @param templateElement The template element to register.
+     */
+    public static void registerTemplateElement(final TemplateElement templateElement) {
+        availableTemplateElements.add(templateElement);
+    }
+    
+    /**
+     * Removes all the registered template elements.
+     */
+    public static void removeAllRegisteredTemplateElements() {
+        availableTemplateElements.clear();
+    }
+    
+    /**
+     * Givs a template element.
+     * @param key The key of the template element to retrieve.
+     * @return The template element if found, null otherwise.
+     */
+    public static TemplateElement getAvailableTemplateelementByKey(final String key) {
+        final String trimedKey = key.trim();
+        for (TemplateElement templateElt : availableTemplateElements) {
+            if (templateElt.key.equals(trimedKey)) {
+                return templateElt;
+            }
+        }
+        return null;
+    }
+    
+    /**
      * Computes the mask for all the template elements.
      * @param src The string that may contain the template elements.
      * @return The mask corresponding to all the template elements 
@@ -145,11 +179,10 @@ public class TemplateElement {
      */
     public static int computeTemplateMask(final String src) {
         int currentMask = 0;
-        currentMask = ETAB_UAI.markIfNecessary(src, currentMask);
-        currentMask = ETAB_NAME.markIfNecessary(src, currentMask);
-        currentMask = LEVEL.markIfNecessary(src, currentMask);
-        currentMask = CLASS_NAME.markIfNecessary(src, currentMask);
-        return CLASS_DESC.markIfNecessary(src, currentMask);
+        for (TemplateElement templateElt : availableTemplateElements) {
+            currentMask = templateElt.markIfNecessary(src, currentMask);
+        }
+        return currentMask;
     }
     
     /**
@@ -170,24 +203,17 @@ public class TemplateElement {
      * Evaluates a source string for alla the available Template elements.
      * @param testedMask The mask associated to the source string.
      * @param src The source string.
-     * @param etabUAIValue The value for the establishment UAI.
-     * @param etabNameValue The value for the establishement name.
-     * @param levelValue The value for the level.
-     * @param classNameValue The value for the class name.
-     * @param classDescriptionValue The value for the class description.
+     * @param values The values used to evaluates the template elements.
+     * in the same order than the registered template elements.
      * @return The evaluated string.
      */
     public static String evaluate(final int testedMask, final String src,
-            final String etabUAIValue,
-            final String etabNameValue,
-            final String levelValue,
-            final String classNameValue,
-            final String classDescriptionValue) {
-        String evaluated = ETAB_UAI.evaluate(testedMask, src, etabUAIValue);
-        evaluated = ETAB_NAME.evaluate(testedMask, evaluated, etabNameValue);
-        evaluated = LEVEL.evaluate(testedMask, evaluated, levelValue);
-        evaluated = CLASS_NAME.evaluate(testedMask, evaluated, classNameValue);
-        evaluated = CLASS_DESC.evaluate(testedMask, evaluated, classDescriptionValue);
+            final String...values) {
+        String evaluated = src;
+        int index = 0;
+        for (TemplateElement templateElt : availableTemplateElements) {
+            evaluated = templateElt.evaluate(testedMask, evaluated, values[index++]);
+        }
         return evaluated;
     }
     
@@ -201,5 +227,32 @@ public class TemplateElement {
             return false;
         }
         return testedString.contains(key);
+    }
+    
+    /**
+     * Tests if a string is a template element.
+     * @param str The string to test.
+     * @return True if the string is equal to the key of one of
+     * the registered template elements.
+     */
+    public static boolean isTemplateElement(final String str) {
+        if (str == null || "".equals(str)) {
+            return false;
+        }
+        final String trimedStr = str.trim();
+        for (TemplateElement templateElt : availableTemplateElements) {
+            if (templateElt.key.equals(trimedStr)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Getter for availableTemplateElements.
+     * @return availableTemplateElements.
+     */
+    public static Set<TemplateElement> getAvailableTemplateElements() {
+        return availableTemplateElements;
     }
 }

@@ -27,27 +27,22 @@ public class EvaluableString implements Serializable {
      * @param string The orioginal string.
      */
     public EvaluableString(final String string) {
-        this.string = string;
+        if (string == null) {
+            this.string = "";
+        } else {
+            this.string = string;
+        }
         this.templateMask = TemplateElement.computeTemplateMask(this.string);
     }
 
     /**
      * Evaluates the string by replacing the template elements by a value.
-     * @param establishmentUAI The value to use as establishment UAI.
-     * @param establishmentName  The value to use as establishment name.
-     * @param level  The value to use as level.
-     * @param className  The value to use as class name.
-     * @param classDescription The value to use as class description.
+     * @param values The substitution values used to perform the evaluation.
      * @return The evaluated instance.
      */
-    public EvaluableString evaluate(final String establishmentUAI,
-            final String establishmentName,
-            final String level,
-            final String className,
-            final String classDescription) {
+    public EvaluableString evaluate(final String...values) {
         final String newString = TemplateElement.evaluate(templateMask, 
-                string, establishmentUAI, establishmentName, level, className, 
-                classDescription);
+                string, values);
         return new EvaluableString(newString);
     }
 
@@ -109,6 +104,14 @@ public class EvaluableString implements Serializable {
      */
     public boolean isEvaluated() {
         return templateMask == 0;
+    }
+    
+    /**
+     * Tests if the evaluable string is empty.
+     * @return True if the evaluable string is empty.
+     */
+    public boolean isEmpty() {
+        return "".equals(string);
     }
 
 
