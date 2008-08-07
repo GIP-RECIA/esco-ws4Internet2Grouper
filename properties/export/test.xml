@@ -5,6 +5,21 @@
 
 	<comment> Paramétrage du module d'alimentation des groupes de Sarapis.</comment>
 
+	<ordered-template-elements>  
+	
+		<comment>
+				Valeurs pouvant être substituées
+				dans les definitions de modèles de groupes ou dossiers.
+				L'ordre est important et intervient dans le
+				processus d'évaluation des modèles.
+        </comment>
+		<template-element key="%UAI_ETAB%"/>
+		<template-element key="%NOM_ETAB%"/>
+		<template-element key="%NIVEAU%"/>
+		<template-element key="%NOM_CLASSE%"/>
+		<template-element key="%DESC_CLASSE%"/>
+	</ordered-template-elements>
+
 	<folder extension="ESCO" 
             display-extension="ESCO-PORTAIL"
 		    description="Racine ESCO-PORTAIL" 
@@ -13,7 +28,7 @@
         <comment>Racine des groupes pour ESCO-Portail</comment>
 
 		<administrated-by 
-             path="Etablissements:Admin:Centrale" 
+             path=".:Admin:Centrale" 
              recursive="true"/>
 
 
@@ -50,7 +65,7 @@
 			                 display-extension="%NOM_ETAB% (%UAI_ETAB%)"
 			                 description="Racine pour les groupes de l'établissement %NOM_ETAB%">
 			                 
-                <administrated-by path="ESCO:Etablissements:Admin:Admin_%NOM_ETAB%_%UAI_ETAB"
+                <administrated-by path="ESCO:Admin:Locale:Admin_%NOM_ETAB%_%UAI_ETAB%"
 				                  recursive="true" />
 				                  
 			    <folder-template extension="%NIVEAU%"
@@ -62,7 +77,7 @@
 				    <group-template extension="Profs_%NOM_CLASSE%"  
 					                display-extension="Prof. %NOM_CLASSE%"
 					                description="Enseignants de la classe %NOM_CLASSE%">
-					    <member-of path="ESCO:Etablissements:%NOM_ETAB%_%UAI_ETAB%:Tous_%NOM_CLASSE%" />
+					    <member-of path="..:Tous_%NOM_CLASSE%" />
 					    <member-of path="ESCO:Etablissements:%NOM_ETAB%_%UAI_ETAB%:Profs" />
 					    <members type="Teacher" distribution-by="%NOM_CLASSE%" />
 				    </group-template> 
@@ -70,7 +85,7 @@
 				    <group-template extension="%NOM_CLASSE%" 
                                     display-extension="%NOM_CLASSE%" 
 					                description="Elèves de la classe %NOM_CLASSE%">
-					    <member-of path="Tous_%CLASSE %" />
+					    <member-of path="..:Tous_%NOM_CLASSE%" />
 					    <members type="Student" distribution-by="%NOM_CLASSE%" />
 				    </group-template>
 
@@ -81,7 +96,7 @@
 			    
                 <group extension="Profs" 
                        display-extension="Profs"
-				       description="Enseignants de l'établissment %ETABLISSEMENT%" />
+				       description="Enseignants de l'établissment %NOM_ETAB%" />
 
 		    </folder-template>
 	    </folder>
