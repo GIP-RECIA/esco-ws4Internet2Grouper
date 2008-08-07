@@ -45,6 +45,9 @@ public class SGSAttributeHandler implements Serializable {
     /** Distribution by attribute. */
     public static final String DISTRIB_BY_ATTR = "distribution-by";
     
+    /** Key attribute. */
+    public static final String KEY_ATTR = "key";
+    
     /** Serial version UID.*/
     private static final long serialVersionUID = 8391732649319550004L;
     
@@ -75,6 +78,9 @@ public class SGSAttributeHandler implements Serializable {
     
     /** Distribution by value. */
     private String distributionBy;
+    
+    /** Key for a template element. */
+    private String key;
     
     /** 
      * Builds an instance of SGSAttributeHandler.
@@ -136,6 +142,8 @@ public class SGSAttributeHandler implements Serializable {
             }
         } else if (DISTRIB_BY_ATTR.equals(trimedAttrName)) {
             distributionBy = attributeValue.trim();
+        } else if (KEY_ATTR.equals(trimedAttrName)) {
+            key = attributeValue.trim();
         }
     }
     
@@ -236,5 +244,13 @@ public class SGSAttributeHandler implements Serializable {
      */
     public String getDistributionBy() {
         return distributionBy;
+    }
+
+    /**
+     * Getter for key.
+     * @return key.
+     */
+    public String getKey() {
+        return key;
     }
 }

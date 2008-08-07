@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.esco.ws4Internet2Grouper.exceptions.UnknownTemplateElementTempateElement;
+
 /**
  * Class used to group and facilitate the management of evaluable strings.
  * @author GIP RECIA - A. Deman
@@ -50,8 +52,10 @@ public class EvaluableStrings implements Serializable {
     /**
      * Builds an instance of EvaluableStrings.
      * @param strings The strings to use.
+     * @throws UnknownTemplateElementTempateElement If there is a template element in a string
+     * which is unknown.
      */
-    public EvaluableStrings(final String[] strings) {
+    public EvaluableStrings(final String[] strings) throws UnknownTemplateElementTempateElement {
         evaluated = true;
         if (strings != null) {
             this.strings = new ArrayList<EvaluableString>(strings.length);
@@ -78,8 +82,10 @@ public class EvaluableStrings implements Serializable {
      * Evaluates the evaluable strings contained in this instance.
      * @param values The values to substitue to the template elements.
      * @return The evaluated instance.
+     * @throws UnknownTemplateElementTempateElement If there is a template element in a string
+     * which is unknown.
      */
-    public EvaluableStrings evaluate(final String...values) {
+    public EvaluableStrings evaluate(final String...values) throws UnknownTemplateElementTempateElement {
         List<EvaluableString> newEvalStrings = new ArrayList<EvaluableString>(countEvaluableStrings());
         for (int i = 0; i < countEvaluableStrings(); i++) {
             newEvalStrings.add(getEvaluableString(i).evaluate(values));
@@ -136,8 +142,10 @@ public class EvaluableStrings implements Serializable {
     /**
      * Adds an evaluable string.
      * @param string The string to add.
+     * @throws UnknownTemplateElementTempateElement If there is a template element in the string
+     * which is unknown.
      */
-    public void addEvaluableString(final String string) {
+    public void addEvaluableString(final String string) throws UnknownTemplateElementTempateElement {
         strings.add(new EvaluableString(string));
     }
 

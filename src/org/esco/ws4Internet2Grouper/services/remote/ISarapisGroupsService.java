@@ -8,7 +8,7 @@ import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
  * 3 juin 08
  *
  */
-public interface IEstablishmentGroupsService {
+public interface ISarapisGroupsService {
 
     /**
      * Removes a person from all his establishment groups.

@@ -3,8 +3,8 @@
  */
 package org.esco.ws4Internet2Grouper.domain.beans;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -21,7 +21,7 @@ public class TemplateElement {
     private static int maskCount;
     
     /** The available elements (ordered for the evaluation process).*/
-    private static  Set<TemplateElement> availableTemplateElements = new HashSet<TemplateElement>();
+    private static  List<TemplateElement> availableTemplateElements = new ArrayList<TemplateElement>();
     
     /** Key for the template. */
     private String key;
@@ -30,16 +30,16 @@ public class TemplateElement {
     private int mask = nextMask();
     
     /** Registers default template elements. */
-    static {
-        
-        // The order is important.
-        registerTemplateElement(new TemplateElement("UAI_ETAB"));
-        registerTemplateElement(new TemplateElement("NOM_ETAB"));
-        registerTemplateElement(new TemplateElement("NIVEAU"));
-        registerTemplateElement(new TemplateElement("NOM_CLASSE"));
-        registerTemplateElement(new TemplateElement("DESC_CLASSE"));
-    }
-    
+//    static {
+//        
+//        // The order is important.
+//        registerTemplateElement(new TemplateElement("UAI_ETAB"));
+//        registerTemplateElement(new TemplateElement("NOM_ETAB"));
+//        registerTemplateElement(new TemplateElement("NIVEAU"));
+//        registerTemplateElement(new TemplateElement("NOM_CLASSE"));
+//        registerTemplateElement(new TemplateElement("DESC_CLASSE"));
+//    }
+//    
     /**
      * Builds an instance of TemplateElement.
      * @param key The key of the template.
@@ -141,12 +141,24 @@ public class TemplateElement {
     
     /**
      * Adds a template element, so this elements can be used in the static methods.
-     * <b>Note :</b> The order of the registration is important as it as consequences
+     * <b>Note :</b> The order of the registration is important as it has consequences
      * on the evaluation process.
      * @param templateElement The template element to register.
      */
     public static void registerTemplateElement(final TemplateElement templateElement) {
-        availableTemplateElements.add(templateElement);
+        if (!availableTemplateElements.contains(templateElement)) {
+            availableTemplateElements.add(templateElement);
+        }
+    }
+    
+    /**
+     * Adds a template element, so this elements can be used in the static methods.
+     * <b>Note :</b> The order of the registration is important as it has consequences
+     * on the evaluation process.
+     * @param key The key of the template element to register.
+     */
+    public static void registerTemplateElement(final String key) {
+        registerTemplateElement(new TemplateElement(key));
     }
     
     /**
@@ -210,9 +222,8 @@ public class TemplateElement {
     public static String evaluate(final int testedMask, final String src,
             final String...values) {
         String evaluated = src;
-        int index = 0;
-        for (TemplateElement templateElt : availableTemplateElements) {
-            evaluated = templateElt.evaluate(testedMask, evaluated, values[index++]);
+        for (int i = 0; i < Math.min(availableTemplateElements.size(), values.length); i++) {
+            evaluated = availableTemplateElements.get(i).evaluate(testedMask, evaluated, values[i]);
         }
         return evaluated;
     }
@@ -247,12 +258,45 @@ public class TemplateElement {
         }
         return false;
     }
+    /**
+     * Checks the validity of a String that may contain a template element.
+     * @param string The tested string.
+     * @return True if the tested string contains a template element.
+     */
+    public static boolean isValid(final String string) {
+        int index1;
+        for (index1 = 0; index1 < string.length(); index1++) {
+            if (string.charAt(index1) == SEPARATOR) {
+                boolean found = false;
+                int index2;
+                for (index2 = index1 + 1; index2 < string.length() && !found; index2++) {
+                    if (string.charAt(index2) == SEPARATOR) {
+                        found = true;
+                        String subStr = string.substring(index1, index2 + 1);
+                        boolean valid = false;
+                        for (int k = 0; k < availableTemplateElements.size() && !valid; k++) {
+                            valid = availableTemplateElements.get(k).isContainedBy(subStr);
+                            
+                        }
+                        if (!valid) {
+                            return false;
+                        } 
+                    }
+                }
+                if (!found) {
+                    return false;
+                }
+                    index1 = index2 - 1;
+            }
+        }
+        return true;
+    }
 
     /**
      * Getter for availableTemplateElements.
      * @return availableTemplateElements.
      */
-    public static Set<TemplateElement> getAvailableTemplateElements() {
+    public static List<TemplateElement> getAvailableTemplateElements() {
         return availableTemplateElements;
     }
 }

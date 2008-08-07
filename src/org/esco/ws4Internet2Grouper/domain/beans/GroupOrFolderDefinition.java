@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.esco.ws4Internet2Grouper.exceptions.UnknownTemplateElementTempateElement;
+
 
 /**
  * Class for the definition of groups or folder.
@@ -70,13 +72,15 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      * @param extension The extension of the group or folder.
      * @param displayExtension The display extension of the group or folder.
      * @param description The description of the group or folder.
+     * @throws UnknownTemplateElementTempateElement If there is a template element in a string
+     * which is unknown.
      */
     public GroupOrFolderDefinition(final boolean folder, 
             final boolean preexisting,
             final String containingPath,
             final String extension, 
             final String displayExtension,
-            final String description) {
+            final String description) throws UnknownTemplateElementTempateElement {
         this.folder = folder;
         this.preexisting = preexisting;
         if (containingPath == null) {
@@ -92,44 +96,32 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     
     /**
      * Evaluates a template by replacing the template elements by a value.
-     * @param establishmentUAI The value to use as establishment UAI.
-     * @param establishmentName  The value to use as establishment name.
-     * @param level  The value to use as level.
-     * @param className  The value to use as class name.
-     * @param classDescription The value to use as class description.
+     * @param values The values to used to perform the evaluation of the template elements.
      * @return The GroupOrFolderDefinition with the correct values.
+     * @throws UnknownTemplateElementTempateElement If there is a template element in a string
+     * which is unknown.
      */
-    public GroupOrFolderDefinition evaluateTemplate(final String establishmentUAI,
-            final String establishmentName,
-            final String level,
-            final String className,
-            final String classDescription) {
+    public GroupOrFolderDefinition evaluateTemplate(final String...values) throws UnknownTemplateElementTempateElement {
         
         
-        final EvaluableString newExtension = extension.evaluate(establishmentUAI, 
-                establishmentName, level, className, classDescription); 
+        final EvaluableString newExtension = extension.evaluate(values); 
 
-        final EvaluableString newDisplayExtension = displayExtension.evaluate(establishmentUAI, establishmentName, 
-                level, className, classDescription);
+        final EvaluableString newDisplayExtension = displayExtension.evaluate(values);
         
-        final EvaluableString newDescription = description.evaluate(establishmentUAI, establishmentName, 
-                level, className, classDescription);
+        final EvaluableString newDescription = description.evaluate(values);
         
-        final EvaluableString newContainingPath = description.evaluate(establishmentUAI, establishmentName, 
-                level, className, classDescription);
+        final EvaluableString newContainingPath = description.evaluate(values);
         
         // Evaluates the containing Groups paths
         EvaluableStrings newContainingGroupsPaths = null;
         if (countContainingGroupsPaths() > 0) {
-            newContainingGroupsPaths = containingGroupsPaths.evaluate(establishmentUAI,
-                         establishmentName, level, className, classDescription);
+            newContainingGroupsPaths = containingGroupsPaths.evaluate(values);
         }
         
         // Evaluates all the definitions corresponding to the groups with administrative privileges.
         EvaluableStrings newAdministratingGroupsPaths = null;
         if (countAdministratingGroupsPaths() > 0) {
-            newAdministratingGroupsPaths = administratingGroupsPaths.evaluate(establishmentUAI, 
-                    establishmentName, level, className, classDescription);
+            newAdministratingGroupsPaths = administratingGroupsPaths.evaluate(values);
             
         }
         
@@ -145,8 +137,6 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         gofd.administratingGroupsPaths = newAdministratingGroupsPaths;
         
         return gofd;
- 
-       
     }
     
     /**
@@ -292,8 +282,11 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     /**
      * Adds an administrating group path.
      * @param administratingGroupPath The path of the group with administration privileges.
+     * @throws UnknownTemplateElementTempateElement If there is a template element in a string
+     * which is unknown.
      */
-    public void addAdministratingGroupPath(final String administratingGroupPath) {
+    public void addAdministratingGroupPath(final String administratingGroupPath) 
+    throws UnknownTemplateElementTempateElement {
         if (administratingGroupsPaths == null) {
             administratingGroupsPaths = new EvaluableStrings();
         }
@@ -356,8 +349,10 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     /**
      * Adds a containing group path.
      * @param containingGroupPath The path of the containing group.
+     * @throws UnknownTemplateElementTempateElement If there is a template element in a string
+     * which is unknown.
      */
-    public void addContainingGroupPath(final String containingGroupPath) {
+    public void addContainingGroupPath(final String containingGroupPath) throws UnknownTemplateElementTempateElement {
         if (containingGroupsPaths == null) {
             containingGroupsPaths = new EvaluableStrings();
         }

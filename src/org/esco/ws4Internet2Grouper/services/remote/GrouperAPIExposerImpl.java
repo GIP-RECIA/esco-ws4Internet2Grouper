@@ -9,7 +9,6 @@ import edu.internet2.middleware.grouper.GroupNameFilter;
 import edu.internet2.middleware.grouper.GroupNotFoundException;
 import edu.internet2.middleware.grouper.GrouperQuery;
 import edu.internet2.middleware.grouper.GrouperSession;
-import edu.internet2.middleware.grouper.InternalSourceAdapter;
 import edu.internet2.middleware.grouper.Member;
 import edu.internet2.middleware.grouper.MemberFinder;
 import edu.internet2.middleware.grouper.MemberNotFoundException;
@@ -17,13 +16,11 @@ import edu.internet2.middleware.grouper.Membership;
 import edu.internet2.middleware.grouper.Owner;
 import edu.internet2.middleware.grouper.QueryException;
 import edu.internet2.middleware.grouper.QueryFilter;
-import edu.internet2.middleware.grouper.SessionException;
 import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.StemNameFilter;
 import edu.internet2.middleware.grouper.StemNotFoundException;
 import edu.internet2.middleware.grouper.SubjectFinder;
-import edu.internet2.middleware.subject.SourceUnavailableException;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;
@@ -40,6 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
 import org.esco.ws4Internet2Grouper.domain.beans.GrouperDTO;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
+import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
 import org.jasig.portal.groups.IGroupConstants;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -53,11 +51,11 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
     /** Id for the subject used to manage the Grouper sessions. */
     private static final String GRP_SUBJ_SESS_ID = "GrouperSystem";
 
-    /** Type of the subject used to manage the Grouper sessions. */
-    private static final String GRP_SUBJ_SESS_TYPE = "application";
-
     /** Logger. */
     private static final Log LOGGER = LogFactory.getLog(GrouperAPIExposerImpl.class);
+    
+    /** used to create sessions. */
+    private GrouperSessionUtil sessionUtil = new GrouperSessionUtil(GRP_SUBJ_SESS_ID);
 
     /**
      * Constructor for GrouperAPIExposerImpl.
@@ -66,48 +64,6 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
         /*  */
     }
 
-    /**
-     * Creates a Grouper session instance.
-     * @return The session object.
-     */
-    private GrouperSession createSession() {
-
-        try {
-            final Subject subject = SubjectFinder.findById(GRP_SUBJ_SESS_ID, 
-                    GRP_SUBJ_SESS_TYPE, InternalSourceAdapter.ID);
-            final GrouperSession session = GrouperSession.start(subject);
-            LOGGER.debug("Starting a new session: " + session.getSessionId());
-            return session;
-
-        } catch (SourceUnavailableException e) {
-            LOGGER.error(e, e);
-            throw new WS4GrouperException(e);
-        } catch (SubjectNotFoundException e) {
-            LOGGER.error(e, e);
-            throw new WS4GrouperException(e);
-        } catch (SubjectNotUniqueException e) {
-            LOGGER.error(e, e);
-            throw new WS4GrouperException(e);
-        } catch (SessionException e) {
-            LOGGER.error(e, e);
-            throw new WS4GrouperException(e);
-        }
-    }
-
-    /**
-     * Closes a grouper session.
-     * @param session The session to close.
-     */
-    private void stopSession(final GrouperSession session) {
-        try {
-            LOGGER.debug("Stopping the session : " + session.getSessionId());
-            session.stop();
-        } catch (SessionException e) {
-            LOGGER.error(e, e);
-        }
-    }
-    
-    
     /**
      * Creates an instance of GrouperDTO.
      * @param g The group used to build the instance.
@@ -336,7 +292,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
      */
     public boolean hasMember(final String name, final String subjectId) {
 
-        final GrouperSession session = createSession();
+        final GrouperSession session = sessionUtil.createSession();
         final GroupOrStem gos = fetchGroupOrStem(session, name);
         boolean member = false;
 
@@ -357,7 +313,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             LOGGER.debug(sb);
         }
 
-        stopSession(session);
+        sessionUtil.stopSession(session);
         return member;
     }
 
@@ -369,7 +325,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
      */
     public GrouperDTO findGroupOrStem(final String key) {
 
-        final GrouperSession session = createSession();
+        final GrouperSession session = sessionUtil.createSession();
         final GroupOrStem gos = fetchGroupOrStem(session, key);
         GrouperDTO infos = null;
 
@@ -385,7 +341,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             LOGGER.debug(sb);
         }
 
-        stopSession(session);
+        sessionUtil.stopSession(session);
         return infos;
     }
 
@@ -395,7 +351,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
      * @return The list of the groups in the specified stem its child stems. 
      */ 
     public GrouperDTO[] getAllRootGroupsFromStem(final String key) {
-        final GrouperSession session = createSession();
+        final GrouperSession session = sessionUtil.createSession();
         final Stem s = fetchStem(session, key);
         Set<GrouperDTO> groups = null;
 
@@ -431,7 +387,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             LOGGER.debug(sb);
         }
 
-        stopSession(session);
+        sessionUtil.stopSession(session);
 
         if (groups == null) {
             return null;
@@ -448,7 +404,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
     public GrouperDTO[] getMemberGroups(final String key) {
 
         List<GrouperDTO> memberGroups = null;
-        final GrouperSession session = createSession();
+        final GrouperSession session = sessionUtil.createSession();
         final GroupOrStem gos = fetchGroupOrStem(session, key);
 
         if (gos != null) {
@@ -507,7 +463,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             LOGGER.debug(sb.toString());
         }
 
-        stopSession(session);
+        sessionUtil.stopSession(session);
         if (memberGroups == null) {
             return null;
         }
@@ -523,7 +479,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
     public GrouperDTO[] getMemberSubjects(final String key) {
 
         List<GrouperDTO> memberSubjects = null;
-        final GrouperSession session = createSession();
+        final GrouperSession session = sessionUtil.createSession();
         final GroupOrStem gos = fetchGroupOrStem(session, key);
 
         if (gos != null) {
@@ -564,7 +520,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             LOGGER.debug(sb.toString());
         }
 
-        stopSession(session);
+        sessionUtil.stopSession(session);
         if (memberSubjects == null) {
             return null;
         }
@@ -587,7 +543,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             return null;
         }
 
-        final GrouperSession session = createSession();
+        final GrouperSession session = sessionUtil.createSession();
         final Member member = fetchMember(session, subject);
         GrouperDTO[] infos = null;
         if (member != null) { 
@@ -612,7 +568,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             LOGGER.debug(sb);
         }
 
-        stopSession(session);
+        sessionUtil.stopSession(session);
         return infos;
     }
 
@@ -628,7 +584,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
     public GrouperDTO[] getMembershipsForGroupOrStem(final String key) {
 
         GrouperDTO[] infos = null;
-        final GrouperSession session = createSession();
+        final GrouperSession session = sessionUtil.createSession();
         final GroupOrStem gos = fetchGroupOrStem(session, key);
 
         if (gos != null) {
@@ -668,7 +624,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             LOGGER.debug(sb);
         }
 
-        stopSession(session);
+        sessionUtil.stopSession(session);
         return infos;
     }
 
@@ -693,7 +649,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
     @SuppressWarnings("unchecked")
     public GrouperDTO[] searchForGroupsOrStems(final String query, final int method) {
 
-        final GrouperSession session = createSession();
+        final GrouperSession session = sessionUtil.createSession();
         final Stem root = StemFinder.findRootStem(session);
         final QueryFilter groupFilter = new GroupNameFilter(query, root);
         final QueryFilter stemFilter = new StemNameFilter(query, root);
@@ -770,14 +726,12 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             LOGGER.debug(sb.toString());
         }
 
-        stopSession(session);
+        sessionUtil.stopSession(session);
 
         if (filtred == null) {
             return null;
         }
         return filtred.toArray(new GrouperDTO[filtred.size()]);
-
-
     }
 
     /**

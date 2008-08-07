@@ -5,6 +5,8 @@ package org.esco.ws4Internet2Grouper.domain.beans;
 
 import java.io.Serializable;
 
+import org.esco.ws4Internet2Grouper.exceptions.UnknownTemplateElementTempateElement;
+
 /**
  * String tha may contain (or not) a template element.
  * @author GIP RECIA - A. Deman
@@ -25,22 +27,29 @@ public class EvaluableString implements Serializable {
     /**
      * Builds an instance of EvaluableString.
      * @param string The orioginal string.
+     * @throws UnknownTemplateElementTempateElement If there is a template element in the string
+     * which is unknown.
      */
-    public EvaluableString(final String string) {
+    public EvaluableString(final String string) throws UnknownTemplateElementTempateElement {
         if (string == null) {
             this.string = "";
         } else {
             this.string = string;
         }
         this.templateMask = TemplateElement.computeTemplateMask(this.string);
+        if (!TemplateElement.isValid(string)) {
+            throw new UnknownTemplateElementTempateElement(string);
+        }
     }
 
     /**
      * Evaluates the string by replacing the template elements by a value.
      * @param values The substitution values used to perform the evaluation.
      * @return The evaluated instance.
+     * @throws UnknownTemplateElementTempateElement If there is a template element in the string
+     * which is unknown.
      */
-    public EvaluableString evaluate(final String...values) {
+    public EvaluableString evaluate(final String...values) throws UnknownTemplateElementTempateElement {
         final String newString = TemplateElement.evaluate(templateMask, 
                 string, values);
         return new EvaluableString(newString);
