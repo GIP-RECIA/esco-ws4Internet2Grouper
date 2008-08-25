@@ -40,7 +40,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     private EvaluableString displayExtension;
 
     /** The containing path of the folder or group. */
-    private EvaluableString containingPath;
+    private ReversibleEvaluableString containingPath;
     
     /** The definition of the members of the group. */
     private List<MembersDefinition> membersDefinitions;
@@ -53,7 +53,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     
     /** Flag used to determine if the group or folder is preexisting. */
     private boolean preexisting = true;
-
+    
     /** The hash code.*/
     private int hashcode;
     
@@ -83,11 +83,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
             final String description) throws UnknownTemplateElementTempateElement {
         this.folder = folder;
         this.preexisting = preexisting;
-        if (containingPath == null) {
-            this.containingPath = new EvaluableString(containingPath);
-        } else {
-            this.containingPath = new EvaluableString(containingPath);
-        }
+        this.containingPath = new ReversibleEvaluableString(containingPath);
         this.extension = new EvaluableString(extension);
         this.displayExtension = new EvaluableString(displayExtension);
         this.description = new EvaluableString(description);
@@ -98,10 +94,8 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      * Evaluates a template by replacing the template elements by a value.
      * @param values The values to used to perform the evaluation of the template elements.
      * @return The GroupOrFolderDefinition with the correct values.
-     * @throws UnknownTemplateElementTempateElement If there is a template element in a string
-     * which is unknown.
      */
-    public GroupOrFolderDefinition evaluateTemplate(final String...values) throws UnknownTemplateElementTempateElement {
+    public GroupOrFolderDefinition evaluateTemplate(final String...values) {
         
         
         final EvaluableString newExtension = extension.evaluate(values); 
@@ -110,20 +104,20 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         
         final EvaluableString newDescription = description.evaluate(values);
         
-        final EvaluableString newContainingPath = description.evaluate(values);
+        final ReversibleEvaluableString newContainingPath = containingPath.evaluate(values);
         
         // Evaluates the containing Groups paths
-        EvaluableStrings newContainingGroupsPaths = null;
-        if (countContainingGroupsPaths() > 0) {
-            newContainingGroupsPaths = containingGroupsPaths.evaluate(values);
-        }
+//        EvaluableStrings newContainingGroupsPaths = null;
+//        if (countContainingGroupsPaths() > 0) {
+//            newContainingGroupsPaths = containingGroupsPaths.evaluate(values);
+//        }
         
         // Evaluates all the definitions corresponding to the groups with administrative privileges.
-        EvaluableStrings newAdministratingGroupsPaths = null;
-        if (countAdministratingGroupsPaths() > 0) {
-            newAdministratingGroupsPaths = administratingGroupsPaths.evaluate(values);
-            
-        }
+//        EvaluableStrings newAdministratingGroupsPaths = null;
+//        if (countAdministratingGroupsPaths() > 0) {
+//            newAdministratingGroupsPaths = administratingGroupsPaths.evaluate(values);
+//            
+//        }
         
         GroupOrFolderDefinition gofd = new GroupOrFolderDefinition();
         gofd.folder = folder;
@@ -133,9 +127,8 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         gofd.displayExtension = newDisplayExtension;
         gofd.description = newDescription;
         gofd.membersDefinitions = membersDefinitions;
-        gofd.containingGroupsPaths = newContainingGroupsPaths;
-        gofd.administratingGroupsPaths = newAdministratingGroupsPaths;
-        
+        gofd.containingGroupsPaths = containingGroupsPaths;
+        gofd.administratingGroupsPaths = administratingGroupsPaths;
         return gofd;
     }
     
@@ -223,6 +216,12 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         if (!containingPath.isEvaluated()) {
             return true;
         }
+        if (isRoot()) {
+            return true;
+        }
+        if (containingGroupsPaths == null) {
+            return true;
+        }
         return !containingGroupsPaths.isEvaluated();
     }
 
@@ -258,6 +257,14 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         return containingPath.getString();
     }
            
+    /**
+     * Gives the containing path as a template.
+     * @return containingPath as a template.
+     */
+    public String getContainingPathAsTemplate() {
+        return containingPath.getTemplateString();
+    }
+    
     /**
      * Gives the number of groups who have administration privileges
      * on the group or folder denoted by this definition.

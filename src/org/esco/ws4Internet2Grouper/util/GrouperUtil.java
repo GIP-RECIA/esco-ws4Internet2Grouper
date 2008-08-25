@@ -2,29 +2,47 @@ package org.esco.ws4Internet2Grouper.util;
 
 
 
+
+
+
 import edu.internet2.middleware.grouper.GrantPrivilegeException;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupAddException;
+import edu.internet2.middleware.grouper.GroupDeleteException;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GroupModifyException;
 import edu.internet2.middleware.grouper.GroupNotFoundException;
 import edu.internet2.middleware.grouper.GrouperRuntimeException;
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.InsufficientPrivilegeException;
+import edu.internet2.middleware.grouper.Member;
+import edu.internet2.middleware.grouper.MemberAddException;
+import edu.internet2.middleware.grouper.MemberDeleteException;
+import edu.internet2.middleware.grouper.MemberFinder;
+import edu.internet2.middleware.grouper.MemberNotFoundException;
+import edu.internet2.middleware.grouper.Membership;
 import edu.internet2.middleware.grouper.SchemaException;
 import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.StemAddException;
 import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.StemModifyException;
 import edu.internet2.middleware.grouper.StemNotFoundException;
+import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.subject.Subject;
+import edu.internet2.middleware.subject.SubjectNotFoundException;
+import edu.internet2.middleware.subject.SubjectNotUniqueException;
+
+
+import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.esco.ws4Internet2Grouper.cache.SGSCache;
+import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
+import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
+import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
+import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
-
 
 /**
  * Util class for the grouper groups or stems manipulations.
@@ -37,17 +55,12 @@ public class GrouperUtil implements InitializingBean {
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(GrouperUtil.class);
 
-    /** Cache. */
-    private final SGSCache sgsCache = SGSCache.instance();
-
-    /** The central administration group. */
-    private Group centralAdminGroup;
-
-    /** Used to add administration privileges to the central admin group. */
-    private Subject centralAdminGroupAsSubject;
-
-    /** The user parameters. */
-    private SGSParameters parameters;
+    /** The definition manager. */
+    private GroupOrFolderDefinitionsManager definitionsManager;
+    
+    /** Flag to detemine the behaviour for the empty groups when removing
+     * a member. */
+    private Boolean deleteEmptyGroups;
 
     /**
      * Builds an instance of GrouperUtil.
@@ -63,49 +76,290 @@ public class GrouperUtil implements InitializingBean {
      */
     public void afterPropertiesSet() throws Exception {
 
-        Assert.notNull(this.parameters, 
-                "property parameters of class " + this.getClass().getName() 
+        Assert.notNull(this.definitionsManager, 
+                "property definitionManager of class " + this.getClass().getName() 
                 + " can not be null");
+        
+        Assert.notNull(this.deleteEmptyGroups, 
+                "property deleteEmptyGroups of class " + this.getClass().getName() 
+                + " can not be null");
+    }
 
-        // Retrieves and stores central admin group, wich is used used very often.
-        final GrouperSessionUtil sessionUtil = new GrouperSessionUtil(parameters.getUser());
-        final GrouperSession session = sessionUtil.createSession();
-        try {
+    /**
+     * Checks if a group or a folder exists in Grouper.
+     * @param session The Grouper session.
+     * @param definition The definition of the group or folder to look for.
+     * @return True if the group or folder exists in Grouper.
+     */
+    public boolean exists(final GrouperSession session, 
+            final GroupOrFolderDefinition definition) {
+        return retrieve(session, definition) != null;
+    }
 
-            // Central administration group. 
-            final String centralAdminGroupName = parameters.getCentralAdminGroup();
-            centralAdminGroup = GroupFinder.findByName(session, centralAdminGroupName);
-            centralAdminGroupAsSubject = centralAdminGroup.toSubject();
-            
+    /**
+     * Handles the administration privileges for a folder.
+     * This privileges are added if the folder is empty and is not a preexistiong one.
+     * @param session The grouper session/
+     * @param groupOrStem The folder.
+     * @param definition The folder definition which contains the administration privileges
+     * to add.
+     * @param values The values used to evaluate the template elements.
+     */
+    private void handleAdministrationPrivilegesForFolder(final GrouperSession session, 
+            final GroupOrStem groupOrStem, 
+            final GroupOrFolderDefinition definition,
+            final String...values) {
 
-        } finally {
-            sessionUtil.stopSession(session);
+        if (!definition.isPreexisting()) {
+            final Stem folder = groupOrStem.asStem();
+
+            if (folder.getChildStems().size() == 0 && folder.getChildGroups().size() == 0) {
+                // The administration privileges are checked for the empty folders.
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("The folder " 
+                            + definition.getPath() 
+                            + " is empty so the administration privileges are checked.");
+                }
+                // Adds administration privileges to some groups if needed.
+                for (int i = 0; i < definition.countAdministratingGroupsPaths(); i++) {
+                    final String path = definition.getAdministratingGroupPath(i);
+                    GroupOrFolderDefinition adminGroupDef = definitionsManager.getDefinition(path, values);
+                    GroupOrStem adminGroupWrapper = retrieveOrCreate(session, adminGroupDef, values);
+
+                    final Subject subj = adminGroupWrapper.asGroup().toSubject();
+                    try {
+
+                        if (!folder.hasCreate(subj)) {
+                            folder.grantPriv(subj, Constants.CREATE_PRIV);
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("Adding create privilege to the group: " + adminGroupDef.getPath() 
+                                        + " on the folder: " + definition.getPath());
+                            }
+                        }
+
+                        if (!folder.hasStem(subj)) {
+                            folder.grantPriv(subj, Constants.STEM_PRIV);
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("Adding stem privilege to the group: " + adminGroupDef.getPath() 
+                                        + " on the folder: " + definition.getPath());
+                            }
+                        }
+
+                    } catch (GrantPrivilegeException e) {
+                        LOGGER.fatal(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (InsufficientPrivilegeException e) {
+                        LOGGER.fatal(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (SchemaException e) {
+                        LOGGER.fatal(e, e);
+                        throw new WS4GrouperException(e);
+                    }
+
+
+
+                } 
+            } else {
+                // The folder is not empty: administration privileges should be right as they
+                // are checked before adding the first child.
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("The folder " 
+                            + definition.getPath() 
+                            + " is not empty so the administration privileges are supposed to be valid.");
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles the administration privileges for a group.
+     * This privileges are added if the group is empty and is not a preexisting one.
+     * @param session The grouper session.
+     * @param groupOrStem The group.
+     * @param definition The group definition which contains the administration privileges
+     * to add.
+     * @param values The values used to evaluate the template elements.
+     */
+    private void handleAdministrationPrivilegesForGroup(final GrouperSession session, 
+            final GroupOrStem groupOrStem, 
+            final GroupOrFolderDefinition definition,
+            final String...values) {
+
+
+        if (!definition.isPreexisting()) {
+
+            final Group group = groupOrStem.asGroup();
+
+            if (group.getImmediateMembers().size() == 0) {
+
+                // The administration privileges are checked for the empty groups.
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("The group" 
+                            + " " + definition.getPath() 
+                            + " is empty so the administration privileges are checked.");
+                }
+
+                for (int i = 0; i < definition.countAdministratingGroupsPaths(); i++) {
+                    final String path = definition.getAdministratingGroupPath(i);
+                    final GroupOrFolderDefinition adminGroupDef = definitionsManager.getDefinition(path, values);
+                    final GroupOrStem adminGroupWrapper = retrieveOrCreate(session, adminGroupDef, values);
+                    final Subject subj = adminGroupWrapper.asGroup().toSubject(); 
+                    try {
+                        if (!group.hasAdmin(subj)) {
+                            group.grantPriv(subj, Constants.ADMIN_PRIV);
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("Adding administration privileges to the group: " 
+                                        + adminGroupDef.getPath() + " on the group: " + definition.getPath());
+                            }
+                        }
+                    } catch (GrantPrivilegeException e) {
+                        LOGGER.fatal(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (InsufficientPrivilegeException e) {
+                        LOGGER.fatal(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (SchemaException e) {
+                        LOGGER.fatal(e, e);
+                        throw new WS4GrouperException(e);
+                    }
+                }
+
+            } else {
+                // The folder is not empty: administration privileges should be right as they
+                // are checked before adding the first child.
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("The group " 
+                            + definition.getPath() 
+                            + " is not empty so the administration privileges are supposed to be valid.");
+                }
+            }
         }
     }
 
 
     /**
-     * Creates a folder and sets the rights for the central admin group.
+     * Handles the memeberships of a group.
+     * The group is added as member of the groups sepecified in the group definition
+     * if it is empty and is not a preexisting group. 
      * @param session The grouper session.
-     * @param folderSummary The information concerning the folder to create.
-     * @return The folder if it has been created, null otherwise (for instance if the containing folder 
-     * does not exist).
+     * @param groupOrStem The group.
+     * @param definition The group definition which contains the administration privileges
+     * to add.
+     * @param values The values used to evaluate the template elements.
      */
-    protected Stem createFolder(final GrouperSession session,
-            final GroupOrFolderSummary folderSummary) {
+    private void handleMembershipsForGroup(final GrouperSession session, 
+            final GroupOrStem groupOrStem, 
+            final GroupOrFolderDefinition definition,
+            final String...values) {
 
-        try {
-            final Stem containingFolder = retrieveFolder(session, folderSummary.getContainingPath());
-            if (containingFolder == null) {
-                return null;
+        if (!definition.isPreexisting()) {
+            final Group group = groupOrStem.asGroup();
+
+            if (group.getImmediateMembers().size() == 0) {
+
+                // The memeberships are checked for the empty groups.
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("The group " 
+                            + definition.getPath() 
+                            + " is empty so the memberships for this group are checked.");
+                }
+
+                // Adds this group as a member of other group(s) if needed.
+                for (int i = 0; i < definition.countContainingGroupsPaths(); i++) {
+                    final String path = definition.getContainingGroupPath(i);
+                    final GroupOrFolderDefinition containingGroupDef = definitionsManager.getDefinition(path, values);
+                    final GroupOrStem containingGroupWrapper = retrieveOrCreate(session, containingGroupDef, values);
+                    final Group containingGroup =  containingGroupWrapper.asGroup();
+                    try {
+                        final Subject subj = group.toSubject();
+                        if (!containingGroup.hasImmediateMember(subj)) {
+                            containingGroup.addMember(subj);
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("Adding the group: " + definition.getPath() 
+                                        + " as a member of: " + containingGroupDef.getPath());
+                            }
+                        }
+                    } catch (GrouperRuntimeException e) {
+                        LOGGER.fatal(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (InsufficientPrivilegeException e) {
+                        LOGGER.fatal(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (MemberAddException e) {
+                        LOGGER.fatal(e, e);
+                        throw new WS4GrouperException(e);
+                    }
+                }
+            } else {
+                // The folder is not empty: memberships should be ok as they
+                // are checked before adding the first child.
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("The group " 
+                            + definition.getPath() 
+                            + " is not empty so the memberships are supposed to be valid.");
+                }
             }
-            final Stem folder = containingFolder.addChildStem(folderSummary.getExtension(), 
-                    folderSummary.getExtension());
-            folder.setDescription(folderSummary.getExtension());
-            folder.grantPriv(centralAdminGroupAsSubject, Constants.STEM_PRIV);
-            folder.grantPriv(centralAdminGroupAsSubject, Constants.CREATE_PRIV);
-            sgsCache.cacheFolder(folder);
-            return folder;
+        }
+    }
+
+    /**
+     * Creates a group or a folder.
+     * @param session The Grouper session.
+     * @param definition The definition of the group or folder to create.
+     * @param values The values used  to evaluate templates.
+     * @return The created group or folder.
+     */
+    protected GroupOrStem create(final GrouperSession session, 
+            final GroupOrFolderDefinition definition, final String...values) {
+        try {
+
+            final String containingPath = definition.getContainingPathAsTemplate();
+            final GroupOrFolderDefinition containingDef = definitionsManager.getDefinition(containingPath, values);
+            final GroupOrStem containingFolderWrapper = retrieveOrCreate(session, containingDef, values);
+
+            // The containing folder can'be retrieved.
+            if (containingFolderWrapper == null) {
+                final String msg = "Error the containing folder of the group " 
+                    + definition.getPath() + " cant be retrieved.";
+                LOGGER.fatal(msg);
+                throw new WS4GrouperException(msg);
+            }
+
+            // Checks the administration privileges for the containing folder.
+            handleAdministrationPrivilegesForFolder(session, containingFolderWrapper, containingDef, values);
+            final Stem containingFolder = containingFolderWrapper.asStem();
+
+            // The defintion denotes a folder to create.
+            if (definition.isFolder()) {
+
+                final Stem folder = containingFolder.addChildStem(definition.getExtension(), 
+                        definition.getDisplayExtension());
+                folder.setDescription(definition.getDescription());
+
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info(">>> Folder " + definition.getPath() + " created.");
+                }
+
+                final GroupOrStem gos = new GroupOrStem(folder); 
+                handleAdministrationPrivilegesForFolder(session, gos, definition, values);
+                return gos;
+            }
+
+            // The definition denotes a group to create.
+            final Group group = containingFolder.addChildGroup(definition.getExtension(), 
+                    definition.getDisplayExtension());
+            group.setDescription(definition.getDescription());
+
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info(">>> Group " + definition.getPath() + " created.");
+            }
+
+            final GroupOrStem gos = new GroupOrStem(group); 
+            handleAdministrationPrivilegesForGroup(session, gos, definition, values);
+            handleMembershipsForGroup(session, gos, definition, values);
+            return gos;
+
         } catch (InsufficientPrivilegeException e) {
             LOGGER.fatal(e, e);
             throw new WS4GrouperException(e);
@@ -115,247 +369,274 @@ public class GrouperUtil implements InitializingBean {
         } catch (StemModifyException e) {
             LOGGER.fatal(e, e);
             throw new WS4GrouperException(e);
-        } catch (SchemaException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        } catch (GrantPrivilegeException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        }
-    }
-
-
-    /**
-     * Creates a folder and assign privileges to a local administration group (which may be created too).
-     * @param session The grouper session.
-     * @param folderSummary Information about the folder to created.
-     * @param localAdminGroupSummary Information about the local administration group.
-     * If this group can't be retrieved or created then the folder is not created.
-     * @return The folder if it has been created, null otherwise.
-     */
-    public Stem createLocallyAdministratedFolder(final GrouperSession session,
-            final GroupOrFolderSummary folderSummary,
-            final GroupOrFolderSummary localAdminGroupSummary) {
-
-        final Group localAdminGroup = retrieveOrCreateGroup(session, 
-                localAdminGroupSummary);
-        if (localAdminGroup == null) {
-            return null;
-        }
-
-        final Stem folder = createFolder(session, folderSummary);
-
-        if (folder == null) {
-            return null;
-        }
-
-        try {
-            folder.grantPriv(localAdminGroup.toSubject(), Constants.STEM_PRIV);
-            folder.grantPriv(localAdminGroup.toSubject(), Constants.CREATE_PRIV);
-            sgsCache.cacheFolder(folder);
-            return folder;
-        } catch (GrouperRuntimeException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        } catch (SchemaException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        } catch (InsufficientPrivilegeException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        } catch (GrantPrivilegeException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        }
-    }    
-
-    /**
-     * Retrieves a folder.
-     * @param session The grouper session.
-     * @param name the name of the folder to retrieve.
-     * @return The stem if it is retrieved, null otherwhise.
-     */
-    public Stem retrieveFolder(final GrouperSession session,
-            final String name) {
-
-        // Try to retrieve the folder from the cache.
-        final Stem cachedFolder = sgsCache.getFolder(name);
-        if (cachedFolder != null) {
-            return cachedFolder;
-        }
-
-        // The folder has to be retrieved from Grouper.
-        try {
-            final Stem folder = StemFinder.findByName(session, name);
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Searching for folder " + name + ": Found.");
-            }
-            return folder;
-        } catch (StemNotFoundException e) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Searching for folder " + name + ": Not found.");
-            }
-
-            return null;
-        }
-    }
-
-    /**
-     * Retrieves or creates a folder.
-     * @param session The grouper session.
-     * @param folderSummary Informations about the folder to created.
-     * @return Null if the folder does not exist and cannot be created, 
-     * the retrieved/created stem.
-     */
-    public Stem retrieveOrCreateFolder(final GrouperSession session,
-            final GroupOrFolderSummary folderSummary) {
-
-        final Stem folder = retrieveFolder(session, folderSummary.getPath());
-
-        // The folder is retrieved
-        if (folder != null) {
-            return folder;
-        }
-        // The folder is created.
-        return createFolder(session, 
-                folderSummary);
-    }
-
-    /**
-     * Retrieves or creates a local administrated folder. The local group that has administration privileges
-     * on the folder may be created too.
-     * @param session The grouper session.
-     * @param folderSummary Information about the folder to created.
-     * @param localAdminGroupSummary Information about the local administration group.
-     * If this group can't be retrieved or created, then the folder is not created.
-     * @return Null if the folder does not exist and cannot be created, 
-     * the retrieved/created folder otherwise.
-     */
-    public Stem retrieveOrCreateLocallyAdministratedFolder(final GrouperSession session,
-            final GroupOrFolderSummary folderSummary,
-            final GroupOrFolderSummary localAdminGroupSummary) {
-
-        final Stem folder = retrieveFolder(session, folderSummary.getPath());
-
-        // The folder is retrieved
-        if (folder != null) {
-            return folder;
-        }
-        // The folder is created.
-        return createLocallyAdministratedFolder(session, 
-                folderSummary,
-                localAdminGroupSummary);
-    }
-
-    /**
-     * Creates a group in a given folder and add administration privileges to the central administration
-     * group.
-     * @param session The grouper session.
-     * @param groupSummary The informations about the group to create.
-     * @return The new group if it can be created, null otherwise.
-     */
-    public Group createGroup(final GrouperSession session, 
-            final GroupOrFolderSummary groupSummary) {
-        try {
-            final Stem containingFolder = retrieveFolder(session, groupSummary.getContainingPath());
-            if (containingFolder == null) {
-                return null;
-            }
-
-            final Group group = containingFolder.addChildGroup(groupSummary.getExtension(), 
-                    groupSummary.getDisplayname());
-            group.setDescription(groupSummary.getDescription());
-            group.grantPriv(centralAdminGroupAsSubject, Constants.ADMIN_PRIV);
-            sgsCache.cacheGroup(group);
-            return group;
         } catch (GroupAddException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        } catch (InsufficientPrivilegeException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        } catch (SchemaException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        } catch (GrantPrivilegeException e) {
             LOGGER.fatal(e, e);
             throw new WS4GrouperException(e);
         } catch (GroupModifyException e) {
             LOGGER.fatal(e, e);
             throw new WS4GrouperException(e);
-        }
-    }
-
-    /**
-     * Creates a group in a given folder and add administration privileges to the central administration
-     * group and to a specified local administration group (wich may be created).
-     * @param session The grouper session.
-     * @param groupSummary The information baout the group to create.
-     * @param localAdminGroupSummary The informations about the local administraton group.
-     * If this group can't be retrieved or created then the group is not created.
-     * is searched or created. 
-     * @return The new group if it can be created, null otherwise.
-     */
-    public Group createLocallyAdministratedGroup(final GrouperSession session, 
-            final GroupOrFolderSummary groupSummary,
-            final GroupOrFolderSummary localAdminGroupSummary) {
-
-        final Group localAdminGroup = retrieveOrCreateGroup(session, 
-                localAdminGroupSummary);
-
-        if (localAdminGroup == null) {
-            return null;
-        }
-
-        final Group group = createGroup(session, groupSummary);
-
-        if (group == null) {
-            return null;
-        }
-
-        try {
-            group.grantPriv(localAdminGroup.toSubject(), Constants.ADMIN_PRIV);
-            return group;
         } catch (GrouperRuntimeException e) {
             LOGGER.fatal(e, e);
             throw new WS4GrouperException(e);
-        } catch (SchemaException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
+        }
+    }
+    
+    
+
+    /**
+     * Removes a member from its groups.
+     * @param session The grouper session.
+     * @param userId The id of the member.
+     * @param attributes The attributes of the member.
+     * @return The Grouper operation result.
+     */
+    public GrouperOperationResultDTO removeFromAllGroups(final GrouperSession session, 
+            final String userId, final String...attributes) {
+        try {
+            final Subject subject = SubjectFinder.findById(userId);
+            final Member member = MemberFinder.findBySubject(session, subject);
+            @SuppressWarnings("unchecked")
+            final Set memberships = member.getImmediateMemberships();
+            
+            for (Object o : memberships) {
+                final Membership m = (Membership) o;
+                m.getGroup().deleteMember(subject);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Removes subject: " + userId 
+                            + " from group: " + m.getGroup());
+                }
+                
+                handlesEmptyGroupIfNeeded(m.getGroup());
+                
+                
+            }
+            return GrouperOperationResultDTO.RESULT_OK;
+            
+        } catch (SubjectNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (SubjectNotUniqueException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (MemberNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
         } catch (InsufficientPrivilegeException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
-        } catch (GrantPrivilegeException e) {
-            LOGGER.fatal(e, e);
-            throw new WS4GrouperException(e);
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (MemberDeleteException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (GroupNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (WS4GrouperException e) {
+            return new GrouperOperationResultDTO(e);
+        }
+    }
+    
+    /**
+     * Handles the a group which may (or not) be empty.
+     * Depending on the strategy, the group may be deleted if it is empty.
+     * This method does nothing if the group is not empty. 
+     * @param group The group The group to handle.
+     */
+    protected void handlesEmptyGroupIfNeeded(final Group group) {
+        if (deleteEmptyGroups) {
+            
+            // Checks if the group has to be deleted.
+            final int nbMembers = group.getEffectiveMembers().size(); 
+             if (nbMembers == 0) {
+                 // The group has to be deleted.
+                 final String groupName = group.getName();
+                 try {
+                    group.delete();
+                } catch (GroupDeleteException e) {
+                    LOGGER.error(e, e);
+                    throw new WS4GrouperException(e);
+                } catch (InsufficientPrivilegeException e) {
+                    LOGGER.error(e, e);
+                    throw new WS4GrouperException(e);
+                }
+                 if (LOGGER.isInfoEnabled()) {
+                     LOGGER.info("The group " + groupName + " is deleted as it was empty.");
+                 }
+                 
+             } else {
+                 // The group stil contains members so it is not deleted.
+                 if (LOGGER.isDebugEnabled()) {
+                     LOGGER.debug("The group " + group.getName() 
+                             + " contains now: " 
+                             + nbMembers + " member(s) - Not deleted.");
+                 }
+             }
+        }
+    }
+    /**
+     * Removes a memeber of a group.
+     * @param session The grouper session. 
+     * @param definition The group definitnion.
+     * @param subjectId The subject Id.
+     * @return The result of the Grouper operation.
+     */
+    public GrouperOperationResultDTO removeMember(final GrouperSession session,
+            final GroupOrFolderDefinition definition, 
+            final String subjectId) {
+        try {
+            final Subject subj = SubjectFinder.findById(subjectId);
+            final GroupOrStem groupWrapper = retrieve(session, definition);
+            if (groupWrapper == null) {
+                final String msg = "The group: " + definition.getPath()  
+                + " can't be retrieved while removing member: "
+                + subjectId + ".";
+                LOGGER.error(msg);
+                throw new WS4GrouperException(msg);
+            }
+            final Group group = groupWrapper.asGroup();
+            if (group.hasMember(subj)) {
+                
+                // The subject is removed from the group.
+                group.deleteMember(subj);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Subject: " + subjectId 
+                            + " removed from group: " 
+                            +  definition.getPath() 
+                            + ".");
+                }
+            } else {
+                
+                // The subject can't be removed from the group.
+                final String msg = "Subject: " + subjectId 
+                            + " is not a memeber of: " 
+                            +  definition.getPath() 
+                            + ", so it can't be removed from it.";
+                LOGGER.error(msg);
+                throw new WS4GrouperException("msg");
+                
+            }
+            
+            handlesEmptyGroupIfNeeded(group);
+            
+            return GrouperOperationResultDTO.RESULT_OK;
+            
+        } catch (SubjectNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (SubjectNotUniqueException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (InsufficientPrivilegeException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (MemberDeleteException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (WS4GrouperException e) {
+            return new GrouperOperationResultDTO(e);
         }
     }
 
     /**
-     * Retrieves a group.
-     * @param session The grouper session.
-     * @param name the name of the group to retrieve.
-     * @return The group if it is retrieved, null otherwhise.
+     * Adds a subject as a member of a group.
+     * @param session The grouper session. 
+     * @param definition The group definitnion.
+     * @param subjectId The subject Id.
+     * @param values The values used to evaluate templates.
+     * @return The result of the Grouper operation.
      */
-    public Group retrieveGroup(final GrouperSession session,
-            final String name) {
+    public GrouperOperationResultDTO addMember(final GrouperSession session,
+            final GroupOrFolderDefinition definition, 
+            final String subjectId,
+            final String...values) {
+        try {
+            final Subject subj = SubjectFinder.findById(subjectId);
+            final GroupOrStem groupWrapper = retrieveOrCreate(session, definition, values);
 
-        // Try to retrieves from the cache.
-        final Group cachedGroup = sgsCache.getGroup(name);
-        if (cachedGroup != null) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Searching for group " + name + ": in the cache.");
+            // Checks the administration privileges and the memberships of the group.
+            handleAdministrationPrivilegesForGroup(session, groupWrapper, definition, values);
+            handleMembershipsForGroup(session, groupWrapper, definition, values);
+
+            final Group group = groupWrapper.asGroup();
+            if (group.hasMember(subj)) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Subejct " + subjectId 
+                            + " already member of group: " 
+                            + definition.getPath());
+                }
+            } else {
+                group.addMember(subj);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Subejct " + subjectId 
+                            + " added as member of group: " 
+                            + definition.getPath());
+                }
             }
-            return cachedGroup;
+            return GrouperOperationResultDTO.RESULT_OK;
+        } catch (SubjectNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (SubjectNotUniqueException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (InsufficientPrivilegeException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (MemberAddException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (WS4GrouperException e) {
+            return new GrouperOperationResultDTO(e);
         }
+    }
+
+    /**
+     * Retrieves a group or a stem from Grouper.
+     * @param session The grouper session.
+     * @param definition The group or folder definition.
+     * @return The Group or the folder.
+     */
+    protected GroupOrStem retrieve(final GrouperSession session, final GroupOrFolderDefinition definition) {
+
+        final String name = definition.getPath();
+
+        // The definition denotes a folder to retrieve.
+        if (definition.isFolder()) {
+
+            // The folder has to be retrieved from Grouper.
+            try {
+                final Stem folder = StemFinder.findByName(session, name);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Searching for folder " + name + ": Found.");
+                }
+
+                final GroupOrStem gos = new GroupOrStem(folder); 
+                return gos;
+
+
+            } catch (StemNotFoundException e) {
+                // The folder can't be fetched from Grouper.
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Searching for folder " + name + ": Not found.");
+                }
+
+                return null;
+            }
+        }
+
+        // The defition denotes a group to retrieve.
+
 
         // Retrieves the group from grouper.
         try {
+
+            // The group can't be fetched from Grouper.
             final Group group = GroupFinder.findByName(session, name);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Searching for group " + name + ": found.");
             }
-            return group;
+
+            final GroupOrStem gos = new GroupOrStem(group); 
+            return gos;
 
         } catch (GroupNotFoundException e) {
             if (LOGGER.isDebugEnabled()) {
@@ -363,76 +644,59 @@ public class GrouperUtil implements InitializingBean {
             }
             return null;
         }
+
     }
 
     /**
-     * Retrieves a group or creates it if it does not exsist.
+     * Retrieves or creates a group or folder.
+     * If the group or folder cant be retrieved, it is created.
      * @param session The grouper session.
-     * @param groupSummary The informations about the group to create.
-     * @return The retrieved or created group.
+     * @param definition The definition of the group or folder.
+     * @param values The values used to evaluate templates.
+     * @return The group or folder.
      */
-    public Group retrieveOrCreateGroup(final GrouperSession session, 
-            final GroupOrFolderSummary groupSummary) {
-
-        Group group = retrieveGroup(session, groupSummary.getPath());
-        if (group != null) {
-            return group;
+    protected GroupOrStem retrieveOrCreate(final GrouperSession session, 
+            final GroupOrFolderDefinition definition, 
+            final String...values) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(" ---> retrieveOrCreate: " + definition);
         }
-        return createGroup(session, groupSummary);
-    }    
-
-    /**
-     * Retrieves a group or creates it as a local administrated group if it does not exsist.
-     * The local administration group my be created too.
-     * @param session The grouper session.
-     * @param groupSummary The informations about the group to create.
-     * @param localAdminGroupSummary The informations about the local administration group.
-     * If this group can't be retrieved or created, the group is not created.
-     * @return Null if the group doesn't exist and can't be created, the retrieved or created group 
-     * otherwise.
-     */
-    public Group retrieveOrCreateLocallyAdministratedGroup(final GrouperSession session, 
-            final GroupOrFolderSummary groupSummary,
-            final GroupOrFolderSummary localAdminGroupSummary) {
-        
-        Group group = retrieveGroup(session, groupSummary.getPath());
-        if (group != null) {
-            return group;
+        final GroupOrStem gos = retrieve(session, definition);
+        if (gos != null) {
+            return gos;
         }
-        return createLocallyAdministratedGroup(session, groupSummary, localAdminGroupSummary);
-    }    
-
-    /**
-     * Getter for centralAdminGroup.
-     * @return centralAdminGroup.
-     */
-    public Group getCentralAdminGroup() {
-        return centralAdminGroup;
+        return create(session, definition, values);
     }
 
     /**
-     * Getter for centralAdminGroupAsSubject.
-     * @return centralAdminGroupAsSubject.
+     * Getter for definitionsManager.
+     * @return definitionsManager.
      */
-    public Subject getCentralAdminGroupAsSubject() {
-        return centralAdminGroupAsSubject;
+    public GroupOrFolderDefinitionsManager getDefinitionsManager() {
+        return definitionsManager;
     }
 
     /**
-     * Getter for parameters.
-     * @return parameters.
+     * Setter for definitionsManager.
+     * @param definitionsManager the new value for definitionsManager.
      */
-    public SGSParameters getParameters() {
-        return parameters;
+    public void setDefinitionsManager(final GroupOrFolderDefinitionsManager definitionsManager) {
+        this.definitionsManager = definitionsManager;
     }
 
     /**
-     * Setter for parameters.
-     * @param parameters the new value for parameters.
+     * Getter for deleteEmptyGroups.
+     * @return deleteEmptyGroups.
      */
-    public void setParameters(final SGSParameters parameters) {
-        this.parameters = parameters;
+    public Boolean getDeleteEmptyGroups() {
+        return deleteEmptyGroups;
     }
 
-    
+    /**
+     * Setter for deleteEmptyGroups.
+     * @param deleteEmptyGroups the new value for deleteEmptyGroups.
+     */
+    public void setDeleteEmptyGroups(final Boolean deleteEmptyGroups) {
+        this.deleteEmptyGroups = deleteEmptyGroups;
+    }
 }

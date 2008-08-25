@@ -5,6 +5,7 @@ package org.esco.ws4Internet2Grouper.domain.beans;
 
 import java.io.Serializable;
 
+
 /**
  * Result of a grouper operation.
  * @author GIP RECIA - A. Deman
@@ -13,9 +14,12 @@ import java.io.Serializable;
  */
 public class GrouperOperationResultDTO implements Serializable {
 
+    /** Result of a valid grouper operation. */
+    public static final GrouperOperationResultDTO RESULT_OK = new GrouperOperationResultDTO();
+
     /** Serial version UID.*/
     private static final long serialVersionUID = 3643694431079789466L;
-
+    
     /** Flag of error.*/
     private boolean error;
     
@@ -69,7 +73,17 @@ public class GrouperOperationResultDTO implements Serializable {
     public void setException(final Exception exception) {
         this.exception = exception;
     }
-    
-    
-    
+
+    /**
+     * Gives the string representation of the grouper result.
+     * @return The string representation of the grouper operation.
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        if (!isError()) {
+            return getClass().getSimpleName() + "#{No Error}";
+        } 
+        return getClass().getSimpleName() + "#{Error:" + exception.getMessage() +  "}";
+    }
 }

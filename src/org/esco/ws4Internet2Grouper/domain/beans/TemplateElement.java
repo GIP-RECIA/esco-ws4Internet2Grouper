@@ -28,18 +28,7 @@ public class TemplateElement {
     
     /** Mask associated to this template element. */
     private int mask = nextMask();
-    
-    /** Registers default template elements. */
-//    static {
-//        
-//        // The order is important.
-//        registerTemplateElement(new TemplateElement("UAI_ETAB"));
-//        registerTemplateElement(new TemplateElement("NOM_ETAB"));
-//        registerTemplateElement(new TemplateElement("NIVEAU"));
-//        registerTemplateElement(new TemplateElement("NOM_CLASSE"));
-//        registerTemplateElement(new TemplateElement("DESC_CLASSE"));
-//    }
-//    
+ 
     /**
      * Builds an instance of TemplateElement.
      * @param key The key of the template.

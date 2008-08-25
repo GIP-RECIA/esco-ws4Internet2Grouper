@@ -11,11 +11,28 @@ import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
 public interface ISarapisGroupsService {
 
     /**
-     * Removes a person from all his establishment groups.
-     * @param userId The id of the user.
-     * @return The result object of the operation.
+     * Adds an administrative employee to an establishment.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param userId The id of the employee.
+     * @return The result object which contains the informations about how the operation
+     * has been performed.
      */
-    GrouperOperationResultDTO removePersonFromAllEstablishmentGroups(final String userId);
+    GrouperOperationResultDTO addAdministrativeToEstablishment(final String establishmentUAI,
+            final String establishmentName,
+            final String userId);
+    
+    /**
+     * Adds a parent to an establishment.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param userId The id of the parent.
+     * @return The result object which contains the informations about how the operation
+     * has been performed.
+     */
+    GrouperOperationResultDTO addParentToEstablishment(final String establishmentUAI,
+            final String establishmentName,
+            final String userId);
     
     /**
      * Adds a student to a class of an establishment.
@@ -32,21 +49,6 @@ public interface ISarapisGroupsService {
             final String level,
             final String className,
             final String classDescription,
-            final String userId);
-    
-    /**
-     * Removes a student from a class of an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param level The level of the class.
-     * @param className The name of the class.
-     * @param userId The id of the student.
-     * @return The object that denotes the result of the operation.
-     */
-    GrouperOperationResultDTO removeStudentFromClass(final String establishmentUAI,
-            final String establishmentName,
-            final String level,
-            final String className,
             final String userId);
     
     /**
@@ -67,29 +69,25 @@ public interface ISarapisGroupsService {
             final String userId);
 
     /**
-     * Removes a teacher from a class of an establishment.
+     * Adds a TOS employee to an establishment.
      * @param establishmentUAI The UAI of the establishment.
      * @param establishmentName The name of the establishment.
-     * @param level The level of the class.
-     * @param className The name of the class.
-     * @param userId The id of the teacher.
-     * @return The object that denotes the result of the operation.
-     */
-    GrouperOperationResultDTO removeTeacherFromClass(final String establishmentUAI,
-            final String establishmentName,
-            final String level,
-            final String className,
-            final String userId);
-    
-    /**
-     * Adds a parent to an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the parent.
+     * @param userId The id of the employee.
      * @return The result object which contains the informations about how the operation
      * has been performed.
      */
-    GrouperOperationResultDTO addParentToEstablishment(final String establishmentUAI,
+    GrouperOperationResultDTO addTOSToEstablishment(final String establishmentUAI,
+            final String establishmentName,
+            final String userId);
+    
+    /**
+     * Removes an administrative employee from an establishment.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param userId The id of the employee.
+     * @return The result object of the operation.
+     */
+    GrouperOperationResultDTO removeAdministrativeFromEstablishment(final String establishmentUAI,
             final String establishmentName,
             final String userId);
 
@@ -105,16 +103,42 @@ public interface ISarapisGroupsService {
             final String userId);
     
     /**
-     * Adds a TOS employee to an establishment.
+     * Removes a person from all his establishment groups.
+     * @param userId The id of the user.
+     * @return The result object of the operation.
+     */
+    GrouperOperationResultDTO removePersonFromAllEstablishmentGroups(final String userId);
+    
+    /**
+     * Removes a student from a class of an establishment.
      * @param establishmentUAI The UAI of the establishment.
      * @param establishmentName The name of the establishment.
-     * @param userId The id of the employee.
-     * @return The result object which contains the informations about how the operation
-     * has been performed.
+     * @param level The level of the class.
+     * @param className The name of the class.
+     * @param userId The id of the student.
+     * @return The object that denotes the result of the operation.
      */
-    GrouperOperationResultDTO addTOSToEstablishment(final String establishmentUAI,
+    GrouperOperationResultDTO removeStudentFromClass(final String establishmentUAI,
             final String establishmentName,
+            final String level,
+            final String className,
             final String userId);
+    
+    /**
+     * Removes a teacher from a class of an establishment.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param level The level of the class.
+     * @param className The name of the class.
+     * @param userId The id of the teacher.
+     * @return The object that denotes the result of the operation.
+     */
+    GrouperOperationResultDTO removeTeacherFromClass(final String establishmentUAI,
+            final String establishmentName,
+            final String level,
+            final String className,
+            final String userId);
+
     
     /**
      * Removes a TOS employee from an establishment.
@@ -124,30 +148,6 @@ public interface ISarapisGroupsService {
      * @return The result object of the operation.
      */
     GrouperOperationResultDTO removeTOSFromEstablishment(final String establishmentUAI,
-            final String establishmentName,
-            final String userId);
-    
-    /**
-     * Adds an administrative employee to an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the employee.
-     * @return The result object which contains the informations about how the operation
-     * has been performed.
-     */
-    GrouperOperationResultDTO addAdministrativeToEstablishment(final String establishmentUAI,
-            final String establishmentName,
-            final String userId);
-
-    
-    /**
-     * Removes an administrative employee from an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the employee.
-     * @return The result object of the operation.
-     */
-    GrouperOperationResultDTO removeAdministrativeFromEstablishment(final String establishmentUAI,
             final String establishmentName,
             final String userId);
   

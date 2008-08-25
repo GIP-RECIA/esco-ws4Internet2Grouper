@@ -12,13 +12,15 @@ import edu.internet2.middleware.subject.SubjectNotUniqueException;
 
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 /**
  * Util class used to handle the grouper sessions.
  * @author GIP RECIA - A. Deman
  * 28 juil. 08
  *
  */
-public class GrouperSessionUtil {
+public class GrouperSessionUtil implements InitializingBean {
     
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(GrouperSessionUtil.class);
@@ -28,10 +30,29 @@ public class GrouperSessionUtil {
     
     /**
      * Builds an instance of GrouperSessionUtil.
-     * @param subjectId The subject id used to create the sessions.
+     */
+    public GrouperSessionUtil() {
+        super();
+    }
+    
+    /**
+     * Builds an instance of GrouperSessionUtil.
+     * @param subjectId The subject id used to open sessions.
      */
     public GrouperSessionUtil(final String subjectId) {
         this.subjectId = subjectId;
+    }
+    
+
+    /**
+     * Checks the spring data injection.
+     * @throws Exception
+     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+     */
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(this.subjectId, 
+                "property subjectId of class " + this.getClass().getName() 
+                + " can not be null");
     }
     
     /**
@@ -71,5 +92,21 @@ public class GrouperSessionUtil {
         } catch (SessionException e) {
             LOGGER.error(e, e);
         }
+    }
+
+    /**
+     * Getter for subjectId.
+     * @return subjectId.
+     */
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    /**
+     * Setter for subjectId.
+     * @param subjectId the new value for subjectId.
+     */
+    public void setSubjectId(final String subjectId) {
+        this.subjectId = subjectId;
     }
 }

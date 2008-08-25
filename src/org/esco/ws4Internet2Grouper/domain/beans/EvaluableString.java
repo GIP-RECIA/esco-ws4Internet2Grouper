@@ -26,6 +26,13 @@ public class EvaluableString implements Serializable {
 
     /**
      * Builds an instance of EvaluableString.
+     */
+    protected EvaluableString() {
+        super();
+    }
+            
+    /**
+     * Builds an instance of EvaluableString.
      * @param string The orioginal string.
      * @throws UnknownTemplateElementTempateElement If there is a template element in the string
      * which is unknown.
@@ -46,13 +53,19 @@ public class EvaluableString implements Serializable {
      * Evaluates the string by replacing the template elements by a value.
      * @param values The substitution values used to perform the evaluation.
      * @return The evaluated instance.
-     * @throws UnknownTemplateElementTempateElement If there is a template element in the string
      * which is unknown.
      */
-    public EvaluableString evaluate(final String...values) throws UnknownTemplateElementTempateElement {
+    public EvaluableString evaluate(final String...values) {
+        
+        if (isEvaluated()) {
+            return this;
+        }
+        
         final String newString = TemplateElement.evaluate(templateMask, 
                 string, values);
-        return new EvaluableString(newString);
+        final EvaluableString evaluated = new EvaluableString();
+        evaluated.string = newString;
+        return evaluated;
     }
 
     /**
@@ -121,6 +134,22 @@ public class EvaluableString implements Serializable {
      */
     public boolean isEmpty() {
         return "".equals(string);
+    }
+
+    /**
+     * Getter for templateMask.
+     * @return templateMask.
+     */
+    protected int getTemplateMask() {
+        return templateMask;
+    }
+
+    /**
+     * Setter for string.
+     * @param string the new value for string.
+     */
+    protected void setString(final String string) {
+        this.string = string;
     }
 
 

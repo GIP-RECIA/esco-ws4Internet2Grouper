@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.esco.ws4Internet2Grouper.util;
+package org.esco.ws4Internet2Grouper.parsing;
 
 import java.io.Serializable;
 import java.util.Arrays;
