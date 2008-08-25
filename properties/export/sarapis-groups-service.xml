@@ -2,15 +2,13 @@
 <!DOCTYPE sarapis-group-service SYSTEM "sarapis-groups.dtd">
 
 <sarapis-group-service>
-
 	<comment> Paramétrage du module d'alimentation des groupes de Sarapis.</comment>
-
 	<ordered-template-elements>  
-	
 		<comment>
 				Valeurs pouvant être substituées
-				dans les definitions de modèles de groupes ou dossiers.
-				L'ordre est important et intervient dans le
+				dans les definitions de modèles de groupes, de dossiers, 
+				de privileges d'administration, etc.
+				Remarque: L'ordre est important et car il intervient dans le
 				processus d'évaluation des modèles.
         </comment>
 		<template-element key="%UAI_ETAB%"/>
@@ -27,11 +25,21 @@
 
         <comment>Racine des groupes pour ESCO-Portail</comment>
 
-		<administrated-by 
-             path=".:Admin:Centrale" 
-             recursive="true"/>
-
-
+		<!--  Ce privilège d'administration sera positionné pour toute
+			  l'arborescence située sous ce dossier. 
+			  Remarques : 
+			     - Seuls les dossiers et groups créés par le module
+			       Sarapis sont pris en compte (attribut peexisting=false).
+			     - On utilise ici un chemin relatif mais le chemin aurait également
+			       été correct : ESCO:Admin:Centrale.
+		 -->
+		<administrated-by path=".:Admin:Centrale" recursive="true"/>
+	
+		<!--
+			~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		        Arborescence d'aministration 
+			~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		-->
 		<folder extension="Admin" 
                 display-extension="Administration"
 			    description="Racine des groupes d'administration"
@@ -52,17 +60,23 @@
 					            description="Administration locale pour l'établissement %NOM_ETAB%" />
 
 			</folder>
-
 		</folder>
 	
 
+		<!-- 
+			~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		        Arborescence des groupes d'établissement 
+		    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		-->
 	    <folder extension="Etablissements" 
                 display-extension="Etablissements"
 		        description="Racine pour les groupes d'établissement"
 		        preexisting="false">
+		        
+  	        <comment> Racine pour tous les groupes d'établissement. </comment>
 
 		    <folder-template extension="%NOM_ETAB%_%UAI_ETAB%"
-			                 display-extension="%NOM_ETAB% (%UAI_ETAB%)"
+			                 display-extension="%NOM_ETAB%_%UAI_ETAB%"
 			                 description="Racine pour les groupes de l'établissement %NOM_ETAB%">
 			                 
                 <administrated-by path="ESCO:Admin:Locale:Admin_%NOM_ETAB%_%UAI_ETAB%"
@@ -72,21 +86,23 @@
 				                 display-extension="Niveau %NIVEAU%"
 				                 description="Racine pour les groupes de niveau">
 
-				    
-
 				    <group-template extension="Profs_%NOM_CLASSE%"  
 					                display-extension="Prof. %NOM_CLASSE%"
 					                description="Enseignants de la classe %NOM_CLASSE%">
+					                
 					    <member-of path="..:Tous_%NOM_CLASSE%" />
 					    <member-of path="ESCO:Etablissements:%NOM_ETAB%_%UAI_ETAB%:Profs" />
 					    <members type="Teacher" distribution-by="%NOM_CLASSE%" />
+					    
 				    </group-template> 
 
 				    <group-template extension="%NOM_CLASSE%" 
                                     display-extension="%NOM_CLASSE%" 
 					                description="Elèves de la classe %NOM_CLASSE%">
 					    <member-of path="..:Tous_%NOM_CLASSE%" />
+					    <member-of path="..:..:Eleves" />
 					    <members type="Student" distribution-by="%NOM_CLASSE%" />
+					    
 				    </group-template>
 
 			        <group-template extension="Tous_%NOM_CLASSE%"
@@ -96,8 +112,41 @@
 			    
                 <group extension="Profs" 
                        display-extension="Profs"
-				       description="Enseignants de l'établissment %NOM_ETAB%" />
+				       description="Enseignants de l'établissment %NOM_ETAB%">
+				       <member-of path="..:Tous_%NOM_ETAB%" />
+ 		        </group>
+				       
+                <group extension="Eleves" 
+                       display-extension="Elèves"
+				       description="Elèves de l'établissment %NOM_ETAB%">
+				       <member-of path="..:Tous_%NOM_ETAB%" />
+ 		        </group>
+            
+                <group extension="Adminstratifs" 
+                       display-extension="Administratifs"
+				       description="Personnel administratif de l'établissment %NOM_ETAB%">
+				       <member-of path="..:Tous_%NOM_ETAB%" />
+				       <members type="TOS" distribution-by="%NOM_ETAB%" />
+ 		        </group>
+				       
+                <group extension="TOS" 
+                       display-extension="TOS"
+				       description="Personnel TOS de l'établissment %NOM_ETAB%">
+				       <member-of path="..:Tous_%NOM_ETAB%" />
+				       <members type="TOS" distribution-by="%NOM_ETAB%" />
+ 		        </group>
 
+ 				<group extension="Parents" 
+                       display-extension="Parents"
+				       description="Parents des élèves de l'établissment %NOM_ETAB%">
+				       <member-of path="..:Tous_%NOM_ETAB%" />
+				       <members type="TOS" distribution-by="%NOM_ETAB%" />
+ 		        </group>				       
+
+ 				<group extension="Tous_%NOM_ETAB%" 
+                       display-extension="Parents"
+				       description="Personnel, parents et élèves de l'établissment %NOM_ETAB%"/>
+ 		        
 		    </folder-template>
 	    </folder>
     </folder>
