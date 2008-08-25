@@ -22,5 +22,4 @@
 		</description>
 		<property name="configLocation" value="classpath:/properties/cache/ehcache.xml" />
 	</bean>
-
 </beans>
