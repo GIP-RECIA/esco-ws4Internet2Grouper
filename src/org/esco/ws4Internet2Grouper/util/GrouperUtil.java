@@ -24,6 +24,7 @@ import edu.internet2.middleware.grouper.Membership;
 import edu.internet2.middleware.grouper.SchemaException;
 import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.StemAddException;
+import edu.internet2.middleware.grouper.StemDeleteException;
 import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.StemModifyException;
 import edu.internet2.middleware.grouper.StemNotFoundException;
@@ -57,7 +58,7 @@ public class GrouperUtil implements InitializingBean {
 
     /** The definition manager. */
     private GroupOrFolderDefinitionsManager definitionsManager;
-    
+
     /** Flag to detemine the behaviour for the empty groups when removing
      * a member. */
     private Boolean deleteEmptyGroups;
@@ -79,7 +80,7 @@ public class GrouperUtil implements InitializingBean {
         Assert.notNull(this.definitionsManager, 
                 "property definitionManager of class " + this.getClass().getName() 
                 + " can not be null");
-        
+
         Assert.notNull(this.deleteEmptyGroups, 
                 "property deleteEmptyGroups of class " + this.getClass().getName() 
                 + " can not be null");
@@ -380,8 +381,8 @@ public class GrouperUtil implements InitializingBean {
             throw new WS4GrouperException(e);
         }
     }
-    
-    
+
+
 
     /**
      * Removes a member from its groups.
@@ -397,7 +398,7 @@ public class GrouperUtil implements InitializingBean {
             final Member member = MemberFinder.findBySubject(session, subject);
             @SuppressWarnings("unchecked")
             final Set memberships = member.getImmediateMemberships();
-            
+
             for (Object o : memberships) {
                 final Membership m = (Membership) o;
                 m.getGroup().deleteMember(subject);
@@ -405,13 +406,13 @@ public class GrouperUtil implements InitializingBean {
                     LOGGER.debug("Removes subject: " + userId 
                             + " from group: " + m.getGroup());
                 }
-                
+
                 handlesEmptyGroupIfNeeded(m.getGroup());
-                
-                
+
+
             }
             return GrouperOperationResultDTO.RESULT_OK;
-            
+
         } catch (SubjectNotFoundException e) {
             LOGGER.error(e, e);
             return new GrouperOperationResultDTO(e);
@@ -434,42 +435,105 @@ public class GrouperUtil implements InitializingBean {
             return new GrouperOperationResultDTO(e);
         }
     }
+
+    /**
+     * Handles a folder which may (or not) be empty.
+     * Depending on the strategy, the folder may be deleted if it is empty.
+     * This method does nothing if the group is not empty or is a preexisting one. 
+     * @param folder The folder to handle.
+     */
+    protected void handlesEmptyFolderIfNeeded(final Stem folder) {
+        if (deleteEmptyGroups) {
+            final String folderName = folder.getName();
+            if (!definitionsManager.isPreexistingDefinition(folderName)) {
+                // Checks if the group has to be deleted.
+                int nbChildren = folder.getChildGroups().size();
+                if (nbChildren == 0) {
+                    nbChildren = folder.getChildStems().size(); 
+                }
+                if (nbChildren == 0) {
+                    try {
+                        final Stem containingFolder = folder.getParentStem();
+                        folder.delete();
+                        handlesEmptyFolderIfNeeded(containingFolder);
+                        
+                    } catch (StemNotFoundException e) {
+                        LOGGER.error(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (InsufficientPrivilegeException e) {
+                        LOGGER.error(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (StemDeleteException e) {
+                        LOGGER.error(e, e);
+                        throw new WS4GrouperException(e);
+                    }
+                    
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("The folder " + folderName + " is deleted as it is empty.");
+                    }
+                } else {
+                    // The folder still contains children so it is not deleted.
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("The folder " + folderName 
+                                + " contains now: " 
+                                + nbChildren + " children - Not deleted.");
+                    }
+                }
+            }
+        }
+    }
     
     /**
-     * Handles the a group which may (or not) be empty.
+     * Handles a group which may (or not) be empty.
      * Depending on the strategy, the group may be deleted if it is empty.
-     * This method does nothing if the group is not empty. 
-     * @param group The group The group to handle.
+     * This method does nothing if the group is not empty or is a preexisting one. 
+     * @param group The group to handle.
      */
     protected void handlesEmptyGroupIfNeeded(final Group group) {
         if (deleteEmptyGroups) {
-            
-            // Checks if the group has to be deleted.
-            final int nbMembers = group.getEffectiveMembers().size(); 
-             if (nbMembers == 0) {
-                 // The group has to be deleted.
-                 final String groupName = group.getName();
-                 try {
-                    group.delete();
-                } catch (GroupDeleteException e) {
-                    LOGGER.error(e, e);
-                    throw new WS4GrouperException(e);
-                } catch (InsufficientPrivilegeException e) {
-                    LOGGER.error(e, e);
-                    throw new WS4GrouperException(e);
+            final String groupName = group.getName();
+            if (!definitionsManager.isPreexistingDefinition(groupName)) {
+
+                // Checks if the group has to be deleted.
+                final int nbMembers = group.getImmediateMembers().size(); 
+
+                if (nbMembers == 0) {
+                    // The group has to be deleted.
+                    
+                    try {
+                        @SuppressWarnings("unchecked")
+                        Set containingGroups = group.toMember().getImmediateMemberships();
+                        final Stem folder = group.getParentStem();
+                        group.delete();
+                        handlesEmptyFolderIfNeeded(folder);
+                        for (Object containingGroupObj : containingGroups) {
+                            final Membership containingGroup = (Membership) containingGroupObj;
+                            handlesEmptyGroupIfNeeded(containingGroup.getGroup());
+                        }
+
+                    } catch (GroupDeleteException e) {
+                        LOGGER.error(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (InsufficientPrivilegeException e) {
+                        LOGGER.error(e, e);
+                        throw new WS4GrouperException(e);
+                    } catch (GroupNotFoundException e) {
+                        LOGGER.error(e, e);
+                        throw new WS4GrouperException(e);
+                    }
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("The group " + groupName + " is deleted as it is empty.");
+                    }
+
+                } else {
+                    // The group stil contains members so it is not deleted.
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("The group " + groupName
+                                + " contains now: " 
+                                + nbMembers + " member(s) - Not deleted.");
+                    }
                 }
-                 if (LOGGER.isInfoEnabled()) {
-                     LOGGER.info("The group " + groupName + " is deleted as it was empty.");
-                 }
-                 
-             } else {
-                 // The group stil contains members so it is not deleted.
-                 if (LOGGER.isDebugEnabled()) {
-                     LOGGER.debug("The group " + group.getName() 
-                             + " contains now: " 
-                             + nbMembers + " member(s) - Not deleted.");
-                 }
-             }
+            }
         }
     }
     /**
@@ -494,7 +558,7 @@ public class GrouperUtil implements InitializingBean {
             }
             final Group group = groupWrapper.asGroup();
             if (group.hasMember(subj)) {
-                
+
                 // The subject is removed from the group.
                 group.deleteMember(subj);
                 if (LOGGER.isDebugEnabled()) {
@@ -504,21 +568,21 @@ public class GrouperUtil implements InitializingBean {
                             + ".");
                 }
             } else {
-                
+
                 // The subject can't be removed from the group.
                 final String msg = "Subject: " + subjectId 
-                            + " is not a memeber of: " 
-                            +  definition.getPath() 
-                            + ", so it can't be removed from it.";
+                + " is not a memeber of: " 
+                +  definition.getPath() 
+                + ", so it can't be removed from it.";
                 LOGGER.error(msg);
                 throw new WS4GrouperException("msg");
-                
+
             }
-            
+
             handlesEmptyGroupIfNeeded(group);
-            
+
             return GrouperOperationResultDTO.RESULT_OK;
-            
+
         } catch (SubjectNotFoundException e) {
             LOGGER.error(e, e);
             return new GrouperOperationResultDTO(e);

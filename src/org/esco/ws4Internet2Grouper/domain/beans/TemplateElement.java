@@ -288,4 +288,21 @@ public class TemplateElement {
     public static List<TemplateElement> getAvailableTemplateElements() {
         return availableTemplateElements;
     }
+    
+    /**
+     * Gives the number of available template elements.
+     * @return The number of available template elements.
+     */
+    public static int countAvailableTemplateElements() {
+        return availableTemplateElements.size();
+    }
+    
+    /**
+     * Gives a specified template element.
+     * @param index The index of the template element.
+     * @return The template element.
+     */
+    public static TemplateElement getAvailableTemplateElement(final int index) {
+        return availableTemplateElements.get(index);
+    }
 }

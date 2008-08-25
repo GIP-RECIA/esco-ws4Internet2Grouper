@@ -16,6 +16,7 @@
 		<template-element key="%NIVEAU%"/>
 		<template-element key="%NOM_CLASSE%"/>
 		<template-element key="%DESC_CLASSE%"/>
+		<template-element key="%DISCIPLINE%"/>
 	</ordered-template-elements>
 
 	<folder extension="ESCO" 
@@ -37,7 +38,7 @@
 	
 		<!--
 			~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		        Arborescence d'aministration 
+		        Arborescence d'administration 
 			~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		-->
 		<folder extension="Admin" 
@@ -140,12 +141,26 @@
                        display-extension="Parents"
 				       description="Parents des élèves de l'établissment %NOM_ETAB%">
 				       <member-of path="..:Tous_%NOM_ETAB%" />
-				       <members type="TOS" distribution-by="%NOM_ETAB%" />
+				       <members type="Parent" distribution-by="%NOM_ETAB%" />
  		        </group>				       
 
  				<group extension="Tous_%NOM_ETAB%" 
-                       display-extension="Parents"
+                       display-extension="Tous_%NOM_ETAB%"
 				       description="Personnel, parents et élèves de l'établissment %NOM_ETAB%"/>
+ 		        
+ 		        
+ 		        <folder extension="Disciplines" 
+                        display-extension="Disciplines"
+		                description="Racine pour les groupes de disciplines"
+		                preexisting="false">
+		            	
+		            	<group-template extension="%DISCIPLINE%" 
+                        	            display-extension="%DISCIPLINE%" 
+					        	        description="Enseignants - discipline %DISCIPLINE%">
+					    	<members type="Teacher" distribution-by="%DISCIPLINE%" />
+					    </group-template>
+		                
+                </folder>
  		        
 		    </folder-template>
 	    </folder>

@@ -15,7 +15,6 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.cache.SGSCache;
-import org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition.MembersType;
 
 /**
  * Manager for the groups or folders definitions. 
@@ -33,15 +32,15 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
     private static final Logger LOGGER = Logger.getLogger(GroupOrFolderDefinition.class);
 
     /** Preexisting definitions. */
-    private Set<GroupOrFolderDefinition> preexistingDefinitnons = 
-        new HashSet<GroupOrFolderDefinition>();
+    private Map<String, GroupOrFolderDefinition> preexistingDefinitnonsByPath = 
+        new HashMap<String, GroupOrFolderDefinition>();
 
     /** All the groups and folder definitions, by path. */
     private Map<String, GroupOrFolderDefinition> definitionsByPath = 
         new HashMap<String, GroupOrFolderDefinition>();
 
-    /** Stores the group or folder definition by type of members in the ditribution definition.*/
-    private Map<MembersType, List<GroupOrFolderDefinition>> definitionByType;
+    /** Stores the group or folder definition by members definition.*/
+    private Map<MembersDefinition, List<GroupOrFolderDefinition>> definitionsByMembersDefinitions;
 
     /** The Cache for the Sarapis Group Service. */
     private SGSCache cache = SGSCache.instance();
@@ -61,7 +60,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
         final String path = definition.getPath();
         definitionsByPath.put(path, definition);
         if (definition.isPreexisting())  {
-            preexistingDefinitnons.add(definition);
+            preexistingDefinitnonsByPath.put(definition.getPath(), definition);
         }
     }
 
@@ -72,12 +71,20 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
      * of groups or folders.
      */
     public Iterator<GroupOrFolderDefinition> preexistingDefinitions() {
-        return preexistingDefinitnons.iterator();
+        return preexistingDefinitnonsByPath.values().iterator();
     }
     
+    /**
+     * Tests if a path denotes a preexisting definition.
+     * @param path The path to test.
+     * @return True if the path is associated to a preexisting definition.
+     */
+    public boolean isPreexistingDefinition(final String path) {
+        return preexistingDefinitnonsByPath.containsKey(path);
+    }
 
     /**
-     * Gives the groups defined as templates for a type of memebers 
+     * Gives the groups defined as templates for a type of members 
      * and the values of some attributes.
      * @param type The type of the member of the groups.
      * @param attributes The attributes of the member of the groups which are used 
@@ -87,7 +94,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
     public Iterator<GroupOrFolderDefinition> getMembershipsForTemplates(final MembersDefinition.MembersType type, 
             final String...attributes) {
 
-        if (definitionByType == null) {
+        if (definitionsByMembersDefinitions == null) {
             initilizeDefinitionsByTypeOfMembers();
         }
 
@@ -105,27 +112,25 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
 
         // The memberships has to be evaluated.
         memberships = new HashSet<GroupOrFolderDefinition>();
-        final List<GroupOrFolderDefinition> globalDefs = definitionByType.get(type);
+        final Iterator<GroupOrFolderDefinition> defsIt = getMemberships(type, attributes);
 
-        if (globalDefs == null) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No memberships for members of type " + type + ".");
-            }
-        } else {
-            for (GroupOrFolderDefinition globalDef : globalDefs) {
-                // Only template definitions are handled.
-                if (globalDef.isTemplate()) {
-                    memberships.add(globalDef.evaluateTemplate(attributes));
-                }
-            }
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Memberships for template groups evaluated for " + type 
-                        + " " + Arrays.toString(attributes) + ": " 
-                        + memberships);
-            }
+        while (defsIt.hasNext()) {
 
+            final GroupOrFolderDefinition def = defsIt.next();
+            
+            // Only template definitions are handled.
+            if (def.isTemplate()) {
+                memberships.add(def.evaluateTemplate(attributes));
+            }
         }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Memberships for template groups evaluated for " + type 
+                    + " " + Arrays.toString(attributes) + ": " 
+                    + memberships);
+        }
+
         cache.cacheMemebrships(memberships, type, attributes);
 
         return memberships.iterator();
@@ -141,9 +146,11 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
     public Iterator<GroupOrFolderDefinition> getMemberships(final MembersDefinition.MembersType type, 
             final String...attributes) {
 
-        if (definitionByType == null) {
+        if (definitionsByMembersDefinitions == null) {
             initilizeDefinitionsByTypeOfMembers();
         }
+
+
 
         // Tries to retrieves the memebrships from the cache. 
         Set<GroupOrFolderDefinition> memberships = cache.getMemberships(type, attributes); 
@@ -159,27 +166,38 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
 
         // The memberships has to be evaluated.
         memberships = new HashSet<GroupOrFolderDefinition>();
-        final List<GroupOrFolderDefinition> globalDefs = definitionByType.get(type);
 
-        if (globalDefs == null) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No memberships for members of type " + type + ".");
+        final List<MembersDefinition> mbDefs = new ArrayList<MembersDefinition>();
+        mbDefs.add(new MembersDefinition(type));
+        final int nbElts = Math.min(attributes.length, TemplateElement.countAvailableTemplateElements());
+        for (int i = 0; i < nbElts; i++) {
+            if (!"".equals(attributes[i])) {
+                mbDefs.add(new MembersDefinition(type, TemplateElement.getAvailableTemplateElement(i)));
             }
-        } else {
-            for (GroupOrFolderDefinition globalDef : globalDefs) {
-                if (!globalDef.isTemplate()) {
-                    memberships.add(globalDef);
-                } else {
-                    memberships.add(globalDef.evaluateTemplate(attributes));
+        }
+        for (MembersDefinition mbDef : mbDefs) {
+            final List<GroupOrFolderDefinition> gofDefs = definitionsByMembersDefinitions.get(mbDef);
+            
+            if (gofDefs == null) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("No memberships for members of type " + mbDef + ".");
+                }
+            } else {
+                for (GroupOrFolderDefinition globalDef : gofDefs) {
+
+                    if (!globalDef.isTemplate()) {
+                        memberships.add(globalDef);
+                    } else {
+                        memberships.add(globalDef.evaluateTemplate(attributes));
+                    }
+                }
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Memberships evaluated for " + mbDef 
+                            + " " + Arrays.toString(attributes) + ": " 
+                            + memberships);
                 }
             }
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Memberships evaluated for " + type 
-                        + " " + Arrays.toString(attributes) + ": " 
-                        + memberships);
-            }
-
         }
         cache.cacheMemebrships(memberships, type, attributes);
 
@@ -205,7 +223,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
      */
     protected void initilizeDefinitionsByTypeOfMembers() {
 
-        definitionByType = new HashMap<MembersType, List<GroupOrFolderDefinition>>();
+        definitionsByMembersDefinitions = new HashMap<MembersDefinition, List<GroupOrFolderDefinition>>();
 
         for (GroupOrFolderDefinition gofd : definitionsByPath.values()) {
 
@@ -213,13 +231,11 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
             // definition.
             for (int i = 0; i < gofd.countMembersDefinitions(); i++) {
 
-                final MembersDefinition mbDef = gofd.getMembersDefiniton(i);
-
-                List<GroupOrFolderDefinition> defs = definitionByType.get(mbDef.getMembersType());
+                List<GroupOrFolderDefinition> defs = definitionsByMembersDefinitions.get(gofd.getMembersDefiniton(i));
 
                 if (defs == null) {
                     defs = new ArrayList<GroupOrFolderDefinition>();
-                    definitionByType.put(mbDef.getMembersType(), defs);
+                    definitionsByMembersDefinitions.put(gofd.getMembersDefiniton(i), defs);
                 }
                 defs.add(gofd);
             }

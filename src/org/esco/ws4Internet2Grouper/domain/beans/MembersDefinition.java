@@ -5,6 +5,8 @@ package org.esco.ws4Internet2Grouper.domain.beans;
 
 import java.io.Serializable;
 
+import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
+
 
 /**
  * Definition of the members of a group.
@@ -47,7 +49,18 @@ public class MembersDefinition implements Serializable {
          * null otherwise.
          */
         public static MembersType parseIgnoreCase(final String value) {
+            try {
                 return valueOf(value.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new WS4GrouperException("Invalid Type of member: " + value 
+                        + ". Legal values are: "
+                        + MembersType.STUDENT + ", " 
+                        + MembersType.TEACHER + ", " 
+                        + MembersType.PARENT + ", " 
+                        + MembersType.ADMINISTRATIVE + ", " 
+                        + MembersType.TOS + ", " 
+                        + MembersType.ALL + ".", e);
+            }
         } 
            
     }

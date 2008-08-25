@@ -1,5 +1,7 @@
 package org.esco.ws4Internet2Grouper.services.remote;
 
+import java.util.List;
+
 import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
 
 /**
@@ -66,6 +68,19 @@ public interface ISarapisGroupsService {
             final String level,
             final String className,
             final String classDescription,
+            final String userId);
+    
+    /**
+     * Adds a teacher to a list of disciplines in an establishment.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param disciplines The list of diciplines for the teacher.
+     * @param userId The id of the teacher.
+     * @return The result object of the operation.
+     */
+    GrouperOperationResultDTO addTeacherToDisciplines(final String establishmentUAI,
+            final String establishmentName,
+            final List<String> disciplines,
             final String userId);
 
     /**
@@ -139,6 +154,18 @@ public interface ISarapisGroupsService {
             final String className,
             final String userId);
 
+    /**
+     * Removes a teacher from a list of disciplines in an establishment.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param disciplines The list of diciplines.
+     * @param userId The id of the teacher.
+     * @return The result object of the operation.
+     */
+    GrouperOperationResultDTO removeTeacherFromDisciplines(final String establishmentUAI,
+            final String establishmentName,
+            final List<String> disciplines,
+            final String userId);
     
     /**
      * Removes a TOS employee from an establishment.
