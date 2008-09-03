@@ -7,6 +7,7 @@ package org.esco.ws4Internet2Grouper.services.remote;
 import edu.internet2.middleware.grouper.GrouperSession;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -33,7 +34,7 @@ import org.springframework.util.Assert;
  * 11 août 08
  *
  */
-public class SarapisGroupServiceImpl implements ISarapisGroupsService, InitializingBean {
+public class SarapisGroupServiceImpl implements ISarapisGroupService, InitializingBean {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(SarapisGroupServiceImpl.class);
@@ -54,7 +55,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
     private SGSParsingUtil parsingUtil;
 
     /**
-     * Builds an instance of SarapisGroupServiceImpl.
+     * Builds an instance of SarapisGroupsServiceImpl.
      */
     public SarapisGroupServiceImpl() {
         super();
@@ -96,7 +97,6 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
             LOGGER.info("and folders.");
             LOGGER.info(SEP);
         }
-
 
         while (preexitingIt.hasNext()) {
             final GroupOrFolderDefinition definition = preexitingIt.next();
@@ -180,6 +180,44 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
 
         return GrouperOperationResultDTO.RESULT_OK;
     }
+    /**
+     * Updates the memebrships for a given user and a set of attributes.
+     * @param type The type of user (student, teacher, etc.)
+     * @param userId The id of the user.
+     * @param attributes The user attributes.
+     * @return The grouper operation result.
+     */
+    protected GrouperOperationResultDTO updateGroups(final MembersType type, 
+            final String userId, 
+            final String...attributes) {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(SEP);
+            LOGGER.debug("Starting to update groups ");
+            LOGGER.debug("for the user: " + userId);
+            LOGGER.debug("Type: " + type + ".");
+            LOGGER.debug(SEP);
+        }
+        final GrouperSession session = grouperSessionUtil.createSession();
+        GrouperOperationResultDTO result = grouperUtil.removeFromAllGroups(session, userId);
+
+        if (result.isError()) {
+            LOGGER.error("Error while removing from previous groups for user: " + userId);
+            LOGGER.error(result.getException(), result.getException());
+        } else {
+
+            result = addToGroups(type, userId, session, attributes);
+        }
+        grouperSessionUtil.stopSession(session);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(SEP);
+            LOGGER.debug("End of updating groups.");
+            LOGGER.debug(SEP);
+        }
+
+        return GrouperOperationResultDTO.RESULT_OK;
+    }
 
     /**
      * Handles the memebrships for a given user.
@@ -191,6 +229,24 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
     protected GrouperOperationResultDTO addToGroups(final MembersType type, 
             final String userId, 
             final String...attributes) {
+        final GrouperSession session = grouperSessionUtil.createSession();
+        GrouperOperationResultDTO result = addToGroups(type, userId, session, attributes);
+        grouperSessionUtil.stopSession(session);
+        return result;
+    }
+
+    /**
+     * Handles the memebrships for a given user.
+     * @param type The type of user (student, teacher, etc.)
+     * @param userId The id of the user.
+     * @param session The Grouper session.
+     * @param attributes The user attributes.
+     * @return The grouper operation result.
+     */
+    protected GrouperOperationResultDTO addToGroups(final MembersType type, 
+            final String userId,
+            final GrouperSession session, 
+            final String...attributes) {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(SEP);
@@ -199,9 +255,8 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
             LOGGER.debug("Type: " + type + ".");
             LOGGER.debug(SEP);
         }
-        
+
         // Handles specific memeberships.
-        final GrouperSession session = grouperSessionUtil.createSession();
         final Iterator<GroupOrFolderDefinition> specificMemberships = 
             definitionsManager.getMemberships(type, attributes);
 
@@ -225,8 +280,6 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
             }
         }
 
-        grouperSessionUtil.stopSession(session);
-
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(SEP);
             LOGGER.debug("End of adding to groups.");
@@ -244,7 +297,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param userId The id of the employee.
      * @return The result object which contains the informations about how the operation
      * has been performed.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #addAdministrativeToEstablishment(String, String, String)
      */
     public GrouperOperationResultDTO addAdministrativeToEstablishment(final  String establishmentUAI, 
@@ -260,7 +313,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param userId The id of the parent.
      * @return The result object which contains the informations about how the operation
      * has been performed.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #addParentToEstablishment(String, String, String)
      */
     public GrouperOperationResultDTO addParentToEstablishment(final  String establishmentUAI, 
@@ -278,7 +331,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param classDescription The description of the class.
      * @param userId The id of the student.
      * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #addStudentToClass(String, String, String, String, String, String)
      */
     public GrouperOperationResultDTO addStudentToClass(final  String establishmentUAI,
@@ -306,7 +359,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param classDescription The description of the class.
      * @param userId The id of the teacher.
      * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #addTeacherToClass(String, String, String, String, String, String)
      */
     public GrouperOperationResultDTO addTeacherToClass(final  String establishmentUAI,
@@ -323,7 +376,8 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
                 className, 
                 classDescription);
     }
-
+    
+    
     /**
      * Adds a teacher to a list of disciplines in an establishment.
      * @param establishmentUAI The UAI of the establishment.
@@ -331,12 +385,12 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param disciplines The list of diciplines for the teacher.
      * @param userId The id of the teacher.
      * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
-     * #addTeacherToDisciplines(java.lang.String, java.lang.String, java.util.List, java.lang.String)
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
+     * #addTeacherToDisciplines(String, String, List, String)
      */
     public GrouperOperationResultDTO addTeacherToDisciplines(final String establishmentUAI, 
             final String establishmentName,
-            final List<String> disciplines, 
+            final Collection<String> disciplines, 
             final String userId) {
         GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
         for (String discipline : disciplines) {
@@ -361,7 +415,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param userId The id of the employee.
      * @return The result object which contains the informations about how the operation
      * has been performed.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #addTOSToEstablishment(String, String, String)
      */
     public GrouperOperationResultDTO addTOSToEstablishment(final String establishmentUAI, 
@@ -379,7 +433,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param establishmentName The name of the establishment.
      * @param userId The id of the employee.
      * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #removeAdministrativeFromEstablishment(String, String, String)
      */
     public GrouperOperationResultDTO removeAdministrativeFromEstablishment(final String establishmentUAI, 
@@ -393,7 +447,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param establishmentName The name of the establishment.
      * @param userId The id of the parent.
      * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #removeParentFromEstablishment(String, String, String)
      */
     public GrouperOperationResultDTO removeParentFromEstablishment(
@@ -407,10 +461,10 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * Removes a person from all his establishment groups.
      * @param userId The id of the user.
      * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
-     * #removePersonFromAllEstablishmentGroups(String)
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
+     * #removePersonFromAllManagedGroups(String)
      */
-    public GrouperOperationResultDTO removePersonFromAllEstablishmentGroups(final String userId) {
+    public GrouperOperationResultDTO removePersonFromAllManagedGroups(final String userId) {
         final GrouperSession session = grouperSessionUtil.createSession();
         final GrouperOperationResultDTO result =  grouperUtil.removeFromAllGroups(session, userId);
         grouperSessionUtil.stopSession(session);
@@ -425,7 +479,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param className The name of the class.
      * @param userId The id of the student.
      * @return The object that denotes the result of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #removeStudentFromClass(String, String, String, String, String)
      */
     public GrouperOperationResultDTO removeStudentFromClass(final String establishmentUAI, 
@@ -460,7 +514,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param disciplines The list of diciplines.
      * @param userId The id of the teacher.
      * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #removeTeacherFromDisciplines(String, String, List, String)
      */
     public GrouperOperationResultDTO removeTeacherFromDisciplines(final String establishmentUAI, 
@@ -489,7 +543,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
      * @param establishmentName The name of the establishment.
      * @param userId The id of the employee.
      * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupsService
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
      * #removeTOSFromEstablishment(String, String, String)
      */
     public GrouperOperationResultDTO removeTOSFromEstablishment(final String establishmentUAI, 
@@ -562,12 +616,77 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
         this.parsingUtil = parsingUtil;
     }
 
+    /**
+     * Updates the establishment groups for an administrative employee.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param userId The id of the employee.
+     * @return The result object which contains the informations about how the operation
+     * has been performed.
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
+     * #updateAdministrativeToEstablishment(String, String, String)
+     */
+    public GrouperOperationResultDTO updateAdministrativeToEstablishment(final String establishmentUAI, 
+            final String establishmentName, 
+            final String userId) {
+        return updateGroups(MembersType.ADMINISTRATIVE, userId, establishmentUAI, establishmentName);
+    }
+
+    /**
+     * Updates establishment groups for a parent.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param userId The id of the parent.
+     * @return The result object which contains the informations about how the operation
+     * has been performed.
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
+     * #updateParentToEstablishment(String, String, String)
+     */
+    public GrouperOperationResultDTO updateParentToEstablishment(final String establishmentUAI, 
+            final String establishmentName, final String userId) {
+        return updateGroups(MembersType.PARENT, userId, establishmentUAI, establishmentName);
+    }
+
+    /**
+     * Updates establishment groups for a student.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param level The level of the class.
+     * @param className The name of the class.
+     * @param classDescription The description of the class.
+     * @param userId The id of the student.
+     * @return The result object of the operation.
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService#
+     * updateStudentToClass(String, String, String, String, String, String)
+     */
+    public GrouperOperationResultDTO updateStudentToClass(final String establishmentUAI, 
+            final String establishmentName, final String level,
+            final String className, final String classDescription, final String userId) {
+        return updateGroups(MembersType.STUDENT, userId, establishmentUAI, establishmentName, 
+                level, className, classDescription);
+    }
+
+    /**
+     * Udaptes establishment groups for TOS employee.
+     * @param establishmentUAI The UAI of the establishment.
+     * @param establishmentName The name of the establishment.
+     * @param userId The id of the employee.
+     * @return The result object which contains the informations about how the operation
+     * has been performed.
+     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService#
+     * updateTOSToEstablishment(String, String, String)
+     */
+    public GrouperOperationResultDTO updateTOSToEstablishment(final String establishmentUAI, 
+            final String establishmentName, final String userId) {
+        return updateGroups(MembersType.TOS, userId, establishmentUAI, establishmentName);
+    }
+
 
     public static void main(final String args[]) {
 
         final ThreadLocal<ApplicationContext> springCtx = new ThreadLocal<ApplicationContext>();
         springCtx.set(new FileSystemXmlApplicationContext("classpath:properties/applicationContext.xml"));
-        final ISarapisGroupsService sgs = (ISarapisGroupsService) springCtx.get().getBean("SarapisGroupService");
+        final ISarapisGroupService sgs = (ISarapisGroupService) springCtx.get().getBean("SarapisGroupService");
         final String usersPrefix = "STRESS_TEST__Person_";
         final int nbUsers = 3000;
         final int thousand = 1000;
@@ -603,7 +722,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
             classesNames[i] = "Class_name_" + i;
             classesDesc[i] = "Class_desc_" + i;
         }
-        
+
         for (int  i = 0; i < nbDisciplines; i++) {
             disciplinesNames[i] = "discipl_name_" + i;
         }
@@ -642,7 +761,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
                     estabNames[estabInd], levels[levelInd], 
                     classesNames[classInd], classesDesc[classInd], userId);
             System.out.println(userId + " to class  ==> " + result);
-            
+
             // Builds a random list of dispciplines for the teacher
             List<String> discipl = new ArrayList<String>();
             int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
@@ -652,7 +771,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
                     discipl.add(d);
                 }
             }
-            
+
             result = sgs.addTeacherToDisciplines(estabUAI[estabInd], 
                     estabNames[estabInd], discipl, userId);
             System.out.println(userId + " to dsciplines  ==> " + result);
@@ -660,8 +779,8 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
         ellapsed = (System.currentTimeMillis() - top1) / thousand;
         System.out.println("--- End teachers (" + ellapsed + "s) ---");
 
-        
-        
+
+
         System.out.println("\n\n\n--- Parents: " + nbParents + " ---");
         top1 = System.currentTimeMillis();
         for (int i = 0; i < nbParents; i++) {
@@ -721,7 +840,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
         System.out.println("--- End students (" + ellapsed + "s) ---");
 
 
-        
+
 
 
         System.out.println("\n\n\n--- Removes teachers : " + nbTeachers + " ---");
@@ -736,7 +855,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
                     estabNames[estabInd], levels[levelInd], 
                     classesNames[classInd], userId);
             System.out.println(userId + " to class  ==> " + result);
-            
+
             // Builds a random list of dispciplines for the teacher
             List<String> discipl = new ArrayList<String>();
             int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
@@ -746,16 +865,16 @@ public class SarapisGroupServiceImpl implements ISarapisGroupsService, Initializ
                     discipl.add(d);
                 }
             }
-            
+
             result = sgs.removeTeacherFromDisciplines(estabUAI[estabInd], 
                     estabNames[estabInd], discipl, userId);
             System.out.println(userId + " to dsciplines  ==> " + result);
         }
         ellapsed = (System.currentTimeMillis() - top1) / thousand;
         System.out.println("--- End teachers (" + ellapsed + "s) ---");
-        
-     
-        
+
+
+
         System.out.println("\n\n\n--- Removes Parents: " + nbParents + " ---");
         top1 = System.currentTimeMillis();
         for (int i = 0; i < nbParents; i++) {

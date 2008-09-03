@@ -8,10 +8,7 @@ import java.util.Set;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
-
-import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
-import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
 import static org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition.MembersType;
 
 /** 
@@ -23,9 +20,7 @@ import static org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition.Member
  */
 public class SGSCache {
 
-    /** Logger. */
-    private static final Logger LOGGER = Logger.getLogger(SGSCache.class);
-
+  
 
     /** Cache name for the memberships. */
     private static final String MEMBERSHIPS_CACHE_NAME =  SGSCache.class + ".memberships";

@@ -82,10 +82,8 @@ public class EvaluableStrings implements Serializable {
      * Evaluates the evaluable strings contained in this instance.
      * @param values The values to substitue to the template elements.
      * @return The evaluated instance.
-     * @throws UnknownTemplateElementTempateElement If there is a template element in a string
-     * which is unknown.
      */
-    public EvaluableStrings evaluate(final String...values) throws UnknownTemplateElementTempateElement {
+    public EvaluableStrings evaluate(final String...values) {
         List<EvaluableString> newEvalStrings = new ArrayList<EvaluableString>(countEvaluableStrings());
         for (int i = 0; i < countEvaluableStrings(); i++) {
             newEvalStrings.add(getEvaluableString(i).evaluate(values));

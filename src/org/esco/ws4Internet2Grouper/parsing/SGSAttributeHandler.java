@@ -21,6 +21,9 @@ import static org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition.Member
  */
 public class SGSAttributeHandler implements Serializable {
 
+    /** UID attribute. */
+    public static final String UID_ATTR = "uid";
+
     /** Extension attribute. */
     public static final String EXT_ATTR = "extension";
     
@@ -48,12 +51,18 @@ public class SGSAttributeHandler implements Serializable {
     /** Key attribute. */
     public static final String KEY_ATTR = "key";
     
+    /** value attribute. */
+    public static final String VALUE_ATTR = "value";
+    
     /** Serial version UID.*/
     private static final long serialVersionUID = 8391732649319550004L;
     
     /** Logger.*/
     private static final Logger LOGGER = Logger.getLogger(SGSAttributeHandler.class);
     
+    
+    /** UID value. */
+    private String uid;
     
     /** Extension value. */
     private String extension;
@@ -81,6 +90,9 @@ public class SGSAttributeHandler implements Serializable {
     
     /** Key for a template element. */
     private String key;
+    
+    /** value attribute. */
+    private Boolean value;
     
     /** 
      * Builds an instance of SGSAttributeHandler.
@@ -120,14 +132,18 @@ public class SGSAttributeHandler implements Serializable {
         final String trimedAttrName = attributeName.trim();
         
         
-        if (EXT_ATTR.equals(trimedAttrName)) {
+        if (UID_ATTR.equals(trimedAttrName)) {
+            uid = attributeValue.trim();
+        } else if (EXT_ATTR.equals(trimedAttrName)) {
             extension = attributeValue.trim();
         } else if (DISP_EXT_ATTR.equals(trimedAttrName)) {
             displayExtension = attributeValue.trim();
         } else if (DESC_ATTR.equals(trimedAttrName)) {
             description = attributeValue.trim();
+        } else if (VALUE_ATTR.equals(trimedAttrName)) {
+           value = parseBoolean(locator, trimedAttrName, attributeValue);
         } else if (PREEXIST_ATTR.equals(trimedAttrName)) {
-           preexisting = parseBoolean(locator, trimedAttrName, attributeValue);
+            preexisting = parseBoolean(locator, trimedAttrName, attributeValue);
         } else if (PATH_ATTR.equals(trimedAttrName)) {
             path = attributeValue.trim();
         } else if (RECURS_ATTR.equals(trimedAttrName)) {
@@ -165,21 +181,21 @@ public class SGSAttributeHandler implements Serializable {
      * Parse a boolean attribute.
      * @param locator The locator for the parsed file..
      * @param attribute The attribute to parse.
-     * @param value The value to parse.
+     * @param valueStr The value to parse.
      * @return True of false.
      * @throws SAXParseException If the value is not true or false (case insensitive).
      */
     protected boolean parseBoolean(final Locator locator, 
             final String attribute, 
-            final String value) throws SAXParseException {
-        final String trimedValue = value.trim();
+            final String valueStr) throws SAXParseException {
+        final String trimedValue = valueStr.trim();
         if (trimedValue.equalsIgnoreCase("true")) {
             return true;
         } else if (trimedValue.equalsIgnoreCase("false")) {
             return false;
         }
         throw new SAXParseException("Illegal value for boolean atribute " 
-                + attribute + " (should be true or fale): " + value + ".", locator);
+                + attribute + " (should be true or fale): " + valueStr + ".", locator);
         
     }
     /**
@@ -252,5 +268,21 @@ public class SGSAttributeHandler implements Serializable {
      */
     public String getKey() {
         return key;
+    }
+
+    /**
+     * Getter for uid.
+     * @return uid.
+     */
+    public String getUid() {
+        return uid;
+    }
+
+    /**
+     * Getter for value.
+     * @return value.
+     */
+    public Boolean getValue() {
+        return value;
     }
 }

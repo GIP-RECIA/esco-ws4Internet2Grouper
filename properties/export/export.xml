@@ -26,7 +26,10 @@
 		<property name="serviceBean" ref="GrouperServiceExposer" />
 		<property name="serviceClass" value="org.esco.ws4Internet2Grouper.services.remote.IGrouperAPIExposer" />
 	</bean>
-
+	<bean id="GrouperSessionUtil"
+		class="org.esco.ws4Internet2Grouper.util.GrouperSessionUtil"
+		scope="singleton">
+	</bean>
 	<bean 
 		id="GrouperServiceExposer" 
 		class="org.esco.ws4Internet2Grouper.services.remote.GrouperAPIExposerImpl"/>
@@ -34,24 +37,26 @@
 	<bean id="DefinitionsManager"
 		class="org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager"
 		scope="singleton"/>
+	
+	<bean id="GrouperUtil"
+		class="org.esco.ws4Internet2Grouper.util.GrouperUtil"
+		scope="singleton">
+		<property name="definitionsManager" ref="DefinitionsManager"/>		
+	</bean>
 		
 	<bean id="ParsingUtil"
 		class="org.esco.ws4Internet2Grouper.parsing.SGSParsingUtil"
 		scope="singleton">
 		<property name="definitionsManager" ref="DefinitionsManager"/>	
 		<property name="definitionsFileURI" value="properties/export/sarapis-groups-service.xml"/>
+		<property name="grouperSessionUtil" ref="GrouperSessionUtil"/>	
+		<property name="grouperUtil" ref="GrouperUtil"/>	
 	</bean>
-
-	<bean id="GrouperUtil"
-		class="org.esco.ws4Internet2Grouper.util.GrouperUtil"
-		scope="singleton">
-		<property name="definitionsManager" ref="DefinitionsManager"/>		
-		<property name="deleteEmptyGroups" value="True"/>		
-	</bean>
-	<bean id="GrouperSessionUtil"
-		class="org.esco.ws4Internet2Grouper.util.GrouperSessionUtil"
-		scope="singleton">
-		<property name="subjectId" value="GrouperSystem"/>		
+	
+	<bean id="SGSXFire"
+		parent="abstractXFire" >
+		<property name="serviceBean" ref="SarapisGroupService" />
+		<property name="serviceClass" value="org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService" />
 	</bean>
 	
 	<bean id="SarapisGroupService"

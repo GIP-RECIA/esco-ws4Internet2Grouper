@@ -42,7 +42,6 @@ public class GrouperSessionUtil implements InitializingBean {
     public GrouperSessionUtil(final String subjectId) {
         this.subjectId = subjectId;
     }
-    
 
     /**
      * Checks the spring data injection.
@@ -50,9 +49,7 @@ public class GrouperSessionUtil implements InitializingBean {
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
-        Assert.notNull(this.subjectId, 
-                "property subjectId of class " + this.getClass().getName() 
-                + " can not be null");
+        /* */
     }
     
     /**

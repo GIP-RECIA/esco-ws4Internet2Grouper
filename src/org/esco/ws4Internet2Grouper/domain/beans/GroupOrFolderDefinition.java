@@ -106,19 +106,6 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         
         final ReversibleEvaluableString newContainingPath = containingPath.evaluate(values);
         
-        // Evaluates the containing Groups paths
-//        EvaluableStrings newContainingGroupsPaths = null;
-//        if (countContainingGroupsPaths() > 0) {
-//            newContainingGroupsPaths = containingGroupsPaths.evaluate(values);
-//        }
-        
-        // Evaluates all the definitions corresponding to the groups with administrative privileges.
-//        EvaluableStrings newAdministratingGroupsPaths = null;
-//        if (countAdministratingGroupsPaths() > 0) {
-//            newAdministratingGroupsPaths = administratingGroupsPaths.evaluate(values);
-//            
-//        }
-        
         GroupOrFolderDefinition gofd = new GroupOrFolderDefinition();
         gofd.folder = folder;
         gofd.preexisting = preexisting;

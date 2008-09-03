@@ -6,10 +6,12 @@ package org.esco.ws4Internet2Grouper.parsing;
 import edu.internet2.middleware.grouper.Stem;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,18 +22,19 @@ import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager
 import org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.TemplateElement;
 import org.esco.ws4Internet2Grouper.exceptions.UnknownTemplateElementTempateElement;
+import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
+import org.esco.ws4Internet2Grouper.util.GrouperUtil;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 import org.xml.sax.Attributes;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.LocatorImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
-
-
-
 
 /**
  * Content handler used read the defintion of groups, folders, administration elements, etc, 
@@ -40,7 +43,8 @@ import org.xml.sax.helpers.XMLReaderFactory;
  * 28 juil. 08
  *
  */
-public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implements InitializingBean {
+public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler 
+implements InitializingBean, EntityResolver {
 
     /** Constant use to go up in the path. */
     private static final String UP_IN_PATH = "..:";
@@ -50,6 +54,9 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
 
     /** Constants to use the same path (escaped for replacements). */
     private static final String ESC_CURRENT_PATH = "\\."; 
+
+    /** User tag. */
+    private static final String USER_TAG = "user";
 
     /** Folder tag. */
     private static final String FOLDER_TAG = "folder";
@@ -74,6 +81,12 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
 
     /** Template element tag. */
     private static final String TEMPLATE_ELT_TAG = "template-element";
+    
+    /** Delete empty folders tag. */
+    private static final String DEL_EMPTY_FOLD_TAG = "delete-empty-folders";
+
+    /** Delete empty groups tag. */
+    private static final String DEL_EMPTY_GROUPS_TAG = "delete-empty-groups";
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(SGSParsingUtil.class);
@@ -102,6 +115,12 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
     /** The URI of the xml file that contains the definitions for the folder, groups, administration
      * privileges and memberships. */
     private String definitionsFileURI;
+    
+    /** The grouper session util to parameter. */
+    private GrouperSessionUtil grouperSessionUtil;
+    
+    /** The Grouper Util instance to parameter. */
+    private GrouperUtil grouperUtil;
 
     /**
      * Builds an instance of SGSParsingUtil.
@@ -120,12 +139,22 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
     public void afterPropertiesSet() throws Exception {
+       
+        Assert.notNull(this.grouperSessionUtil, 
+                "property grouperSessionUtil of class " + this.getClass().getName() 
+                + " can not be null.");
+        
+        Assert.notNull(this.grouperUtil, 
+                "property grouperUtil of class " + this.getClass().getName() 
+                + " can not be null.");
+        
         Assert.notNull(this.definitionsManager, 
                 "property definitionManager of class " + this.getClass().getName() 
-                + " can not be null");
+                + " can not be null.");
+        
         Assert.notNull(this.definitionsFileURI, 
                 "property definitionsFileURI of class " + this.getClass().getName() 
-                + " can not be null");
+                + " can not be null.");
     }
 
     /**
@@ -165,7 +194,7 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
     }
 
     /**
-     * Receive notification of the end of an element.
+     * Receives notification of the end of an element.
      * @param nameSpaceURI the Namespace URI, or the empty string if the
      * element has no Namespace URI or if Namespace
      * processing is not being performed.
@@ -281,7 +310,6 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
     @Override
     public void startDocument() {
         LOGGER.debug("Starting the parsing.");
-
     }
 
     /** 
@@ -318,6 +346,30 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
 
         // The administrating path must registered as a recursive one.
         if (attributeHandler.getRecursive()) {
+
+            // Error if the recursive administring path is already defined.
+            if (recAdminPaths.contains(resolvedPath)) {
+                String originalStart = "";
+                final Iterator<String> iter = startOfRecAdminPaths.keySet().iterator();
+                boolean found = false;
+                while (iter.hasNext() && !found) {
+                    final String start = iter.next(); 
+                    final List<String> recPaths = startOfRecAdminPaths.get(start);
+                    if (recPaths.contains(resolvedPath)) {
+                        originalStart = start;
+                        found = true;
+                    }
+                }
+                
+                final String msg = "Encounters administrating path " + resolvedPath 
+                        + "for: " + currentPath 
+                        + "which is already defined for: " 
+                        + originalStart
+                        + " (line " + locator.getLineNumber() + ").";
+                LOGGER.error(msg);
+                throw new SAXParseException(msg, locator);
+            }
+            
             recAdminPaths.add(resolvedPath);
             List<String> currentRecAdminPath = startOfRecAdminPaths.get(currentPath);
 
@@ -349,6 +401,7 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
                     MembersDefinition.MembersType.values(), 
                     null);
         }
+        
         if (attributeHandler.getDistributionBy() != null) {
             if (!TemplateElement.isTemplateElement(attributeHandler.getDistributionBy())) {
                 handleAttributeError(MEMBERS_TAG, 
@@ -363,7 +416,6 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
         final TemplateElement templateElt = TemplateElement.getAvailableTemplateelementByKey(templateKey);
         final MembersDefinition membersDef = new MembersDefinition(attributeHandler.getType(), templateElt);
         current.addMembersDefinition(membersDef);
-
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Adding members definition " +  membersDef
@@ -399,6 +451,7 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
                     + " to the group: " + current.getPath());
         }
     }
+    
     /**
      * Handles the definition of a (template) group or (template) folder.
      * @param localName the local name (without prefix), or the
@@ -458,7 +511,6 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
         }
     }
 
-
     /**
      * Recieves the notification of the start of an element.
      * @param uri the Namespace URI, or the empty string if the
@@ -491,7 +543,25 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
         attributeHandler.reset();
         attributeHandler.handleAttributes(locator, atts);
         try {
-            if (TEMPLATE_ELT_TAG.equals(localName)) {
+            if (USER_TAG.equals(localName)) {
+                // User for the Grouper sessions.
+                LOGGER.debug("The user " + attributeHandler.getUid() 
+                        + " will be used for the Groupers sessions.");
+                grouperSessionUtil.setSubjectId(attributeHandler.getUid());
+                
+                
+            } else if (DEL_EMPTY_FOLD_TAG.equals(localName)) {
+
+                // Deletion of the empty folders.
+                LOGGER.debug("Setting delete empty folders to: " + attributeHandler.getValue());
+                grouperUtil.setDeleteEmptyFolders(attributeHandler.getValue());
+                
+            } else if (DEL_EMPTY_GROUPS_TAG.equals(localName)) {
+                // Deletion of the empty groups.                
+                LOGGER.debug("Setting delete empty groups to: " + attributeHandler.getValue());
+                grouperUtil.setDeleteEmptyGroups(attributeHandler.getValue());  
+              
+            } else if (TEMPLATE_ELT_TAG.equals(localName)) {
 
                 // Defintion of a template element.
                 handleTemplateElement();
@@ -554,7 +624,6 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
         handleAttributeError(tag, attribute, legalValuesStr, actualValue);
     }
 
-
     /**
      * Handles an attribute error.
      * @param tag The current tag.
@@ -584,29 +653,63 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
         LOGGER.error(msg);
         throw new SAXParseException(msg, locator);
     }
+    
+    /**
+     * Resolves an external entity.
+     * @param publicId The public identifer, or null if none is available.
+     * @param systemId The system identifier provided in the XML document.
+     * @return The new input source.
+     * @throws SAXException 
+     * @throws IOException 
+     * @see org.xml.sax.helpers.DefaultHandler#resolveEntity(java.lang.String, java.lang.String)
+     */
+    @Override
+    public InputSource resolveEntity(final String publicId, final String systemId)
+    throws IOException, SAXException {
+
+        if (systemId == null) {
+            return null;
+        }
+        if (systemId.startsWith("classpath:") && systemId.endsWith(".dtd")) {
+            final String dtdFile = systemId.substring(systemId.indexOf(':') + 1);
+            LOGGER.debug("Try to load the DTD from the classpath: " + dtdFile + ".");
+            final InputStream dtdIS = getClass().getClassLoader().getResourceAsStream(dtdFile);
+            if (dtdIS == null) {
+                LOGGER.fatal("Unable to load the DTD from the classpath: " + dtdFile);
+            }
+            return new InputSource(dtdIS);
+        } 
+        return super.resolveEntity(publicId, systemId);
+    }
 
     /**
-     * Lanches the parsing process. 
+     * Starts the parsing process. 
      * @throws SAXException If there is an error during the parsing (invalid group defintion for instance).
      * @throws IOException  If there is an IO error.
      */
     public void parse() throws IOException, SAXException {
 
-
         XMLReader saxReader = XMLReaderFactory.createXMLReader("org.apache.xerces.parsers.SAXParser");
         saxReader.setFeature("http://xml.org/sax/features/validation", true);
         saxReader.setContentHandler(this);
         saxReader.setErrorHandler(this);
-        
+        saxReader.setEntityResolver(this);
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("---------------------------------");
-            LOGGER.info("Parsing definition file: "); 
+            LOGGER.info("++Parsing definition file: "); 
             LOGGER.info(definitionsFileURI);
             LOGGER.info("---------------------------------");
         }
-        
-        saxReader.parse(definitionsFileURI);
-        
+        InputStream iStream = getClass().getClassLoader().getResourceAsStream(definitionsFileURI);
+
+        if (iStream == null) {
+            LOGGER.fatal("Unable to load (from classpath) file: " + definitionsFileURI + ".");
+        }
+
+
+        //final InputSource is = 
+        saxReader.parse(new InputSource(iStream));
+
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("---------------------------------");
             LOGGER.info("Definition file parsed."); 
@@ -644,6 +747,38 @@ public class SGSParsingUtil extends org.xml.sax.helpers.DefaultHandler implement
      */
     public void setDefinitionsFileURI(final String definitionsFileURI) {
         this.definitionsFileURI = definitionsFileURI;
+    }
+
+    /**
+     * Getter for grouperSessionUtil.
+     * @return grouperSessionUtil.
+     */
+    public GrouperSessionUtil getGrouperSessionUtil() {
+        return grouperSessionUtil;
+    }
+
+    /**
+     * Setter for grouperSessionUtil.
+     * @param grouperSessionUtil the new value for grouperSessionUtil.
+     */
+    public void setGrouperSessionUtil(final GrouperSessionUtil grouperSessionUtil) {
+        this.grouperSessionUtil = grouperSessionUtil;
+    }
+
+    /**
+     * Getter for grouperUtil.
+     * @return grouperUtil.
+     */
+    public GrouperUtil getGrouperUtil() {
+        return grouperUtil;
+    }
+
+    /**
+     * Setter for grouperUtil.
+     * @param grouperUtil the new value for grouperUtil.
+     */
+    public void setGrouperUtil(final GrouperUtil grouperUtil) {
+        this.grouperUtil = grouperUtil;
     }
 
 
