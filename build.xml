@@ -51,7 +51,23 @@
 
 	<target name="compile" depends="compile-web,compile-batch" description="compile the project" />
 
-	<target name="deploy" depends="compile-web,commons-deploy" description="deploy the application" />
+    <target name="grouper" depends="read-commons-properties" >
+
+         <copy todir="${deploy.home}/WEB-INF/classes/" >
+            <fileset dir="${deploy.home}/WEB-INF/classes/properties/grouper" >
+                <include name="*.properties"/>
+                <include name="*.xml"/>
+            </fileset>
+
+            <fileset dir="${deploy.home}/WEB-INF/classes/properties/logging" >
+
+                <include name="log4j.properties" />
+            </fileset>
+          
+         </copy>
+    </target>
+	<target name="deploy" depends="deploy_org, grouper" />
+	<target name="deploy_org" depends="compile-web,commons-deploy" description="deploy the application" />
 
 	<target name="clean" depends="commons-clean" description="clean the project" />
 
@@ -70,7 +86,7 @@
 	<target name="start" depends="deploy,check-web-config,commons-start-tomcat" description="Start the application" />
 
 	<target name="stop" depends="commons-stop-tomcat" description="Stop the application" />
-
+	
 </project>
 
 

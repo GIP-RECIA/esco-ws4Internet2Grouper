@@ -558,6 +558,7 @@
 			    </zip>
 			</then>
 			<else>
+			
 			    <zip destfile="${dist.dir}/${app.name}-${app.version}-${app.release}.zip">
 				    <zipfileset 
 				    	dir="${commons.basedir}" 

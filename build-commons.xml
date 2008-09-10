@@ -570,7 +570,9 @@
 			</else>
 		</if>
 	</target>
-	
+	<target name="grouper-conf">
+			<echo>"deploy home= ${deploy.home}"</echo>
+			</target>
 	<target name="commons-deploy" depends="read-commons-properties" >
 		<if>
 			<not>
