@@ -13,7 +13,6 @@ import edu.internet2.middleware.subject.SubjectNotUniqueException;
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
 /**
  * Util class used to handle the grouper sessions.
  * @author GIP RECIA - A. Deman
