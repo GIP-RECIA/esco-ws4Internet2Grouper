@@ -1,0 +1,173 @@
+<ehcache>
+
+  <!-- Sets the path to the directory where cache .data files are created. -->
+  <diskStore path="java.io.tmpdir"/>
+
+
+  <!--
+    Default Cache configuration. These will applied to caches
+    programmatically created through the CacheManager.
+
+    The following attributes are required for defaultCache:
+
+    maxInMemory       - Sets the maximum number of objects that
+                        will be created in memory
+    eternal           - Sets whether elements are eternal. If
+                        eternal,  timeouts are ignored and the
+                        element is never expired.
+    timeToIdleSeconds - Sets the time to idle for an element
+                        before it expires. Is only used if the
+                        element is not eternal.  Idle time is now -
+                        last accessed time
+    timeToLiveSeconds - Sets the time to live for an element
+                        before it expires. Is only used if the
+                        element is not eternal.  TTL is now -
+                        creation time
+    overflowToDisk    - Sets whether elements can overflow to
+                        disk when the in-memory cache has reached
+                        the maxInMemory limit.
+  -->
+
+  <!--
+    Predefined caches.  Add your cache configuration settings here.
+    If you do not have a configuration for your cache a WARNING
+    will be issued when the CacheManager starts
+  -->
+
+  <defaultCache
+    maxElementsInMemory="1000"
+    eternal="false"
+    timeToIdleSeconds="10"
+    timeToLiveSeconds="20"
+    overflowToDisk="false"
+  />
+
+<!-- Sarapis Group Service Cache -->
+<cache  name="org.esco.ws4Internet2Grouper.cache.SGSCache.memberships"
+          maxElementsInMemory="500"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="120"
+          overflowToDisk="false"
+  />
+<cache  name="org.esco.ws4Internet2Grouper.cache.SGSCache.memberships-for-templates"
+          maxElementsInMemory="500"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="120"
+          overflowToDisk="false"
+  />
+
+<!--
+  Grouper Caches
+-->
+
+  <!-- class: HibernateMemberDAO -->
+<!--
+  <cache  name="edu.internet2.middleware.grouper.HibernateMemberDAO.FindByUuid"
+          maxElementsInMemory="1000"
+          eternal="false"
+          timeToIdleSeconds="5"
+          timeToLiveSeconds="10"
+          overflowToDisk="false"  
+  />
+-->
+
+  <cache  name="edu.internet2.middleware.grouper.internal.dao.hibernate.HibernateMemberDAO.FindBySubject"
+          maxElementsInMemory="1000"
+          eternal="false"
+          timeToIdleSeconds="5"
+          timeToLiveSeconds="10"
+          overflowToDisk="false"  
+  />
+
+  <!-- class: HibernateMemberDAO -->
+
+
+  <!-- Queries -->
+
+<!--
+  Hibernate Query Caches
+-->
+
+  <cache name="net.sf.hibernate.cache.StandardQueryCache"
+    maxElementsInMemory="500"
+    eternal="false"
+    timeToIdleSeconds="10"
+    timeToLiveSeconds="20"
+    overflowToDisk="false"
+  />
+
+  <cache name="net.sf.hibernate.cache.UpdateTimestampsCache"
+    maxElementsInMemory="5000"
+    eternal="false"
+    timeToIdleSeconds="10"
+    timeToLiveSeconds="20"
+    overflowToDisk="false"
+  />
+  
+  <!-- Access privilege resolving caching -->
+
+  <!-- @see   CachingAccessResolver#hasPrivilege(...) -->
+  <cache  name="edu.internet2.middleware.grouper.privs.CachingAccessResolver.HasPrivilege"
+          maxElementsInMemory="500"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="120"
+          overflowToDisk="false"
+  />
+
+
+
+  <!-- Naming privilege resolving caching -->
+
+  <!-- @see   CachingNamingResolver#hasPrivilege(...) -->
+  <cache  name="edu.internet2.middleware.grouper.privs.CachingNamingResolver.HasPrivilege"
+          maxElementsInMemory="1000"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="120"
+          overflowToDisk="false"
+  />
+
+
+
+  <!-- Subject resolving caching -->
+
+  <!-- @see   CachingResolver#find(...) -->
+  <cache  name="edu.internet2.middleware.grouper.subj.CachingResolver.Find"
+          maxElementsInMemory="1000"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="120"
+          overflowToDisk="false"
+  />
+
+  <!-- @see   CachingResolver#findAll(...) -->
+  <cache  name="edu.internet2.middleware.grouper.subj.CachingResolver.FindAll"
+          maxElementsInMemory="1000"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="120"
+          overflowToDisk="false"
+  />
+
+  <!-- @see   CachingResolver#findByIdentifier(...) -->
+  <cache  name="edu.internet2.middleware.grouper.subj.CachingResolver.FindByIdentifier"
+          maxElementsInMemory="1000"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="120"
+          overflowToDisk="false"
+  />
+  
+    <!-- @see   WheelAccessResolver#isWheelMember(...) -->
+  <cache  name="edu.internet2.middleware.grouper.privs.WheelAccessResolver.isWheelMember"
+          maxElementsInMemory="1000"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="120"
+          overflowToDisk="false"
+  />
+
+</ehcache>

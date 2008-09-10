@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+
+<!-- 
+	/webapp/WEB-INF/web-portlet-example.xml
+	The main configuration file of the application for portlet installations.
+	Copy this file to /webapp/WEB-INF/web.xml and edit if needed (the default
+	configuration provided should fit to almost everybody).
+-->
+
+<web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<display-name>ws4Internet2Grouper</display-name>
+
+	<context-param>
+		<description>
+			The location of the main configuration file of the Spring framework. 
+		</description>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>
+			classpath:/properties/applicationContext.xml
+		</param-value>
+	</context-param>
+
+	<context-param>
+		<description>
+			The location of the main configuration file of the JSF framework.
+		</description>
+		<param-name>javax.faces.CONFIG_FILES</param-name>
+		<param-value>
+			/WEB-INF/classes/properties/jsf/commons-render-kit.xml,/WEB-INF/classes/properties/jsf/navigation-rules.xml,/WEB-INF/classes/properties/jsf/application.xml,/WEB-INF/classes/properties/jsf/fck-faces-config.xml
+		</param-value>
+	</context-param>
+
+	<context-param>
+		<description>
+			The location of the custom configuration for FCK editor.
+		</description>
+		<param-name>org.fckfaces.CUSTOM_CONFIGURATIONS_PATH</param-name>
+		<param-value>/media/FCKeditor/custom-fckconfig.js</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>org.apache.myfaces.PRETTY_HTML</param-name>
+		<param-value>true</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>org.apache.myfaces.ALLOW_JAVASCRIPT</param-name>
+		<param-value>true</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>org.apache.myfaces.DETECT_JAVASCRIPT</param-name>
+		<param-value>false</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>org.apache.myfaces.AUTO_SCROLL</param-name>
+		<param-value>false</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>org.apache.myfaces.ADD_RESOURCE_CLASS</param-name>
+		<param-value>org.apache.myfaces.renderkit.html.util.DefaultAddResource</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>org.apache.myfaces.CHECK_EXTENSIONS_FILTER</param-name>
+		<param-value>false</param-value>
+	</context-param>
+
+	<listener>
+		<listener-class>
+			org.springframework.web.context.ContextLoaderListener
+		</listener-class>
+	</listener>
+
+	<servlet>
+		<servlet-name>Download Servlet</servlet-name>
+		<servlet-class>
+			org.esupportail.commons.web.servlet.DownloadServlet
+		</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Download Servlet</servlet-name>
+		<url-pattern>/download</url-pattern>
+	</servlet-mapping>
+
+	<filter>
+		<filter-name>MyFacesExtensionsFilter</filter-name>
+		<filter-class>org.apache.myfaces.webapp.filter.ExtensionsFilter</filter-class>
+	    <init-param>
+	        <param-name>maxFileSize</param-name>
+	        <param-value>20m</param-value>
+	    </init-param>
+	</filter>
+	
+	<filter-mapping>
+	    <filter-name>MyFacesExtensionsFilter</filter-name>
+	    <url-pattern>/faces/myFacesExtensionResource/*</url-pattern>
+	</filter-mapping>
+	
+	<servlet> 
+		<servlet-name>ws4Internet2Grouper</servlet-name>
+		<servlet-class>
+			org.apache.pluto.core.PortletServlet
+		</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>
+				org.apache.portals.bridges.portletfilter.FilterPortlet
+			</param-value>
+		</init-param>
+		<init-param>
+			<param-name>portlet-guid</param-name>
+			<param-value>ws4Internet2Grouper.ws4Internet2Grouper</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ws4Internet2Grouper</servlet-name>
+		<url-pattern>/ws4Internet2Grouper/*</url-pattern>
+	</servlet-mapping>
+
+	<security-constraint>
+		<display-name>Protection of the raw JSP pages</display-name>
+		<web-resource-collection>
+			<web-resource-name>Raw JSF JSP Pages</web-resource-name>
+			<description>
+				All the JSP pages of the application.
+			</description>
+			<url-pattern>/stylesheets/about.jsp</url-pattern>
+			<url-pattern>/stylesheets/administrators.jsp</url-pattern>
+			<url-pattern>/stylesheets/administratorAdd.jsp</url-pattern>
+			<url-pattern>/stylesheets/administratorDelete.jsp</url-pattern>
+			<url-pattern>/stylesheets/departments.jsp</url-pattern>
+			<url-pattern>/stylesheets/departmentAdd.jsp</url-pattern>
+			<url-pattern>/stylesheets/departmentDelete.jsp</url-pattern>
+			<url-pattern>/stylesheets/departmentEdit.jsp</url-pattern>
+			<url-pattern>/stylesheets/departmentView.jsp</url-pattern>
+			<url-pattern>/stylesheets/departmentManagerAdd.jsp</url-pattern>
+			<url-pattern>/stylesheets/departmentManagerDelete.jsp</url-pattern>
+			<url-pattern>/stylesheets/departmentManagerEdit.jsp</url-pattern>
+			<url-pattern>/stylesheets/exception.jsp</url-pattern>
+			<url-pattern>/stylesheets/ldapSearch.jsp</url-pattern>
+			<url-pattern>/stylesheets/ldapResults.jsp</url-pattern>
+			<url-pattern>/stylesheets/login.jsp</url-pattern>
+			<url-pattern>/stylesheets/logout.jsp</url-pattern>
+			<url-pattern>/stylesheets/preferences.jsp</url-pattern>
+			<url-pattern>/stylesheets/things.jsp</url-pattern>
+			<url-pattern>/stylesheets/thingDelete.jsp</url-pattern>
+			<url-pattern>/stylesheets/thingEdit.jsp</url-pattern>
+			<url-pattern>/stylesheets/files.jsp</url-pattern>
+			<url-pattern>/stylesheets/groups.jsp</url-pattern>
+			<url-pattern>/stylesheets/welcome.jsp</url-pattern>
+			<url-pattern>/stylesheets/_*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<description>
+				No roles, so no direct access
+			</description>
+		</auth-constraint>
+	</security-constraint>
+	
+</web-app>
