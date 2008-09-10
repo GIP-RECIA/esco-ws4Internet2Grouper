@@ -6,11 +6,9 @@ package org.esco.ws4Internet2Grouper.services.remote;
 
 import edu.internet2.middleware.grouper.GrouperSession;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
@@ -22,8 +20,6 @@ import org.esco.ws4Internet2Grouper.parsing.SGSParsingUtil;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
 import org.esco.ws4Internet2Grouper.util.GrouperUtil;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.util.Assert;
 
 
@@ -386,7 +382,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param userId The id of the teacher.
      * @return The result object of the operation.
      * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #addTeacherToDisciplines(String, String, List, String)
+     * #addTeacherToDisciplines(String, String, Collection, String)
      */
     public GrouperOperationResultDTO addTeacherToDisciplines(final String establishmentUAI, 
             final String establishmentName,
@@ -682,238 +678,244 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
     }
 
 
-    public static void main(final String args[]) {
-
-        final ThreadLocal<ApplicationContext> springCtx = new ThreadLocal<ApplicationContext>();
-        springCtx.set(new FileSystemXmlApplicationContext("classpath:properties/applicationContext.xml"));
-        final ISarapisGroupService sgs = (ISarapisGroupService) springCtx.get().getBean("SarapisGroupService");
-        final String usersPrefix = "STRESS_TEST__Person_";
-        final int nbUsers = 3000;
-        final int thousand = 1000;
-
-
-        final int nbStudents = 00;
-        final int nbTeachers = 3;
-        final int nbParents = 00;
-        final int nbAdministrative = 00;
-        final int nbTos = 00;
-        final int nbEstab = 1;
-        final int nbLevels = 3;
-        final int nbClasses = 3;
-        final int nbDisciplines = 10;
-        final int nbMaxDisplPerTeacher = 5;
-        final String[] estabNames = new String[nbEstab];
-        final String[] estabUAI = new String[nbEstab];
-        final String[] levels = new String[nbLevels];
-        final String[] classesNames = new String[nbClasses];
-        final String[] classesDesc = new String[nbClasses];
-        final String[] disciplinesNames = new String[nbDisciplines];
-
-        for (int  i = 0; i < nbEstab; i++) {
-            estabNames[i] = "Estab_name_" + i;
-            estabUAI[i] = "Estab_UAI_" + i;
-        }
-
-        for (int  i = 0; i < nbLevels; i++) {
-            levels[i] = "Level_" + i;
-        }
-
-        for (int  i = 0; i < nbClasses; i++) {
-            classesNames[i] = "Class_name_" + i;
-            classesDesc[i] = "Class_desc_" + i;
-        }
-
-        for (int  i = 0; i < nbDisciplines; i++) {
-            disciplinesNames[i] = "discipl_name_" + i;
-        }
-
-        final Random rand = new Random();
-        rand.setSeed(1L);
-
-        int userIndex = 0;
-        long top1 = System.currentTimeMillis();
-        System.out.println("--- Students: " + nbStudents + " ---");
-        for (int i = 0; i < nbStudents; i++) {
-            final int estabInd = userIndex % nbEstab;
-            final int levelInd = userIndex % nbLevels;
-            final int classInd = userIndex % nbClasses;
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.addStudentToClass(estabUAI[estabInd], 
-                    estabNames[estabInd], levels[levelInd], 
-                    classesNames[classInd], classesDesc[classInd], userId);
-            System.out.println(userId + " ==> " + result);
-        }
-
-        long ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End students (" + ellapsed + "s) ---");
-
-
-
-        System.out.println("\n\n\n--- Teachers : " + nbTeachers + " ---");
-        top1 = System.currentTimeMillis();
-        for (int i = 0; i < nbTeachers; i++) {
-            rand.setSeed(userIndex);
-            final int estabInd = userIndex % nbEstab;
-            final int levelInd = userIndex % nbLevels;
-            final int classInd = userIndex % nbClasses;
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.addTeacherToClass(estabUAI[estabInd], 
-                    estabNames[estabInd], levels[levelInd], 
-                    classesNames[classInd], classesDesc[classInd], userId);
-            System.out.println(userId + " to class  ==> " + result);
-
-            // Builds a random list of dispciplines for the teacher
-            List<String> discipl = new ArrayList<String>();
-            int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
-            for (int j = 0; j < nbDispl; j++) {
-                String d = disciplinesNames[rand.nextInt(nbDisciplines)];
-                if (!discipl.contains(d)) {
-                    discipl.add(d);
-                }
-            }
-
-            result = sgs.addTeacherToDisciplines(estabUAI[estabInd], 
-                    estabNames[estabInd], discipl, userId);
-            System.out.println(userId + " to dsciplines  ==> " + result);
-        }
-        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End teachers (" + ellapsed + "s) ---");
-
-
-
-        System.out.println("\n\n\n--- Parents: " + nbParents + " ---");
-        top1 = System.currentTimeMillis();
-        for (int i = 0; i < nbParents; i++) {
-            final int estabInd = userIndex % nbEstab;
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.addParentToEstablishment(estabUAI[estabInd], 
-                    estabNames[estabInd], userId);
-            System.out.println(userId + " ==> " + result);
-        }
-        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End parents (" + ellapsed + "s) ---");
-
-        System.out.println("\n\n\n--- Administrative employees: " + nbAdministrative + " ---");
-        top1 = System.currentTimeMillis();
-        for (int i = 0; i < nbAdministrative; i++) {
-            final int estabInd = rand.nextInt(nbEstab);
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.addAdministrativeToEstablishment(estabUAI[estabInd], 
-                    estabNames[estabInd], userId);
-            System.out.println(userId + " ==> " + result);
-        }
-        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
-
-
-
-        System.out.println("\n\n\n--- TOS employees: " + nbTos + " ---");
-        top1 = System.currentTimeMillis();
-        for (int i = 0; i < nbTos; i++) {
-            final int estabInd = userIndex % nbEstab;
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.addTOSToEstablishment(estabUAI[estabInd], 
-                    estabNames[estabInd], userId);
-            System.out.println(userId + " ==> " + result);
-        }
-        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
-
-
-        // --------- Suppression
-
-        userIndex = 0;
-        top1 = System.currentTimeMillis();
-        System.out.println("--- Remove Students: " + nbStudents + " ---");
-        for (int i = 0; i < nbStudents; i++) {
-            final int estabInd = userIndex % nbEstab;
-            final int levelInd = userIndex % nbLevels;
-            final int classInd = userIndex % nbClasses;
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.removeStudentFromClass(estabUAI[estabInd], 
-                    estabNames[estabInd], levels[levelInd], 
-                    classesNames[classInd], userId);
-            System.out.println(userId + " ==> " + result);
-        }
-
-        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End students (" + ellapsed + "s) ---");
-
-
-
-
-
-        System.out.println("\n\n\n--- Removes teachers : " + nbTeachers + " ---");
-        top1 = System.currentTimeMillis();
-        for (int i = 0; i < nbTeachers; i++) {
-            rand.setSeed(userIndex);
-            final int estabInd = userIndex % nbEstab;
-            final int levelInd = userIndex % nbLevels;
-            final int classInd = userIndex % nbClasses;
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.removeTeacherFromClass(estabUAI[estabInd], 
-                    estabNames[estabInd], levels[levelInd], 
-                    classesNames[classInd], userId);
-            System.out.println(userId + " to class  ==> " + result);
-
-            // Builds a random list of dispciplines for the teacher
-            List<String> discipl = new ArrayList<String>();
-            int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
-            for (int j = 0; j < nbDispl; j++) {
-                String d = disciplinesNames[rand.nextInt(nbDisciplines)];
-                if (!discipl.contains(d)) {
-                    discipl.add(d);
-                }
-            }
-
-            result = sgs.removeTeacherFromDisciplines(estabUAI[estabInd], 
-                    estabNames[estabInd], discipl, userId);
-            System.out.println(userId + " to dsciplines  ==> " + result);
-        }
-        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End teachers (" + ellapsed + "s) ---");
-
-
-
-        System.out.println("\n\n\n--- Removes Parents: " + nbParents + " ---");
-        top1 = System.currentTimeMillis();
-        for (int i = 0; i < nbParents; i++) {
-            final int estabInd = userIndex % nbEstab;
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.removeParentFromEstablishment(estabUAI[estabInd], 
-                    estabNames[estabInd], userId);
-            System.out.println(userId + " ==> " + result);
-        }
-        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End parents (" + ellapsed + "s) ---");
-
-        System.out.println("\n\n\n--- Removes Administrative employees: " + nbAdministrative + " ---");
-        top1 = System.currentTimeMillis();
-        for (int i = 0; i < nbAdministrative; i++) {
-            final int estabInd = rand.nextInt(nbEstab);
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.removeAdministrativeFromEstablishment(estabUAI[estabInd], 
-                    estabNames[estabInd], userId);
-            System.out.println(userId + " ==> " + result);
-        }
-        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
-
-
-
-        System.out.println("\n\n\n--- Removes TOS employees: " + nbTos + " ---");
-        top1 = System.currentTimeMillis();
-        for (int i = 0; i < nbTos; i++) {
-            final int estabInd = userIndex % nbEstab;
-            final String userId = usersPrefix + userIndex++;
-            GrouperOperationResultDTO result = sgs.removeTOSFromEstablishment(estabUAI[estabInd], 
-                    estabNames[estabInd], userId);
-            System.out.println(userId + " ==> " + result);
-        }
-        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-        System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
-
-
-    }
+  
+//    public static void main(final String args[]) {
+//
+//    import java.util.ArrayList;
+//    import java.util.Random;
+//    import org.springframework.context.ApplicationContext;
+//    import org.springframework.context.support.FileSystemXmlApplicationContext;
+//    
+//        final ThreadLocal<ApplicationContext> springCtx = new ThreadLocal<ApplicationContext>();
+//        springCtx.set(new FileSystemXmlApplicationContext("classpath:properties/applicationContext.xml"));
+//        final ISarapisGroupService sgs = (ISarapisGroupService) springCtx.get().getBean("SarapisGroupService");
+//        final String usersPrefix = "STRESS_TEST__Person_";
+//        final int nbUsers = 3000;
+//        final int thousand = 1000;
+//
+//
+//        final int nbStudents = 00;
+//        final int nbTeachers = 3;
+//        final int nbParents = 00;
+//        final int nbAdministrative = 00;
+//        final int nbTos = 00;
+//        final int nbEstab = 1;
+//        final int nbLevels = 3;
+//        final int nbClasses = 3;
+//        final int nbDisciplines = 10;
+//        final int nbMaxDisplPerTeacher = 5;
+//        final String[] estabNames = new String[nbEstab];
+//        final String[] estabUAI = new String[nbEstab];
+//        final String[] levels = new String[nbLevels];
+//        final String[] classesNames = new String[nbClasses];
+//        final String[] classesDesc = new String[nbClasses];
+//        final String[] disciplinesNames = new String[nbDisciplines];
+//
+//        for (int  i = 0; i < nbEstab; i++) {
+//            estabNames[i] = "Estab_name_" + i;
+//            estabUAI[i] = "Estab_UAI_" + i;
+//        }
+//
+//        for (int  i = 0; i < nbLevels; i++) {
+//            levels[i] = "Level_" + i;
+//        }
+//
+//        for (int  i = 0; i < nbClasses; i++) {
+//            classesNames[i] = "Class_name_" + i;
+//            classesDesc[i] = "Class_desc_" + i;
+//        }
+//
+//        for (int  i = 0; i < nbDisciplines; i++) {
+//            disciplinesNames[i] = "discipl_name_" + i;
+//        }
+//
+//        final Random rand = new Random();
+//        rand.setSeed(1L);
+//
+//        int userIndex = 0;
+//        long top1 = System.currentTimeMillis();
+//        System.out.println("--- Students: " + nbStudents + " ---");
+//        for (int i = 0; i < nbStudents; i++) {
+//            final int estabInd = userIndex % nbEstab;
+//            final int levelInd = userIndex % nbLevels;
+//            final int classInd = userIndex % nbClasses;
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.addStudentToClass(estabUAI[estabInd], 
+//                    estabNames[estabInd], levels[levelInd], 
+//                    classesNames[classInd], classesDesc[classInd], userId);
+//            System.out.println(userId + " ==> " + result);
+//        }
+//
+//        long ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End students (" + ellapsed + "s) ---");
+//
+//
+//
+//        System.out.println("\n\n\n--- Teachers : " + nbTeachers + " ---");
+//        top1 = System.currentTimeMillis();
+//        for (int i = 0; i < nbTeachers; i++) {
+//            rand.setSeed(userIndex);
+//            final int estabInd = userIndex % nbEstab;
+//            final int levelInd = userIndex % nbLevels;
+//            final int classInd = userIndex % nbClasses;
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.addTeacherToClass(estabUAI[estabInd], 
+//                    estabNames[estabInd], levels[levelInd], 
+//                    classesNames[classInd], classesDesc[classInd], userId);
+//            System.out.println(userId + " to class  ==> " + result);
+//
+//            // Builds a random list of dispciplines for the teacher
+//            List<String> discipl = new ArrayList<String>();
+//            int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
+//            for (int j = 0; j < nbDispl; j++) {
+//                String d = disciplinesNames[rand.nextInt(nbDisciplines)];
+//                if (!discipl.contains(d)) {
+//                    discipl.add(d);
+//                }
+//            }
+//
+//            result = sgs.addTeacherToDisciplines(estabUAI[estabInd], 
+//                    estabNames[estabInd], discipl, userId);
+//            System.out.println(userId + " to dsciplines  ==> " + result);
+//        }
+//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End teachers (" + ellapsed + "s) ---");
+//
+//
+//
+//        System.out.println("\n\n\n--- Parents: " + nbParents + " ---");
+//        top1 = System.currentTimeMillis();
+//        for (int i = 0; i < nbParents; i++) {
+//            final int estabInd = userIndex % nbEstab;
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.addParentToEstablishment(estabUAI[estabInd], 
+//                    estabNames[estabInd], userId);
+//            System.out.println(userId + " ==> " + result);
+//        }
+//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End parents (" + ellapsed + "s) ---");
+//
+//        System.out.println("\n\n\n--- Administrative employees: " + nbAdministrative + " ---");
+//        top1 = System.currentTimeMillis();
+//        for (int i = 0; i < nbAdministrative; i++) {
+//            final int estabInd = rand.nextInt(nbEstab);
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.addAdministrativeToEstablishment(estabUAI[estabInd], 
+//                    estabNames[estabInd], userId);
+//            System.out.println(userId + " ==> " + result);
+//        }
+//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
+//
+//
+//
+//        System.out.println("\n\n\n--- TOS employees: " + nbTos + " ---");
+//        top1 = System.currentTimeMillis();
+//        for (int i = 0; i < nbTos; i++) {
+//            final int estabInd = userIndex % nbEstab;
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.addTOSToEstablishment(estabUAI[estabInd], 
+//                    estabNames[estabInd], userId);
+//            System.out.println(userId + " ==> " + result);
+//        }
+//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
+//
+//
+//        // --------- Suppression
+//
+//        userIndex = 0;
+//        top1 = System.currentTimeMillis();
+//        System.out.println("--- Remove Students: " + nbStudents + " ---");
+//        for (int i = 0; i < nbStudents; i++) {
+//            final int estabInd = userIndex % nbEstab;
+//            final int levelInd = userIndex % nbLevels;
+//            final int classInd = userIndex % nbClasses;
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.removeStudentFromClass(estabUAI[estabInd], 
+//                    estabNames[estabInd], levels[levelInd], 
+//                    classesNames[classInd], userId);
+//            System.out.println(userId + " ==> " + result);
+//        }
+//
+//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End students (" + ellapsed + "s) ---");
+//
+//
+//
+//
+//
+//        System.out.println("\n\n\n--- Removes teachers : " + nbTeachers + " ---");
+//        top1 = System.currentTimeMillis();
+//        for (int i = 0; i < nbTeachers; i++) {
+//            rand.setSeed(userIndex);
+//            final int estabInd = userIndex % nbEstab;
+//            final int levelInd = userIndex % nbLevels;
+//            final int classInd = userIndex % nbClasses;
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.removeTeacherFromClass(estabUAI[estabInd], 
+//                    estabNames[estabInd], levels[levelInd], 
+//                    classesNames[classInd], userId);
+//            System.out.println(userId + " to class  ==> " + result);
+//
+//            // Builds a random list of dispciplines for the teacher
+//            List<String> discipl = new ArrayList<String>();
+//            int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
+//            for (int j = 0; j < nbDispl; j++) {
+//                String d = disciplinesNames[rand.nextInt(nbDisciplines)];
+//                if (!discipl.contains(d)) {
+//                    discipl.add(d);
+//                }
+//            }
+//
+//            result = sgs.removeTeacherFromDisciplines(estabUAI[estabInd], 
+//                    estabNames[estabInd], discipl, userId);
+//            System.out.println(userId + " to dsciplines  ==> " + result);
+//        }
+//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End teachers (" + ellapsed + "s) ---");
+//
+//
+//
+//        System.out.println("\n\n\n--- Removes Parents: " + nbParents + " ---");
+//        top1 = System.currentTimeMillis();
+//        for (int i = 0; i < nbParents; i++) {
+//            final int estabInd = userIndex % nbEstab;
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.removeParentFromEstablishment(estabUAI[estabInd], 
+//                    estabNames[estabInd], userId);
+//            System.out.println(userId + " ==> " + result);
+//        }
+//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End parents (" + ellapsed + "s) ---");
+//
+//        System.out.println("\n\n\n--- Removes Administrative employees: " + nbAdministrative + " ---");
+//        top1 = System.currentTimeMillis();
+//        for (int i = 0; i < nbAdministrative; i++) {
+//            final int estabInd = rand.nextInt(nbEstab);
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.removeAdministrativeFromEstablishment(estabUAI[estabInd], 
+//                    estabNames[estabInd], userId);
+//            System.out.println(userId + " ==> " + result);
+//        }
+//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
+//
+//
+//
+//        System.out.println("\n\n\n--- Removes TOS employees: " + nbTos + " ---");
+//        top1 = System.currentTimeMillis();
+//        for (int i = 0; i < nbTos; i++) {
+//            final int estabInd = userIndex % nbEstab;
+//            final String userId = usersPrefix + userIndex++;
+//            GrouperOperationResultDTO result = sgs.removeTOSFromEstablishment(estabUAI[estabInd], 
+//                    estabNames[estabInd], userId);
+//            System.out.println(userId + " ==> " + result);
+//        }
+//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//        System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
+//
+//
+//    }
 
 }
