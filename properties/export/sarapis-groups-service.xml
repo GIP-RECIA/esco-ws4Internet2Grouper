@@ -132,7 +132,7 @@
                        display-extension="Administratifs"
 				       description="Personnel administratif de l'établissment %NOM_ETAB%">
 				       <member-of path="..:Tous_%NOM_ETAB%" />
-				       <members type="TOS" distribution-by="%NOM_ETAB%" />
+				       <members type="Administrative" distribution-by="%NOM_ETAB%" />
  		        </group>
 				       
                 <group extension="TOS" 
