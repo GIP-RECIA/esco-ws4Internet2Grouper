@@ -3,6 +3,7 @@
  */
 package org.esco.ws4Internet2Grouper.services.remote;
 
+import edu.internet2.middleware.grouper.Field;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GroupNameFilter;
@@ -21,6 +22,7 @@ import edu.internet2.middleware.grouper.StemFinder;
 import edu.internet2.middleware.grouper.StemNameFilter;
 import edu.internet2.middleware.grouper.StemNotFoundException;
 import edu.internet2.middleware.grouper.SubjectFinder;
+import edu.internet2.middleware.grouper.Stem.Scope;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;
@@ -28,6 +30,7 @@ import edu.internet2.middleware.subject.provider.SubjectTypeEnum;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -98,8 +101,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
                 s.getDisplayExtension(), 
                 s.getDescription());
     }
-
-
+    
     /**
      * Creates an instance of GrouperDTO.
      * @param s The subject used to build the instance.
@@ -281,6 +283,161 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
 
         return m;
     }
+    
+    /**
+     * Gives all the subjects that are members of this group.
+     * @param group The target group.
+     * @param session The grouper session.
+     * @return All the subjects members of the group.
+     */
+    private Set<GrouperDTO> getAllMemberSubjects(final GrouperSession session, final Group group) {
+
+        final Set<GrouperDTO> allMemberSubjects = new HashSet<GrouperDTO>();
+        
+        @SuppressWarnings("unchecked") 
+        final Set members = group.getEffectiveMemberships();
+        for (Object o : members) {
+            try {
+                final Member mb = ((Membership) o).getMember();
+                if (mb.getSubjectType().equals(SubjectTypeEnum.PERSON)) {
+                    allMemberSubjects.add(fetchGrouperData(mb.getSubject()));
+                }
+            } catch (MemberNotFoundException e) {
+                LOGGER.error(e, e);
+            } catch (SubjectNotFoundException e) {
+                LOGGER.error(e, e);
+            }
+        }
+        return allMemberSubjects;
+    }
+    
+    /**
+     * Gives all the groups that are members of this group.
+     * @param group The target group.
+     * @param session The grouper session.
+     * @return All the groups members of the group.
+     */
+    private Set<GrouperDTO> getAllMemberGroups(final GrouperSession session, final Group group) {
+
+        final Set<GrouperDTO> allMemberGroups = new HashSet<GrouperDTO>();
+        
+        @SuppressWarnings("unchecked") 
+        final Set members = group.getEffectiveMemberships();
+        for (Object o : members) {
+            try {
+                final Member mb = ((Membership) o).getMember();
+                if (mb.getSubjectType().equals(SubjectTypeEnum.GROUP)) {
+                    allMemberGroups.add(fetchGrouperData(mb.toGroup()));
+                }
+            } catch (MemberNotFoundException e) {
+                LOGGER.error(e, e);
+            } catch (GroupNotFoundException e) {
+                LOGGER.error(e, e);
+            }
+        }
+       
+        return allMemberGroups;
+    }
+    
+
+    /**
+     * Gives all the  members of this group.
+     * @param group The target group.
+     * @param session The grouper session.
+     * @return All the members of the group.
+     */
+    private Set<GrouperDTO> getAllMembers(final GrouperSession session, final Group group) {
+
+        final Set<GrouperDTO> allMembers = new HashSet<GrouperDTO>();
+        
+        @SuppressWarnings("unchecked") 
+        final Set members = group.getEffectiveMemberships();
+        for (Object o : members) {
+            try {
+                final Member mb = ((Membership) o).getMember();
+                if (mb.getSubjectType().equals(SubjectTypeEnum.PERSON)) {
+                    allMembers.add(fetchGrouperData(mb.getSubject()));
+                } else if (mb.getSubjectType().equals(SubjectTypeEnum.GROUP)) {
+                    allMembers.add(fetchGrouperData(mb.toGroup()));
+                }
+            } catch (MemberNotFoundException e) {
+                LOGGER.error(e, e);
+            } catch (SubjectNotFoundException e) {
+                LOGGER.error(e, e);
+            } catch (GroupNotFoundException e) {
+            LOGGER.error(e, e);
+            }
+        }
+        return allMembers;
+    }
+    
+    /**
+     * Gives all the groups that are members of the stem.
+     * @param stem The key of the target stem.
+     * @param session The grouper session.
+     * @return All the groups members of the stem.
+     */
+    private Set<GrouperDTO> getAllMemberGroups(final GrouperSession session, final Stem stem) {
+
+        final Set<GrouperDTO> allMemberGroups = new HashSet<GrouperDTO>();
+                
+        // Adds all the member groups.
+        final Set<Group> childGroups = stem.getChildGroups(Scope.SUB);
+        for (Group g : childGroups) {
+            allMemberGroups.addAll(getAllMemberGroups(session, g));
+            allMemberGroups.add(fetchGrouperData(g));
+        }
+                
+        // Add all The child Stems.
+        final Set<Stem> childStems = stem.getChildStems(Scope.SUB);
+        for (Stem s : childStems) {
+            allMemberGroups.add(fetchGrouperData(s));
+        }
+        return allMemberGroups;
+    }
+
+    /**
+     * Gives all the subject that are members of the stem.
+     * @param stem The key of the target stem.
+     * @param session The grouper session.
+     * @return All the subjects members of the stem.
+     */
+    private Set<GrouperDTO> getAllMemberSubjects(final GrouperSession session, final Stem stem) {
+        
+        final Set<GrouperDTO> allMemberSubjects = new HashSet<GrouperDTO>();
+        
+        // Retrieves all the subjects members of the child groups.
+        final Set<Group> childGroups = stem.getChildGroups(Scope.SUB);
+        for (Group g : childGroups) {
+            allMemberSubjects.addAll(getAllMemberSubjects(session, g));
+        }
+       
+        return allMemberSubjects;
+    }
+    /**
+     * Gives all the members of the stem : child stems, child groups and their members.
+     * @param stem The key of the target stem.
+     * @param session The grouper session.
+     * @return All the members of the stem.
+     */
+    private Set<GrouperDTO> getAllMembers(final GrouperSession session, final Stem stem) {
+
+        final Set<GrouperDTO> allMembers = new HashSet<GrouperDTO>();
+                
+        // Adds all the member groups.
+        final Set<Group> childGroups = stem.getChildGroups(Scope.SUB);
+        for (Group g : childGroups) {
+            allMembers.addAll(getAllMembers(session, g));
+            allMembers.add(fetchGrouperData(g));
+        }
+                
+        // Add all The child Stems.
+        final Set<Stem> childStems = stem.getChildStems(Scope.SUB);
+        for (Stem s : childStems) {
+            allMembers.add(fetchGrouperData(s));
+        }
+        return allMembers;
+    }
 
     /**
      * Tests if a subject is member of a given group.
@@ -312,6 +469,62 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
             sb.append(member);
             LOGGER.debug(sb);
         }
+
+        sessionUtil.stopSession(session);
+        return member;
+    }
+    
+    /**
+     * Tests if a subject is a deep member of a given group or stem.
+     * @param name The name of the group or stem.
+     * @param subjectId The id of the subject.
+     * @return True if the subject is a deep member of the group.
+     * @see org.esco.ws4Internet2Grouper.services.remote.IGrouperAPIExposer#hasMember
+     * (java.lang.String, java.lang.String)
+     */
+    public boolean hasDeepMember(final String name, final String subjectId) {
+
+        final GrouperSession session = sessionUtil.createSession();
+        final GroupOrStem gos = fetchGroupOrStem(session, name);
+        boolean member = false;
+        final Subject subject = fetchSubject(subjectId);
+        if (gos != null) { 
+            if (gos.isGroup()) {
+                // The target is a group.
+                
+                member = gos.asGroup().hasEffectiveMember(subject);
+                
+                if (LOGGER.isDebugEnabled()) {
+                    final StringBuffer sb = new StringBuffer("Group: ");
+                    sb.append(name);
+                    sb.append(" hasDeepMember: ");
+                    sb.append(subjectId);
+                    sb.append(" = ");
+                    sb.append(member);
+                    LOGGER.debug(sb);
+                }
+
+                
+            } else {
+                // The target is a stem.
+                final Set<Group> childGroups = gos.asStem().getChildGroups(Scope.SUB);
+                final Iterator<Group> it = childGroups.iterator();
+                while (it.hasNext() && !member) {
+                    member = it.next().hasEffectiveMember(subject);
+                }
+                if (LOGGER.isDebugEnabled()) {
+                    final StringBuffer sb = new StringBuffer("Folder: ");
+                    sb.append(name);
+                    sb.append(" hasDeepMember: ");
+                    sb.append(subjectId);
+                    sb.append(" = ");
+                    sb.append(member);
+                    LOGGER.debug(sb);
+                }
+
+            }
+        }
+
 
         sessionUtil.stopSession(session);
         return member;
@@ -451,7 +664,6 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
                 for (Object childGroup : childGroups) {
                     memberGroups.add(fetchGrouperData((Group) childGroup));
                 }
-
             }
         }
 
@@ -470,6 +682,124 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
         return memberGroups.toArray(new GrouperDTO[memberGroups.size()]);
     }
 
+    /**
+     * Gives all the groups and subjects that are members of this group or stem.
+     * @param key The key of the target group or stem.
+     * @return All the members of the group or stem denoted by the key.
+     * @see org.esco.ws4Internet2Grouper.services.remote.IGrouperAPIExposer#getAllMembers(java.lang.String)
+     */
+    public GrouperDTO[] getAllMembers(final String key) {
+
+        Set<GrouperDTO> allMembers = null;
+        final GrouperSession session = sessionUtil.createSession();
+        final GroupOrStem gos = fetchGroupOrStem(session, key);
+
+        if (gos != null) {
+
+            // The name denotes a group.
+            if (gos.isGroup()) {
+
+                allMembers = getAllMembers(session, gos.asGroup());
+            
+            // The name denotes a stem.
+            } else if (gos.isStem()) {
+                allMembers = getAllMembers(session, gos.asStem());
+            }
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            final StringBuffer sb = new StringBuffer("All Members for ");
+            sb.append(key);
+            sb.append(": ");
+            sb.append(allMembers);
+            LOGGER.debug(sb.toString());
+        }
+
+        sessionUtil.stopSession(session);
+        if (allMembers == null) {
+            return null;
+        }
+        return allMembers.toArray(new GrouperDTO[allMembers.size()]);
+    }
+ 
+    /**
+     * Gives all the groups that are members of this group or stem.
+     * @param key The key of the target group or stem.
+     * @return All the groups members of the group or stem.
+     */
+    public GrouperDTO[] getAllMemberGroups(final String key) {
+
+        Set<GrouperDTO> allMemberGroups = null;
+        final GrouperSession session = sessionUtil.createSession();
+        final GroupOrStem gos = fetchGroupOrStem(session, key);
+
+        if (gos != null) {
+
+            // The name denotes a group.
+            if (gos.isGroup()) {
+
+                allMemberGroups = getAllMemberGroups(session, gos.asGroup());
+            
+            // The name denotes a stem.
+            } else if (gos.isStem()) {
+                allMemberGroups = getAllMemberGroups(session, gos.asStem());
+            }
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            final StringBuffer sb = new StringBuffer("All member groups for ");
+            sb.append(key);
+            sb.append(": ");
+            sb.append(allMemberGroups);
+            LOGGER.debug(sb.toString());
+        }
+
+        sessionUtil.stopSession(session);
+        if (allMemberGroups == null) {
+            return null;
+        }
+        return allMemberGroups.toArray(new GrouperDTO[allMemberGroups.size()]);
+    }
+    
+    /**
+     * Gives all the subjects that are members of this group or stem.
+     * @param key The key of the target group or stem.
+     * @return All the subjects members of the group or stem.
+     */
+    public GrouperDTO[] getAllMemberSubjects(final String key) {
+        Set<GrouperDTO> allMemberSubjects = null;
+        final GrouperSession session = sessionUtil.createSession();
+        final GroupOrStem gos = fetchGroupOrStem(session, key);
+
+        if (gos != null) {
+
+            // The name denotes a group.
+            if (gos.isGroup()) {
+
+                allMemberSubjects = getAllMemberSubjects(session, gos.asGroup());
+            
+            // The name denotes a stem.
+            } else if (gos.isStem()) {
+                allMemberSubjects = getAllMemberSubjects(session, gos.asStem());
+            }
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            final StringBuffer sb = new StringBuffer("All member subjects for ");
+            sb.append(key);
+            sb.append(": ");
+            sb.append(allMemberSubjects);
+            LOGGER.debug(sb.toString());
+        }
+
+        sessionUtil.stopSession(session);
+        if (allMemberSubjects == null) {
+            return null;
+        }
+        return allMemberSubjects.toArray(new GrouperDTO[allMemberSubjects.size()]);
+    }
+    
+    
     /**
      * Gives the members of type subject of the group.
      * @param key The name of the group.

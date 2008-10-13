@@ -8,6 +8,6 @@
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jug-1.1.1.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/mysql-connector-java-5.0.8-bin.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/subject-0.3.0-rc1-cvs.jar" sourcepath="/subject"/>
-	<classpathentry kind="lib" path="webapp/WEB-INF/lib/grouper-1.2.1.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/grouper-1.2.1.jar" sourcepath="/grouper-1.2.1/grouper-api-1.2.1"/>
 	<classpathentry kind="output" path="build/WEB-INF/classes"/>
 </classpath>

@@ -2,3 +2,5 @@ dist
 apache-tomcat-5.5.17
 build
 deploy
+.classpath
+.project
