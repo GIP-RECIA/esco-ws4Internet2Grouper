@@ -24,6 +24,14 @@ public interface IGrouperAPIExposer {
 	boolean hasMember(final String groupName, final String subjectId);
 	
 	/**
+	 * Tests if a group (or stem) or its subgroups contains a subject.
+	 * @param groupName The name of the group.
+	 * @param subjectId The id of the subject.
+	 * @return True if the subject is member of the group or of one of it subgroups.
+	 */
+	boolean hasDeepMember(final String groupName, final String subjectId);
+	
+	/**
 	 * Returns the DTO that denotes a group or a stem.
 	 * @param key The key of the group or stem to search for.
 	 * @return The group if it can be found, null otherwise.
@@ -52,6 +60,27 @@ public interface IGrouperAPIExposer {
 	 * @return subgroups/stems.
 	 */
 	GrouperDTO[] getMemberGroups(final String key);
+	
+	/**
+	 * Gives all the groups and subjects that are members of this group or stem.
+	 * @param key The key of the target group or stem.
+	 * @return All the members of the group or stem denoted by the key.
+	 */
+	GrouperDTO[] getAllMembers(final String key);
+
+	/**
+	 * Gives all the groups that are members of this group or stem.
+	 * @param key The key of the target group or stem.
+	 * @return All the groups members of the group or stem.
+	 */
+	GrouperDTO[] getAllMemberGroups(final String key);
+	
+	/**
+	 * Gives all the subjects that are members of this group or stem.
+	 * @param key The key of the target group or stem.
+	 * @return All the subjects members of the group or stem.
+	 */
+	GrouperDTO[] getAllMemberSubjects(final String key);
 	
 	 /**
 	  * If the key denotes a group, gives the group descriptions of the groups to which 
