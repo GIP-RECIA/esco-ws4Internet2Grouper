@@ -18,6 +18,12 @@ public abstract class Constants {
 
     /** The admin right for a group. */
     public static final Privilege ADMIN_PRIV = Privilege.getInstance("admin");
+
+    /** The view right for a group. */
+    public static final Privilege VIEW_PRIV = Privilege.getInstance("view");
+
+    /** The read right for a group. */
+    public static final Privilege READ_PRIV = Privilege.getInstance("read");
     
     /** The stem privilege for the stems. */
     public static final Privilege STEM_PRIV = Privilege.getInstance("stem");

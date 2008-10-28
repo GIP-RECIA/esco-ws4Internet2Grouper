@@ -7,6 +7,7 @@
 	<user uid="GrouperSystem"/>
 	<delete-empty-folders value="false"/>
 	<delete-empty-groups value="true"/>
+	<force-privileges value="false"/>
 	
 	<ordered-template-elements>  
 		<comment>
@@ -31,7 +32,7 @@
 
         <comment>Racine des groupes pour ESCO-Portail</comment>
 
-		<administrated-by path=".:admin:central" recursive="true">
+		<privileges>
 			<comment>
 				Ce privilège d'administration sera positionné pour toute
 				l'arborescence située sous ce dossier. 
@@ -41,8 +42,8 @@
 			     	- On utilise ici un chemin relatif mais le chemin absolu aurait également
 			       	été correct : ESCO:admin:central.
 			</comment>
-		</administrated-by>
-
+			<privilege right="admin" path=".:admin:central" recursive="true"/>
+		</privileges>
 		<!--
 			~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		        Arborescence d'administration 
@@ -84,14 +85,15 @@
 		    <folder-template extension="%NOM_ETAB%_%UAI_ETAB%"
 			                 display-extension="%NOM_ETAB%_%UAI_ETAB%"
 			                 description="Racine pour les groupes de l'établissement %NOM_ETAB%">
-			                 
-                <administrated-by path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%"/>
-				                  
+			    <privileges>
+			    	<privilege right="GROUP_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
+			    	<privilege right="FOLDER_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
+			    	<privilege right="READ" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
+		    	</privileges>
+		    	           
 			    <folder-template extension="%NIVEAU%"
 				                 display-extension="Niveau %NIVEAU%"
 				                 description="Racine pour les groupes de niveau">
-					<administrated-by path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%"/>
-					
 				    <group-template extension="Profs_%NOM_CLASSE%"  
 					                display-extension="Prof. %NOM_CLASSE%"
 					                description="Enseignants de la classe %NOM_CLASSE%">
@@ -159,8 +161,6 @@
 		                description="Racine pour les groupes de disciplines"
 		                preexisting="false">
 		                
-		            	<administrated-by path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%"/>
-		            	
 		            	<group-template extension="%DISCIPLINE%" 
                         	            display-extension="%DISCIPLINE%" 
 					        	        description="Enseignants - discipline %DISCIPLINE%">

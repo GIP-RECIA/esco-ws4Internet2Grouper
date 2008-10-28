@@ -41,6 +41,8 @@ import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
 import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
+import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition;
+import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition.Right;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -60,10 +62,13 @@ public class GrouperUtil implements InitializingBean {
 
     /** Flag to detemine the behaviour for the empty groups when removing
      * a member. */
-    private Boolean deleteEmptyGroups = false;
+    private boolean deleteEmptyGroups;
 
     /** Flag to determine if empty folder should be deleted. */
-    private Boolean deleteEmptyFolders = false;
+    private boolean deleteEmptyFolders;
+    
+    /** Flag to force the privileges. */
+    private boolean forcePrivileges;
 
     /**
      * Builds an instance of GrouperUtil.
@@ -93,55 +98,56 @@ public class GrouperUtil implements InitializingBean {
     }
 
     /**
-     * Handles the administration privileges for a folder.
+     * Handles the privileges for a folder.
      * This privileges are added if the folder is empty and is not a preexistiong one.
-     * @param session The grouper session/
+     * @param session The grouper session.
      * @param groupOrStem The folder.
-     * @param definition The folder definition which contains the administration privileges
+     * @param definition The folder definition which contains the privileges
      * to add.
      * @param values The values used to evaluate the template elements.
      */
-    private void handleAdministrationPrivilegesForFolder(final GrouperSession session, 
+    private void handlePrivilegesForFolder(final GrouperSession session, 
             final GroupOrStem groupOrStem, 
             final GroupOrFolderDefinition definition,
             final String...values) {
 
         if (!definition.isPreexisting()) {
             final Stem folder = groupOrStem.asStem();
-
-            if (folder.getChildStems().size() == 0 && folder.getChildGroups().size() == 0) {
+          
+            if ((folder.getChildStems().size() == 0 && folder.getChildGroups().size() == 0) || forcePrivileges) {
                 // The administration privileges are checked for the empty folders.
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("The folder " 
-                            + definition.getPath() 
-                            + " is empty so the administration privileges are checked.");
+                    
+                    if (forcePrivileges) {
+                        LOGGER.debug("Forcing privileges on the folder" 
+                                + " " + definition.getPath() 
+                                + ".");
+                    } else {
+                        LOGGER.debug("The folder " 
+                                + definition.getPath() 
+                                + " is empty so the privileges are checked.");
+                    }
                 }
-                // Adds administration privileges to some groups if needed.
-                for (int i = 0; i < definition.countAdministratingGroupsPaths(); i++) {
-                    final String path = definition.getAdministratingGroupPath(i);
-                    GroupOrFolderDefinition adminGroupDef = definitionsManager.getDefinition(path, values);
-                    GroupOrStem adminGroupWrapper = retrieveOrCreate(session, adminGroupDef, values);
+                
+                // Adds privileges for some groups if needed.
+                for (int i = 0; i < definition.countPrivileges(); i++) {
+                    final PrivilegeDefinition privDef = definition.getPrivilege(i); 
+                    final String path = privDef.getPath().getString();
+                    GroupOrFolderDefinition privilegedGroupDef = definitionsManager.getDefinition(path, values);
+                    GroupOrStem privilegedGroupWrapper = retrieveOrCreate(session, privilegedGroupDef, values);
 
-                    final Subject subj = adminGroupWrapper.asGroup().toSubject();
+                    final Subject subj = privilegedGroupWrapper.asGroup().toSubject();
                     try {
-
-                        if (!folder.hasCreate(subj)) {
-                            folder.grantPriv(subj, Constants.CREATE_PRIV);
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("Adding create privilege to the group: " + adminGroupDef.getPath() 
-                                        + " on the folder: " + definition.getPath());
-                            }
+                        if (Right.ADMIN.equals(privDef.getPrivilege())) {
+                            addAdminPrivilege(definition.getPath(), privilegedGroupDef.getPath(), folder, subj);
                         }
-
-                        if (!folder.hasStem(subj)) {
-                            folder.grantPriv(subj, Constants.STEM_PRIV);
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("Adding stem privilege to the group: " + adminGroupDef.getPath() 
-                                        + " on the folder: " + definition.getPath());
-                            }
+                        if (Right.FOLDER_CREATION.equals(privDef.getPrivilege())) {
+                            addStemPrivilege(definition.getPath(), privilegedGroupDef.getPath(), folder, subj);
                         }
-
+                        if (Right.GROUP_CREATION.equals(privDef.getPrivilege())) {
+                            addCreatePrivilege(definition.getPath(), privilegedGroupDef.getPath(), folder, subj);
+                        }
                     } catch (GrantPrivilegeException e) {
                         LOGGER.fatal(e, e);
                         throw new WS4GrouperException(e);
@@ -152,32 +158,29 @@ public class GrouperUtil implements InitializingBean {
                         LOGGER.fatal(e, e);
                         throw new WS4GrouperException(e);
                     }
-
-
-
                 } 
-            } else {
+            } else if (!forcePrivileges) {
                 // The folder is not empty: administration privileges should be right as they
                 // are checked before adding the first child.
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("The folder " 
                             + definition.getPath() 
-                            + " is not empty so the administration privileges are supposed to be valid.");
+                            + " is not empty so the privileges are supposed to be valid.");
                 }
             }
         }
     }
 
     /**
-     * Handles the administration privileges for a group.
+     * Handles the privileges for a group.
      * This privileges are added if the group is empty and is not a preexisting one.
      * @param session The grouper session.
      * @param groupOrStem The group.
-     * @param definition The group definition which contains the administration privileges
+     * @param definition The group definition which contains the privileges
      * to add.
      * @param values The values used to evaluate the template elements.
      */
-    private void handleAdministrationPrivilegesForGroup(final GrouperSession session, 
+    private void handlePrivilegesForGroup(final GrouperSession session, 
             final GroupOrStem groupOrStem, 
             final GroupOrFolderDefinition definition,
             final String...values) {
@@ -186,28 +189,38 @@ public class GrouperUtil implements InitializingBean {
         if (!definition.isPreexisting()) {
 
             final Group group = groupOrStem.asGroup();
-
-            if (group.getImmediateMembers().size() == 0) {
+            
+            if (group.getImmediateMembers().size() == 0 || forcePrivileges) {
 
                 // The administration privileges are checked for the empty groups.
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("The group" 
-                            + " " + definition.getPath() 
-                            + " is empty so the administration privileges are checked.");
+                    if (forcePrivileges) {
+                        LOGGER.debug("Forcing privileges on the group" 
+                                + " " + definition.getPath() 
+                                + ".");
+                    } else {
+                        LOGGER.debug("The group" 
+                                + " " + definition.getPath() 
+                                + " is empty so the privileges are checked.");
+                    
+                    }
+                    
                 }
 
-                for (int i = 0; i < definition.countAdministratingGroupsPaths(); i++) {
-                    final String path = definition.getAdministratingGroupPath(i);
-                    final GroupOrFolderDefinition adminGroupDef = definitionsManager.getDefinition(path, values);
-                    final GroupOrStem adminGroupWrapper = retrieveOrCreate(session, adminGroupDef, values);
-                    final Subject subj = adminGroupWrapper.asGroup().toSubject(); 
+                for (int i = 0; i < definition.countPrivileges(); i++) {
+                    final PrivilegeDefinition privDef = definition.getPrivilege(i); 
+                    final String path = privDef.getPath().getString();
+                    final GroupOrFolderDefinition privilegedGroupDef = definitionsManager.getDefinition(path, values);
+                    final GroupOrStem privilegedGroupWrapper = retrieveOrCreate(session, privilegedGroupDef, values);
+                    final Subject subj = privilegedGroupWrapper.asGroup().toSubject(); 
                     try {
-                        if (!group.hasAdmin(subj)) {
-                            group.grantPriv(subj, Constants.ADMIN_PRIV);
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("Adding administration privileges to the group: " 
-                                        + adminGroupDef.getPath() + " on the group: " + definition.getPath());
-                            }
+                        if (Right.ADMIN.equals(privDef.getPrivilege())) {
+                            addAdminPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                            addReadPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                            addViewPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                        } else if (Right.READ.equals(privDef.getPrivilege())) {
+                            addReadPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                            addViewPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
                         }
                     } catch (GrantPrivilegeException e) {
                         LOGGER.fatal(e, e);
@@ -227,7 +240,7 @@ public class GrouperUtil implements InitializingBean {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("The group " 
                             + definition.getPath() 
-                            + " is not empty so the administration privileges are supposed to be valid.");
+                            + " is not empty so the privileges are supposed to be valid.");
                 }
             }
         }
@@ -300,6 +313,149 @@ public class GrouperUtil implements InitializingBean {
     }
 
     /**
+     * Adds admin privilege to a folder (i.e. : create and stem).
+     * @param folderPath The path of the target folder.
+     * @param privilegedPath The path of the group with privileges.
+     * @param folder The target folder.
+     * @param subject The subject that corresponds to the privileged group.
+     * @throws SchemaException 
+     * @throws InsufficientPrivilegeException 
+     * @throws GrantPrivilegeException
+     */
+    private void addAdminPrivilege(final String folderPath, 
+            final String privilegedPath, 
+            final Stem folder, 
+            final Subject subject) 
+    throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
+        addCreatePrivilege(folderPath, privilegedPath, folder, subject);
+        addStemPrivilege(folderPath, privilegedPath, folder, subject);
+    }
+    
+    /**
+     * Adds create privilege to a folder.
+     * @param folderPath The path of the target folder.
+     * @param privilegedPath The path of the group with privileges.
+     * @param folder The target folder.
+     * @param subject The subject that corresponds to the privileged group.
+     * @throws SchemaException 
+     * @throws InsufficientPrivilegeException 
+     * @throws GrantPrivilegeException
+     */
+    private void addCreatePrivilege(final String folderPath, 
+            final String privilegedPath, 
+            final Stem folder, 
+            final Subject subject) 
+    throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
+        if (!folder.hasCreate(subject)) {
+            folder.grantPriv(subject, Constants.CREATE_PRIV);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding create privilege to the group: " + privilegedPath 
+                        + " on the folder: " + folderPath + ".");
+            }
+        }
+    }
+    
+    /**
+     * Adds Stem privilege to a folder.
+     * @param folderPath The path of the target folder.
+     * @param privilegedPath The path of the group with privileges.
+     * @param folder The target folder.
+     * @param subject The subject that corresponds to the privileged group.
+     * @throws SchemaException 
+     * @throws InsufficientPrivilegeException 
+     * @throws GrantPrivilegeException
+     */
+    private void addStemPrivilege(final String folderPath, 
+            final String privilegedPath, 
+            final Stem folder, 
+            final Subject subject) 
+    throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
+      
+        if (!folder.hasStem(subject)) {
+            folder.grantPriv(subject, Constants.STEM_PRIV);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding stem privilege to the group: " + privilegedPath 
+                        + " on the folder: " + folderPath + ".");
+            }
+        }
+    }
+    
+    /**
+     * Adds administration privilege to a group.
+     * @param groupPath The path of the target group.
+     * @param privilegedPath The path of the group with privileges.
+     * @param group The target group.
+     * @param subject The subject that corresponds to the privileged group.
+     * @throws GrantPrivilegeException
+     * @throws InsufficientPrivilegeException
+     * @throws SchemaException
+     */
+    private void addAdminPrivilege(final String groupPath, 
+            final String privilegedPath, 
+            final Group group, 
+            final Subject subject) 
+    throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
+        
+            if (!group.hasAdmin(subject)) {
+                group.grantPriv(subject, Constants.ADMIN_PRIV);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Adding administration privilege to the group: " 
+                            + privilegedPath + " on the group: " + groupPath);
+            }
+        }
+    }
+    
+    /**
+     * Adds Read privilege to a group.
+     * @param groupPath The path of the target group.
+     * @param privilegedPath The path of the group with privileges.
+     * @param group The target group.
+     * @param subject The subject that corresponds to the privileged group.
+     * @throws GrantPrivilegeException
+     * @throws InsufficientPrivilegeException
+     * @throws SchemaException
+     */
+    private void addReadPrivilege(final String groupPath, 
+            final String privilegedPath, 
+            final Group group, 
+            final Subject subject) 
+    throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
+        
+        if (!group.hasRead(subject)) {
+            group.grantPriv(subject, Constants.READ_PRIV);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding read privilege to the group: " 
+                        + privilegedPath + " on the group: " + groupPath);
+            }
+        }
+    }
+    
+    /**
+     * Adds view privilege to a group.
+     * @param groupPath The path of the target group.
+     * @param privilegedPath The path of the group with privileges.
+     * @param group The target group.
+     * @param subject The subject that corresponds to the privileged group.
+     * @throws GrantPrivilegeException
+     * @throws InsufficientPrivilegeException
+     * @throws SchemaException
+     */
+    private void addViewPrivilege(final String groupPath, 
+            final String privilegedPath, 
+            final Group group, 
+            final Subject subject) 
+    throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
+        
+        if (!group.hasView(subject)) {
+            group.grantPriv(subject, Constants.VIEW_PRIV);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding read privilege to the group: " 
+                        + privilegedPath + " on the group: " + groupPath);
+            }
+        }
+    }
+
+    /**
      * Creates a group or a folder.
      * @param session The Grouper session.
      * @param definition The definition of the group or folder to create.
@@ -323,7 +479,7 @@ public class GrouperUtil implements InitializingBean {
             }
 
             // Checks the administration privileges for the containing folder.
-            handleAdministrationPrivilegesForFolder(session, containingFolderWrapper, containingDef, values);
+            handlePrivilegesForFolder(session, containingFolderWrapper, containingDef, values);
             final Stem containingFolder = containingFolderWrapper.asStem();
 
             // The defintion denotes a folder to create.
@@ -338,7 +494,7 @@ public class GrouperUtil implements InitializingBean {
                 }
 
                 final GroupOrStem gos = new GroupOrStem(folder); 
-                handleAdministrationPrivilegesForFolder(session, gos, definition, values);
+                handlePrivilegesForFolder(session, gos, definition, values);
                 return gos;
             }
 
@@ -352,7 +508,7 @@ public class GrouperUtil implements InitializingBean {
             }
 
             final GroupOrStem gos = new GroupOrStem(group); 
-            handleAdministrationPrivilegesForGroup(session, gos, definition, values);
+            handlePrivilegesForGroup(session, gos, definition, values);
             handleMembershipsForGroup(session, gos, definition, values);
             return gos;
 
@@ -640,7 +796,7 @@ public class GrouperUtil implements InitializingBean {
             final GroupOrStem groupWrapper = retrieveOrCreate(session, definition, values);
 
             // Checks the administration privileges and the memberships of the group.
-            handleAdministrationPrivilegesForGroup(session, groupWrapper, definition, values);
+            handlePrivilegesForGroup(session, groupWrapper, definition, values);
             handleMembershipsForGroup(session, groupWrapper, definition, values);
 
             final Group group = groupWrapper.asGroup();
@@ -783,7 +939,7 @@ public class GrouperUtil implements InitializingBean {
      * Setter for deleteEmptyGroups.
      * @param deleteEmptyGroups the new value for deleteEmptyGroups.
      */
-    public void setDeleteEmptyGroups(final Boolean deleteEmptyGroups) {
+    public void setDeleteEmptyGroups(final boolean deleteEmptyGroups) {
         this.deleteEmptyGroups = deleteEmptyGroups;
     }
 
@@ -791,7 +947,7 @@ public class GrouperUtil implements InitializingBean {
      * Getter for deleteEmptyFolders.
      * @return deleteEmptyFolders.
      */
-    public Boolean getDeleteEmptyFolders() {
+    public boolean getDeleteEmptyFolders() {
         return deleteEmptyFolders;
     }
 
@@ -799,7 +955,23 @@ public class GrouperUtil implements InitializingBean {
      * Setter for deleteEmptyFolders.
      * @param deleteEmptyFolders the new value for deleteEmptyFolders.
      */
-    public void setDeleteEmptyFolders(final Boolean deleteEmptyFolders) {
+    public void setDeleteEmptyFolders(final boolean deleteEmptyFolders) {
         this.deleteEmptyFolders = deleteEmptyFolders;
+    }
+
+    /**
+     * Getter for forcePrivileges.
+     * @return forcePrivileges.
+     */
+    public boolean getForcePrivileges() {
+        return forcePrivileges;
+    }
+
+    /**
+     * Setter for forcePrivileges.
+     * @param forcePrivileges the new value for forcePrivileges.
+     */
+    public void setForcePrivileges(final boolean forcePrivileges) {
+        this.forcePrivileges = forcePrivileges;
     }
 }

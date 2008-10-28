@@ -43,7 +43,7 @@ public class MembersDefinition implements Serializable {
         PARENT;
 
         /**
-         * Parse a string to a MembersTypeInstance.
+         * Parse a string to a MembersType Instance.
          * @param value The value to parse.
          * @return The MembersType that is equal to the value if it exists,
          * null otherwise.
