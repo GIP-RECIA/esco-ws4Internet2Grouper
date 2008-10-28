@@ -17,9 +17,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.esco.ws4Internet2Grouper.domain.beans.EvaluableString;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition;
+import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.TemplateElement;
 import org.esco.ws4Internet2Grouper.exceptions.UnknownTemplateElementTempateElement;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
@@ -71,7 +73,7 @@ implements InitializingBean, EntityResolver {
     private static final String GROUP_TEMPL_TAG = "group-template";
 
     /** Administrated by tag. */
-    private static final String ADMIN_BY_TAG = "administrated-by";
+    private static final String PRIVILEGE_TAG = "privilege";
 
     /** Member of tag. */
     private static final String MEMBER_OF_TAG = "member-of";
@@ -87,6 +89,9 @@ implements InitializingBean, EntityResolver {
 
     /** Delete empty groups tag. */
     private static final String DEL_EMPTY_GROUPS_TAG = "delete-empty-groups";
+    
+    /** Delete empty groups tag. */
+    private static final String FORCE_PRIV_TAG = "force-privileges";
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(SGSParsingUtil.class);
@@ -95,10 +100,11 @@ implements InitializingBean, EntityResolver {
     private Locator locator;
 
     /** Recursive administrating paths. */
-    private Set<String> recAdminPaths = new HashSet<String>();
+    private Set<PrivilegeDefinition> recPrivileges = new HashSet<PrivilegeDefinition>();
 
-    /** Starting path of recursive administrating paths. */
-    private Map<String, List<String>> startOfRecAdminPaths = new HashMap<String, List<String>>();
+    /** Starting path of recursive privileges. */
+    private Map<String, List<PrivilegeDefinition>> startOfRecPrivileges = 
+        new HashMap<String, List<PrivilegeDefinition>>();
 
     /** The group or folder definitions manager. */
     private GroupOrFolderDefinitionsManager definitionsManager;
@@ -216,18 +222,18 @@ implements InitializingBean, EntityResolver {
 
             // Removes the recursive administrating path for wich
             // this folder is the starting point.
-            final List<String> recAdminPathsForCurrent = startOfRecAdminPaths.get(currentPath);
-            if (recAdminPathsForCurrent != null) {
+            final List<PrivilegeDefinition> recPrivilegesForCurrent = startOfRecPrivileges.get(currentPath);
+            if (recPrivilegesForCurrent != null) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Removing recursive administrating path for " 
-                            + currentPath + ": " + recAdminPathsForCurrent + ".");
+                            + currentPath + ": " + recPrivilegesForCurrent + ".");
                 }
-                for (String rap : recAdminPathsForCurrent) {
-                    recAdminPaths.remove(rap);
+                for (PrivilegeDefinition rp : recPrivilegesForCurrent) {
+                    recPrivileges.remove(rp);
                 }
-                startOfRecAdminPaths.remove(currentPath);
+                startOfRecPrivileges.remove(currentPath);
             } else if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No recursive administrating path for " 
+                LOGGER.debug("No recursiveprivileges path for " 
                         + currentPath + ".");
             }
 
@@ -320,64 +326,64 @@ implements InitializingBean, EntityResolver {
     }
 
     /**
-     * Handles the administration privilege informations.
+     * Handles the privilege informations.
      * @throws SAXException If there is a parsing exception.
-     * @throws UnknownTemplateElementTempateElement If the definition of the administration
-     * privileges used a template element wich is not defined.
+     * @throws UnknownTemplateElementTempateElement If the definition of the
+     * privilege used a template element wich is not defined.
      */
-    protected void handleAdministrationPrivileges() throws SAXException, 
+    protected void handlePrivileges() throws SAXException, 
     UnknownTemplateElementTempateElement {
 
-        // --- Administration Path ---//
-
-        // Checks the administration path.
+        // Checks the path.
         if (attributeHandler.getPath() == null || "".equals(attributeHandler.getPath())) {
-            handleAttributeError(ADMIN_BY_TAG, SGSAttributeHandler.PATH_ATTR);
+            handleAttributeError(PRIVILEGE_TAG, SGSAttributeHandler.PATH_ATTR);
         }
 
-        // Adds administration privilege to the current group or folder definition.
-        final String resolvedPath = resolvePath(ADMIN_BY_TAG, attributeHandler.getPath());
-        current.addAdministratingGroupPath(resolvedPath);
+        // Adds privilege to the current group or folder definition.
+        final String resolvedPath = resolvePath(PRIVILEGE_TAG, attributeHandler.getPath());
+        final PrivilegeDefinition privilege =
+            new PrivilegeDefinition(attributeHandler.getRight(), new EvaluableString(resolvedPath));
+        current.addPrivilege(privilege);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Adding administrating path " +  attributeHandler.getPath()
-                    + " to the group: " + current.getPath());
+            LOGGER.debug("Adding privilege: " +  privilege
+                    + " to the group or folder: " + current.getPath());
         }
 
-        // The administrating path must registered as a recursive one.
+        // The privilege must registered as a recursive one.
         if (attributeHandler.getRecursive()) {
 
             // Error if the recursive administring path is already defined.
-            if (recAdminPaths.contains(resolvedPath)) {
+            if (recPrivileges.contains(privilege)) {
                 String originalStart = "";
-                final Iterator<String> iter = startOfRecAdminPaths.keySet().iterator();
+                final Iterator<String> iter = startOfRecPrivileges.keySet().iterator();
                 boolean found = false;
                 while (iter.hasNext() && !found) {
                     final String start = iter.next(); 
-                    final List<String> recPaths = startOfRecAdminPaths.get(start);
-                    if (recPaths.contains(resolvedPath)) {
+                    final List<PrivilegeDefinition> recPriv = startOfRecPrivileges.get(start);
+                    if (recPriv.contains(privilege)) {
                         originalStart = start;
                         found = true;
                     }
                 }
                 
-                final String msg = "Encounters administrating path " + resolvedPath 
-                        + "for: " + currentPath 
-                        + "which is already defined for: " 
+                final String msg = "Encounters recursive privilege " + privilege 
+                        + " for: " + currentPath 
+                        + " which is already defined for: " 
                         + originalStart
                         + " (line " + locator.getLineNumber() + ").";
                 LOGGER.error(msg);
                 throw new SAXParseException(msg, locator);
             }
             
-            recAdminPaths.add(resolvedPath);
-            List<String> currentRecAdminPath = startOfRecAdminPaths.get(currentPath);
+            recPrivileges.add(privilege);
+            List<PrivilegeDefinition> privilegesForCurrent = startOfRecPrivileges.get(currentPath);
 
-            if (currentRecAdminPath == null) {
-                currentRecAdminPath = new ArrayList<String>();
-                startOfRecAdminPaths.put(currentPath, currentRecAdminPath);
+            if (privilegesForCurrent == null) {
+                privilegesForCurrent = new ArrayList<PrivilegeDefinition>();
+                startOfRecPrivileges.put(currentPath, privilegesForCurrent);
             }
-            currentRecAdminPath.add(resolvedPath);
+            privilegesForCurrent.add(privilege);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Registering starting point " + currentPath 
@@ -433,13 +439,13 @@ implements InitializingBean, EntityResolver {
 
         // Checks that the current definition denotes a group.
         if (current.isFolder()) {
-            handleAttributeError(ADMIN_BY_TAG, SGSAttributeHandler.PATH_ATTR, 
+            handleAttributeError(MEMBER_OF_TAG, SGSAttributeHandler.PATH_ATTR, 
                     "!!! Not allowed for a folder", null);
         }
 
         // Cheks the path this group is member of.
         if (attributeHandler.getPath() == null || "".equals(attributeHandler.getPath())) {
-            handleAttributeError(ADMIN_BY_TAG, SGSAttributeHandler.PATH_ATTR);
+            handleAttributeError(MEMBER_OF_TAG, SGSAttributeHandler.PATH_ATTR);
         }
 
         // Handles relative paths.
@@ -485,12 +491,12 @@ implements InitializingBean, EntityResolver {
                 attributeHandler.getDescription());
 
         // Adds the recursive administrating path if needed.
-        for (String recAdminPath : recAdminPaths) {
-            current.addAdministratingGroupPath(recAdminPath);
+        for (PrivilegeDefinition recPrivilege : recPrivileges) {
+            current.addPrivilege(recPrivilege);
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Adding recursive admin. path: " 
-                        + recAdminPath + " to the group or folder: " 
+                LOGGER.debug("Adding recursive privilege: " 
+                        + recPrivilege + " to the group or folder: " 
                         + current.getPath());
             }
         }
@@ -557,19 +563,26 @@ implements InitializingBean, EntityResolver {
                 grouperUtil.setDeleteEmptyFolders(attributeHandler.getValue());
                 
             } else if (DEL_EMPTY_GROUPS_TAG.equals(localName)) {
+             
                 // Deletion of the empty groups.                
                 LOGGER.debug("Setting delete empty groups to: " + attributeHandler.getValue());
-                grouperUtil.setDeleteEmptyGroups(attributeHandler.getValue());  
-              
+                grouperUtil.setDeleteEmptyGroups(attributeHandler.getValue());
+                
+            } else if (FORCE_PRIV_TAG.equals(localName)) {
+
+                // Force privileges flag.
+                LOGGER.debug("Setting force privileges to: " + attributeHandler.getValue());
+                grouperUtil.setForcePrivileges(attributeHandler.getValue());
+                
             } else if (TEMPLATE_ELT_TAG.equals(localName)) {
 
                 // Defintion of a template element.
                 handleTemplateElement();
 
-            } else if (ADMIN_BY_TAG.equals(localName)) {
+            } else if (PRIVILEGE_TAG.equals(localName)) {
 
                 // Definition of an administration privilege.
-                handleAdministrationPrivileges();
+                handlePrivileges();
 
             } else if (MEMBERS_TAG.equalsIgnoreCase(localName)) {
                 // Definition of the members of a group.

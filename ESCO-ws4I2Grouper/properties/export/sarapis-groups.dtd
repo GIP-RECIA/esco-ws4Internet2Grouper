@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!ELEMENT sarapis-group-service (comment?, user, delete-empty-folders?, delete-empty-groups?, ordered-template-elements?, (folder|folder-template)+) >
+<!ELEMENT sarapis-group-service (comment?, user, delete-empty-folders?, delete-empty-groups?, force-privileges?,ordered-template-elements?, (folder|folder-template)+) >
 <!ELEMENT ordered-template-elements (comment?, template-element+)>
 <!ELEMENT template-element ANY>
-<!ELEMENT folder (comment?, administrated-by?,(folder|folder-template|group|group-template)*) >
-<!ELEMENT folder-template (comment?, administrated-by?,(folder|folder-template|group|group-template)*) >
-<!ELEMENT group (comment?, administrated-by?, member-of*, members*) >
-<!ELEMENT group-template (comment?, administrated-by?, member-of*, members*) >
+<!ELEMENT folder (comment?, privileges?,(folder|folder-template|group|group-template)*) >
+<!ELEMENT folder-template (comment?, privileges?,(folder|folder-template|group|group-template)*) >
+<!ELEMENT group (comment?, privileges?, member-of*, members*) >
+<!ELEMENT group-template (comment?, privileges?, member-of*, members*) >
+<!ELEMENT privileges (comment?, privilege+) >
 <!ELEMENT comment ANY>
-<!ELEMENT administrated-by (comment?)>
+<!ELEMENT privilege ANY>
 <!ELEMENT member-of ANY>
 <!ELEMENT members ANY>
 <!ELEMENT user ANY>
 <!ELEMENT delete-empty-folders ANY>
 <!ELEMENT delete-empty-groups ANY>
+<!ELEMENT force-privileges ANY>
 
 <!ATTLIST user
 	uid CDATA #REQUIRED>
@@ -22,6 +24,9 @@
 	value CDATA #REQUIRED>
 
 <!ATTLIST delete-empty-groups
+	value CDATA #REQUIRED>
+	
+<!ATTLIST force-privileges
 	value CDATA #REQUIRED>
 	
 <!ATTLIST folder
@@ -49,7 +54,8 @@
 	display-extension CDATA #REQUIRED 
 	description CDATA #REQUIRED>
 	
-<!ATTLIST administrated-by
+<!ATTLIST privilege
+		  right CDATA #REQUIRED 	
 		  path CDATA #REQUIRED
 		  recursive CDATA #IMPLIED>	
 		  

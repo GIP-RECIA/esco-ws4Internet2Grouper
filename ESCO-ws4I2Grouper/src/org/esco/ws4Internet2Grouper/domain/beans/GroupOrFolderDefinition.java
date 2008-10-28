@@ -45,8 +45,8 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     /** The definition of the members of the group. */
     private List<MembersDefinition> membersDefinitions;
 
-    /** The paths of the groups that administrate this group or folder. */
-    private EvaluableStrings administratingGroupsPaths;
+    /** The privileges. */
+    private List<PrivilegeDefinition> privileges;
     
     /** The path of the groups that contains this group (may be a template). */
     private EvaluableStrings containingGroupsPaths;
@@ -115,7 +115,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         gofd.description = newDescription;
         gofd.membersDefinitions = membersDefinitions;
         gofd.containingGroupsPaths = containingGroupsPaths;
-        gofd.administratingGroupsPaths = administratingGroupsPaths;
+        gofd.privileges = privileges;
         return gofd;
     }
     
@@ -253,38 +253,35 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     }
     
     /**
-     * Gives the number of groups who have administration privileges
+     * Gives the number of groups who have privileges
      * on the group or folder denoted by this definition.
-     * @return The number of groups that have administration privileges.
+     * @return The number of groups that have privileges.
      */
-    public int countAdministratingGroupsPaths() {
-        if (administratingGroupsPaths == null) {
+    public int countPrivileges() {
+        if (privileges == null) {
             return 0;
         }
-        return administratingGroupsPaths.countEvaluableStrings();
+        return privileges.size();
     }
     
     /**
-     * Gives the administrating group at a given position.
-     * @param index The position of the group in the list.
-     * @return the administrating group at the specified position
+     * Gives the privilege at a given position.
+     * @param index The position of the privilege in the list.
+     * @return the privilege at the specified position
      */
-    public String getAdministratingGroupPath(final int index) {
-        return administratingGroupsPaths.getEvaluableString(index).getString();
+    public PrivilegeDefinition getPrivilege(final int index) {
+        return privileges.get(index);
     }
     
     /**
-     * Adds an administrating group path.
-     * @param administratingGroupPath The path of the group with administration privileges.
-     * @throws UnknownTemplateElementTempateElement If there is a template element in a string
-     * which is unknown.
+     * Adda a privilege.
+     * @param privilege The privilege to add.
      */
-    public void addAdministratingGroupPath(final String administratingGroupPath) 
-    throws UnknownTemplateElementTempateElement {
-        if (administratingGroupsPaths == null) {
-            administratingGroupsPaths = new EvaluableStrings();
+    public void addPrivilege(final PrivilegeDefinition privilege) {
+        if (privileges == null) {
+            privileges = new ArrayList<PrivilegeDefinition>();
         }
-        administratingGroupsPaths.addEvaluableString(administratingGroupPath);
+        privileges.add(privilege);
     }
     
     /**
@@ -400,13 +397,13 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
             sb.append(containingGroupsPaths);
         }
 
-        if (countAdministratingGroupsPaths() > 0) {
-            sb.append(", Admin. grp: ");
-            for (int i = 0; i < countAdministratingGroupsPaths(); i++) {
+        if (countPrivileges() > 0) {
+            sb.append(", Privileges: ");
+            for (int i = 0; i < countPrivileges(); i++) {
                 if (i > 0) {
                     sb.append(", ");
                 }
-                sb.append(getAdministratingGroupPath(i));
+                sb.append(getPrivilege(i));
             }
             
         }

@@ -38,6 +38,9 @@ public class SGSAttributeHandler implements Serializable {
 
     /** Path attribute. */
     public static final String PATH_ATTR = "path";
+
+    /** Right attribute. */
+    public static final String RIGHT_ATTR = "right";
     
     /** Recursive attribute. */
     public static final String RECURS_ATTR = "recursive";
@@ -60,7 +63,6 @@ public class SGSAttributeHandler implements Serializable {
     /** Logger.*/
     private static final Logger LOGGER = Logger.getLogger(SGSAttributeHandler.class);
     
-    
     /** UID value. */
     private String uid;
     
@@ -78,6 +80,9 @@ public class SGSAttributeHandler implements Serializable {
     
     /** Path value. */
     private String path;
+
+    /** Right value. */
+    private String right;
     
     /** Recursive value. */
     private Boolean recursive;
@@ -146,6 +151,8 @@ public class SGSAttributeHandler implements Serializable {
             preexisting = parseBoolean(locator, trimedAttrName, attributeValue);
         } else if (PATH_ATTR.equals(trimedAttrName)) {
             path = attributeValue.trim();
+        } else if (RIGHT_ATTR.equals(trimedAttrName)) {
+            right = attributeValue.trim();
         } else if (RECURS_ATTR.equals(trimedAttrName)) {
             recursive = parseBoolean(locator, trimedAttrName, attributeValue);
         } else if (TYPE_ATTR.equals(trimedAttrName)) {
@@ -284,5 +291,13 @@ public class SGSAttributeHandler implements Serializable {
      */
     public Boolean getValue() {
         return value;
+    }
+
+    /**
+     * Getter for right.
+     * @return right.
+     */
+    public String getRight() {
+        return right;
     }
 }

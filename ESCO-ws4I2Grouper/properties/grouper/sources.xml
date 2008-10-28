@@ -44,7 +44,7 @@ $Id: sources.xml,v 1.8 2007/08/30 15:52:22 blair Exp $
 
       <init-param>
          <param-name>SECURITY_CREDENTIALS</param-name>
-         <param-value>H3rZbESD</param-value>
+         <param-value>ptnnQVCt</param-value>
       </init-param>
 
       <init-param>
@@ -104,7 +104,7 @@ $Id: sources.xml,v 1.8 2007/08/30 15:52:22 blair Exp $
          <param>
             <param-name>filter</param-name>
             <param-value>
-	           (&amp; (|(uid=%TERM%)(ENTPersonLogin=%TERM%))(objectclass=inetOrgPerson))
+	           (|(sn=%TERM%)(cn=%TERM%))
             </param-value>
         </param>
         <param>
@@ -120,6 +120,8 @@ $Id: sources.xml,v 1.8 2007/08/30 15:52:22 blair Exp $
     <attribute>ENTPersonLogin</attribute>
     <attribute>ENTTitle</attribute>
     <attribute>ENTPersonFonctions</attribute>
+    <attribute>cn</attribute>
+    <attribute>sn</attribute>
     <attribute>uid</attribute>
     
 

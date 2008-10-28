@@ -262,9 +262,9 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
             }
 
             // Checks the administrating groups paths
-            for (int i = 0; i < gofd.countAdministratingGroupsPaths(); i++) {
-                final String adminPath = gofd.getAdministratingGroupPath(i);
-                final GroupOrFolderDefinition ref = definitionsByPath.get(adminPath);
+            for (int i = 0; i < gofd.countPrivileges(); i++) {
+                final String path = gofd.getPrivilege(i).getPath().getString();
+                final GroupOrFolderDefinition ref = definitionsByPath.get(path);
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Finilizing definition for " + gofd.getPath() + ".");
@@ -272,15 +272,15 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
 
                 if (ref == null) {
                     // The path referes to a group that is not defined.
-                    final String msg = "Invalid administrating group path for the " + typeOfDef + ": "
-                    + gofd.getPath() + " - Can't find a group definition for the administrating group path: " 
-                    + adminPath + ".";
+                    final String msg = "Privileges definition - Invalid group path for the " + typeOfDef + ": "
+                    + gofd.getPath() + " - Can't find a group definition for the group path: " 
+                    + path + ".";
                     errorsMsg.add(msg);
                 } else if (ref.isFolder()) {
                     // The administrating path denotes a folder.
-                    final String msg = "Invalid administrating group path for the " + typeOfDef + ": "
+                    final String msg = "Privileges definition - Invalid group path for the " + typeOfDef + ": "
                     + gofd.getPath() + " - It should be a group definition but it is a FOLDER defintion: " 
-                    + adminPath + ".";
+                    + path + ".";
                     errorsMsg.add(msg);
                 } 
             }
