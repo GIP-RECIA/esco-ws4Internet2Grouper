@@ -1,10 +1,5 @@
 package org.esco.ws4Internet2Grouper.util;
 
-
-
-
-
-
 import edu.internet2.middleware.grouper.GrantPrivilegeException;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupAddException;
@@ -44,7 +39,6 @@ import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
 import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition.Right;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
-import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Util class for the grouper groups or stems manipulations.
@@ -52,7 +46,7 @@ import org.springframework.beans.factory.InitializingBean;
  * 29 juil. 08
  * 
  */
-public class GrouperUtil implements InitializingBean {
+public class GrouperUtil  {
 
     /** Logger. */
     private static final Logger LOGGER = Logger.getLogger(GrouperUtil.class);
@@ -75,15 +69,6 @@ public class GrouperUtil implements InitializingBean {
      */
     public GrouperUtil() {
         super();
-    }
-
-    /**
-     * Checks the sping injections.
-     * @throws Exception
-     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-     */
-    public void afterPropertiesSet() throws Exception {
-        /* */
     }
 
     /**
