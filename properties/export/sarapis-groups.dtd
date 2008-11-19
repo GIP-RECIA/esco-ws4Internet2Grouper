@@ -33,7 +33,8 @@
 	extension CDATA #REQUIRED
 	display-extension CDATA #REQUIRED 
 	description CDATA #REQUIRED
-	preexisting CDATA #IMPLIED>
+	preexisting CDATA #IMPLIED
+	create CDATA #IMPLIED>
 	
 <!ATTLIST template-element
 	key CDATA #REQUIRED>
@@ -41,18 +42,21 @@
 <!ATTLIST folder-template
 	extension CDATA #REQUIRED
 	display-extension CDATA #REQUIRED 
-	description CDATA #REQUIRED>
+	description CDATA #REQUIRED
+	create CDATA #IMPLIED>
 	
 <!ATTLIST group
 	extension CDATA #REQUIRED
 	display-extension CDATA #REQUIRED 
 	description CDATA #REQUIRED
-	preexisting CDATA #IMPLIED>
+	preexisting CDATA #IMPLIED
+	create CDATA #IMPLIED>
 	
 <!ATTLIST group-template
 	extension CDATA #REQUIRED
 	display-extension CDATA #REQUIRED 
-	description CDATA #REQUIRED>
+	description CDATA #REQUIRED
+	create CDATA #IMPLIED>
 	
 <!ATTLIST privilege
 		  right CDATA #REQUIRED 	

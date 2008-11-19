@@ -867,8 +867,6 @@ public class GrouperUtil implements InitializingBean {
         }
 
         // The defition denotes a group to retrieve.
-
-
         // Retrieves the group from grouper.
         try {
 
@@ -898,11 +896,11 @@ public class GrouperUtil implements InitializingBean {
      * @param values The values used to evaluate templates.
      * @return The group or folder.
      */
-    protected GroupOrStem retrieveOrCreate(final GrouperSession session, 
+    public GroupOrStem retrieveOrCreate(final GrouperSession session, 
             final GroupOrFolderDefinition definition, 
             final String...values) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(" ---> retrieveOrCreate: " + definition);
+            LOGGER.debug("RetrieveOrCreate definition: " + definition);
         }
         final GroupOrStem gos = retrieve(session, definition);
         if (gos != null) {
