@@ -28,6 +28,9 @@ public class SGSCache {
     /** Cache name for the memberships for groups defined as template. */
     private static final String MEMBERSHIPS_FOR_TEMPLATES_CACHE_NAME =  SGSCache.class + ".memberships-for-templates";
 
+    /** Cache name for the template which are created even if they are empty. */
+    private static final String EMPTY_TEMPLATES_CACHE_NAME =  SGSCache.class + ".empty-templates";
+
     /** Singleton. */
     private static final SGSCache INSTANCE = new SGSCache();
 
@@ -37,6 +40,9 @@ public class SGSCache {
     
     /** Cache for the memberships for template groups. */
     private Cache membershipsTemplatesCache;
+    
+    /** Cache for the empty templates. */
+    private Cache emptyTemplatesCache;
 
 
     /**
@@ -52,9 +58,14 @@ public class SGSCache {
         if (!cacheManager.cacheExists(MEMBERSHIPS_FOR_TEMPLATES_CACHE_NAME)) {
             cacheManager.addCache(MEMBERSHIPS_FOR_TEMPLATES_CACHE_NAME);
         }
+        
+        if (!cacheManager.cacheExists(EMPTY_TEMPLATES_CACHE_NAME)) {
+            cacheManager.addCache(EMPTY_TEMPLATES_CACHE_NAME);
+        }
 
         membershipsCache = cacheManager.getCache(MEMBERSHIPS_CACHE_NAME);
         membershipsTemplatesCache = cacheManager.getCache(MEMBERSHIPS_FOR_TEMPLATES_CACHE_NAME);
+        emptyTemplatesCache = cacheManager.getCache(EMPTY_TEMPLATES_CACHE_NAME);
     }
 
     /**
@@ -112,6 +123,7 @@ public class SGSCache {
         }
         return null;
     }
+    
     /**
      * Tries to retrieve the memeberships for template groups from the cache.
      * @param type The type of the member.
@@ -129,6 +141,21 @@ public class SGSCache {
         }
         return null;
     }
-
-
+    
+    /**
+     * Tests if an empty template is cached.
+     * @param definition The definition that corresponds to the empty template.
+     * @return True if the definition is cached.
+     */
+    public boolean emptyTemplateIsCached(final GroupOrFolderDefinition definition) {
+        return emptyTemplatesCache.get(definition.getPath()) != null;
+    }
+    
+    /**
+     * Caches the definition for an empty template.
+     * @param definition The definition associated to the template.
+     */
+    public void cacheEmptyTemplate(final GroupOrFolderDefinition definition) {
+        emptyTemplatesCache.put(new Element(definition.getPath(), true));
+    }
 }

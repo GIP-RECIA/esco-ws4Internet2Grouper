@@ -44,17 +44,25 @@
 
 <!-- Sarapis Group Service Cache -->
 <cache  name="org.esco.ws4Internet2Grouper.cache.SGSCache.memberships"
-          maxElementsInMemory="500"
+          maxElementsInMemory="1500"
           eternal="false"
           timeToIdleSeconds="30"
-          timeToLiveSeconds="120"
+          timeToLiveSeconds="3600"
           overflowToDisk="false"
   />
 <cache  name="org.esco.ws4Internet2Grouper.cache.SGSCache.memberships-for-templates"
+          maxElementsInMemory="1500"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="3600"
+          overflowToDisk="false"
+  />
+  
+  <cache  name="org.esco.ws4Internet2Grouper.cache.SGSCache.empty-templates"
           maxElementsInMemory="500"
           eternal="false"
           timeToIdleSeconds="30"
-          timeToLiveSeconds="120"
+          timeToLiveSeconds="3600"
           overflowToDisk="false"
   />
 

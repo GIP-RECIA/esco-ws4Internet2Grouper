@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.esco.ws4Internet2Grouper.cache.SGSCache;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
@@ -38,7 +39,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
     /** Separator. */
     private static final String SEP = "---------------------------------";
-
+    
     /** The definition manager. */
     private GroupOrFolderDefinitionsManager definitionsManager;
 
@@ -50,7 +51,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
     /** Parsing Util. */
     private SGSParsingUtil parsingUtil;
-
+    
     /**
      * Builds an instance of SarapisGroupsServiceImpl.
      */
@@ -166,18 +167,30 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
         }
         final Iterator<GroupOrFolderDefinition> it = definitionsManager.getGroupsOrFoldersTemplatesToCreate(attributes);
         while (it.hasNext()) {
+           
             final GroupOrFolderDefinition def =  it.next();
-            final GroupOrStem result = grouperUtil.retrieveOrCreate(session, def, attributes);
-            if (result == null) {
-                final StringBuilder msg = 
+            if (SGSCache.instance().emptyTemplateIsCached(def)) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Definition " + def + " already handled.");
+                }
+            } else {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Definition: " + def + ".");
+                }
+            
+                final GroupOrStem result = grouperUtil.retrieveOrCreate(session, def, attributes);
+                if (result == null) {
+                    final StringBuilder msg = 
                     new StringBuilder("Error while creating empty group or folder template for the definition: ");
-                msg.append(def);
-                msg.append(" with the attribute values: ");
-                msg.append(attributes);
-                msg.append(".");
-                LOGGER.fatal(msg);
-                return new GrouperOperationResultDTO(new WS4GrouperException(msg.toString()));
-            }
+                    msg.append(def);
+                    msg.append(" with the attribute values: ");
+                    msg.append(attributes);
+                    msg.append(".");
+                    LOGGER.fatal(msg);
+                    return new GrouperOperationResultDTO(new WS4GrouperException(msg.toString()));
+                }
+                SGSCache.instance().cacheEmptyTemplate(def);
+            }   
         }
         
         if (LOGGER.isDebugEnabled()) {
