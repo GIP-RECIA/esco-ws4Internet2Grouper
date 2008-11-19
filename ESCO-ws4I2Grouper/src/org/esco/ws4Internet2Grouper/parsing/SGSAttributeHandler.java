@@ -36,6 +36,9 @@ public class SGSAttributeHandler implements Serializable {
     /** Preexisting attribute. */
     public static final String PREEXIST_ATTR = "preexisting";
 
+    /** Create attribute. */
+    public static final String CREATE_ATTR = "create";
+    
     /** Path attribute. */
     public static final String PATH_ATTR = "path";
 
@@ -77,6 +80,9 @@ public class SGSAttributeHandler implements Serializable {
     
     /** Preexisting value. */
     private Boolean preexisting;
+    
+    /** Create value. */
+    private Boolean create;
     
     /** Path value. */
     private String path;
@@ -149,6 +155,19 @@ public class SGSAttributeHandler implements Serializable {
            value = parseBoolean(locator, trimedAttrName, attributeValue);
         } else if (PREEXIST_ATTR.equals(trimedAttrName)) {
             preexisting = parseBoolean(locator, trimedAttrName, attributeValue);
+            // Checks that the create and preexisting attribut are not true together.
+            if (preexisting && create) {
+                throw new SAXParseException("The attribute " + PREEXIST_ATTR + " and " + CREATE_ATTR  
+                        + " can't be true at the same time.", locator);
+            }
+        
+        } else if (CREATE_ATTR.equals(trimedAttrName)) {
+            create = parseBoolean(locator, trimedAttrName, attributeValue);
+            // Checks that the create and preexisting attribut are not true together.
+            if (preexisting && create) {
+                throw new SAXParseException("The attribute " + PREEXIST_ATTR + " and " + CREATE_ATTR  
+                        + " can't be true at the same time.", locator);
+            }
         } else if (PATH_ATTR.equals(trimedAttrName)) {
             path = attributeValue.trim();
         } else if (RIGHT_ATTR.equals(trimedAttrName)) {
@@ -168,6 +187,8 @@ public class SGSAttributeHandler implements Serializable {
         } else if (KEY_ATTR.equals(trimedAttrName)) {
             key = attributeValue.trim();
         }
+        
+
     }
     
     /**
@@ -178,9 +199,11 @@ public class SGSAttributeHandler implements Serializable {
         displayExtension = null;
         description = null;
         preexisting = false;
+        create = false;
         path = null;
         recursive = false;
         type = null;
+        right = null;
         distributionBy = null;
     }
 
@@ -299,5 +322,13 @@ public class SGSAttributeHandler implements Serializable {
      */
     public String getRight() {
         return right;
+    }
+
+    /**
+     * Getter for create.
+     * @return create.
+     */
+    public Boolean getCreate() {
+        return create;
     }
 }

@@ -54,6 +54,9 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     /** Flag used to determine if the group or folder is preexisting. */
     private boolean preexisting = true;
     
+    /** Flag used to determine if the group or folder has to be created. */
+    private boolean create;
+    
     /** The hash code.*/
     private int hashcode;
     
@@ -68,6 +71,8 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      * Builds an instance of GroupOrFolderDefinition.
      * @param folder True if the definition denotes a folder.
      * @param preexisting The flag used to determine if the folder is built or is preexisting.
+     * @param create The flag used to determine if the group has to be created even 
+     * if there is no memebers.
      * @param containingPath The containing path.
      * @param extension The extension of the group or folder.
      * @param displayExtension The display extension of the group or folder.
@@ -77,12 +82,14 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      */
     public GroupOrFolderDefinition(final boolean folder, 
             final boolean preexisting,
+            final boolean create, 
             final String containingPath,
             final String extension, 
             final String displayExtension,
             final String description) throws UnknownTemplateElementTempateElement {
         this.folder = folder;
         this.preexisting = preexisting;
+        this.create = create;
         this.containingPath = new ReversibleEvaluableString(containingPath);
         this.extension = new EvaluableString(extension);
         this.displayExtension = new EvaluableString(displayExtension);
@@ -204,10 +211,10 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
             return true;
         }
         if (isRoot()) {
-            return true;
+            return false;
         }
         if (containingGroupsPaths == null) {
-            return true;
+            return false;
         }
         return !containingGroupsPaths.isEvaluated();
     }
@@ -426,5 +433,13 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      */
     public boolean isRoot() {
         return containingPath.isEmpty();
+    }
+
+    /**
+     * Getter for create.
+     * @return create.
+     */
+    public boolean isCreate() {
+        return create;
     }
 }

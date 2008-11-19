@@ -31,13 +31,13 @@ public class SGSCache {
     /** Singleton. */
     private static final SGSCache INSTANCE = new SGSCache();
 
-  
 
     /** Cache for the memberships. */
     private Cache membershipsCache;
     
     /** Cache for the memberships for template groups. */
     private Cache membershipsTemplatesCache;
+
 
     /**
      * Builds an instance of SGSCache.
@@ -53,7 +53,7 @@ public class SGSCache {
             cacheManager.addCache(MEMBERSHIPS_FOR_TEMPLATES_CACHE_NAME);
         }
 
-         membershipsCache = cacheManager.getCache(MEMBERSHIPS_CACHE_NAME);
+        membershipsCache = cacheManager.getCache(MEMBERSHIPS_CACHE_NAME);
         membershipsTemplatesCache = cacheManager.getCache(MEMBERSHIPS_FOR_TEMPLATES_CACHE_NAME);
     }
 
@@ -79,6 +79,8 @@ public class SGSCache {
         final String key = type + Arrays.toString(attributes);
         membershipsCache.put(new Element(key, definitions));
     }
+    
+   
     
     /**
      * Caches the memeberships of template groups for a given type of member and a set of attributes.

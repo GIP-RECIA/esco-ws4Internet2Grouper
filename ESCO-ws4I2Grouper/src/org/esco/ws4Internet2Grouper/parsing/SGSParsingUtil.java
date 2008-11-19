@@ -485,6 +485,7 @@ implements InitializingBean, EntityResolver {
 
         current = new GroupOrFolderDefinition(isFolder,
                 attributeHandler.getPreexisting(),
+                attributeHandler.getCreate(),
                 currentPath, 
                 attributeHandler.getExtension(), 
                 attributeHandler.getDisplayExtension(), 

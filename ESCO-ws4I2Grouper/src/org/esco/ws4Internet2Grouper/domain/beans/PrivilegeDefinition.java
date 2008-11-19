@@ -4,13 +4,8 @@
 package org.esco.ws4Internet2Grouper.domain.beans;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
-import org.esco.ws4Internet2Grouper.util.Constants;
-
-import edu.internet2.middleware.grouper.Privilege;
 
 
 /**

@@ -12,13 +12,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.cache.SGSCache;
 
 /**
- * Manager for the groups or folders definitions. 
- * 
+ * Manager for the groups or folders definitions.
+ * The Evaluation of the templates is performed in this class. 
  * @author GIP RECIA - A. Deman
  * 31 juil. 08
  *
@@ -34,7 +35,13 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
     /** Preexisting definitions. */
     private Map<String, GroupOrFolderDefinition> preexistingDefinitnonsByPath = 
         new HashMap<String, GroupOrFolderDefinition>();
+    
+    /** Definitions to create wich are not template. */
+    private List<GroupOrFolderDefinition> gofToCreate = new Vector<GroupOrFolderDefinition>();
 
+    /** Definitions to create wich are template. */
+    private List<GroupOrFolderDefinition> gofTemplateToCreate = new Vector<GroupOrFolderDefinition>();
+    
     /** All the groups and folder definitions, by path. */
     private Map<String, GroupOrFolderDefinition> definitionsByPath = 
         new HashMap<String, GroupOrFolderDefinition>();
@@ -61,9 +68,35 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
         definitionsByPath.put(path, definition);
         if (definition.isPreexisting())  {
             preexistingDefinitnonsByPath.put(definition.getPath(), definition);
+        } else if (definition.isCreate()) {
+            if (definition.isTemplate()) {
+                gofTemplateToCreate.add(definition);
+            } else {
+                gofToCreate.add(definition);
+            }
         }
     }
 
+    /**
+     * Gives the groups or folders definitions to create event if they have no members.
+     * @return The Iterator over the groups or folder definitions.
+     */
+    public Iterator<GroupOrFolderDefinition> getGroupsOrFoldersToCreate() {
+        return gofToCreate.iterator();
+    }
+    
+    /**
+     * Gives the groups or folders templates to create event if they have no members.
+     * @param values the values used for the template evaluation.
+     * @return The Iterator over the groups or folder templates.
+     */
+    public Iterator<GroupOrFolderDefinition> getGroupsOrFoldersTemplatesToCreate(final String...values) {
+        Set<GroupOrFolderDefinition> definitions = new HashSet<GroupOrFolderDefinition>(gofTemplateToCreate.size());
+        for (GroupOrFolderDefinition definition : gofTemplateToCreate) {
+            definitions.add(definition.evaluateTemplate(values));
+        }
+        return definitions.iterator();  
+    }
 
     /**
      * Returns an iterator over the preexisting definitions.
