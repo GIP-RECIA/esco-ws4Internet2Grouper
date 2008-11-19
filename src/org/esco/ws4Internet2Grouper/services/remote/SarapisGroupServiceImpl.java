@@ -11,8 +11,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.esco.ws4Internet2Grouper.cache.SGSCache;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
+import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
 import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
 import org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition.MembersType;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
@@ -37,7 +39,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
     /** Separator. */
     private static final String SEP = "---------------------------------";
-
+    
     /** The definition manager. */
     private GroupOrFolderDefinitionsManager definitionsManager;
 
@@ -49,7 +51,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
     /** Parsing Util. */
     private SGSParsingUtil parsingUtil;
-
+    
     /**
      * Builds an instance of SarapisGroupsServiceImpl.
      */
@@ -119,7 +121,85 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             LOGGER.info("Preexisting definitions checked.");
             LOGGER.info(SEP);
         }
+        
+        // Creates the group or folders that have to be created even if they have no mebers.
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(SEP);
+            LOGGER.info("Create Empty groups groups or folders.");
+            LOGGER.info(SEP);
+        }
+        final Iterator<GroupOrFolderDefinition> createIt = definitionsManager.getGroupsOrFoldersToCreate();
+        while (createIt.hasNext()) {
+            final GroupOrFolderDefinition def = createIt.next();
+            final GroupOrStem result = grouperUtil.retrieveOrCreate(session, def);
+            
+            if (result == null) {
+                // Error : One group or folder definition can't be retrieved or created.
+                String msg = "Error while creating group or folder for the definition: " + def;
+                LOGGER.fatal(msg);
+                grouperSessionUtil.stopSession(session);
+                throw new WS4GrouperException(msg);
+            }
+        }
+        
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(SEP);
+            LOGGER.info("Groups and folders created.");
+            LOGGER.info(SEP);
+        }
+        
         grouperSessionUtil.stopSession(session);
+    }
+    
+    /**
+     * Handles the groups or folders definition template to create even if there is no
+     * memebrs to add.
+     * @param session The Grouper session.
+     * @param attributes The attributes used to evaluate the template elements.
+     * @return The Grouper operation result.
+     */
+    protected GrouperOperationResultDTO handlesEmptyGroupsOrFoldersDefinitionTemplates(final GrouperSession session, 
+                final String...attributes) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(SEP);
+            LOGGER.debug("Handles empty groups or folders templates to create.");
+            LOGGER.debug(SEP);
+        }
+        final Iterator<GroupOrFolderDefinition> it = definitionsManager.getGroupsOrFoldersTemplatesToCreate(attributes);
+        while (it.hasNext()) {
+           
+            final GroupOrFolderDefinition def =  it.next();
+            if (SGSCache.instance().emptyTemplateIsCached(def)) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Definition " + def + " already handled.");
+                }
+            } else {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Definition: " + def + ".");
+                }
+            
+                final GroupOrStem result = grouperUtil.retrieveOrCreate(session, def, attributes);
+                if (result == null) {
+                    final StringBuilder msg = 
+                    new StringBuilder("Error while creating empty group or folder template for the definition: ");
+                    msg.append(def);
+                    msg.append(" with the attribute values: ");
+                    msg.append(attributes);
+                    msg.append(".");
+                    LOGGER.fatal(msg);
+                    return new GrouperOperationResultDTO(new WS4GrouperException(msg.toString()));
+                }
+                SGSCache.instance().cacheEmptyTemplate(def);
+            }   
+        }
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(SEP);
+            LOGGER.debug("End of empty creation of group or folder templates.");
+            LOGGER.debug(SEP);
+        }
+        
+        return GrouperOperationResultDTO.RESULT_OK;
     }
 
     /**
@@ -226,7 +306,10 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final String userId, 
             final String...attributes) {
         final GrouperSession session = grouperSessionUtil.createSession();
-        GrouperOperationResultDTO result = addToGroups(type, userId, session, attributes);
+        GrouperOperationResultDTO result = handlesEmptyGroupsOrFoldersDefinitionTemplates(session, attributes);
+        if (!result.isError()) {
+            result = addToGroups(type, userId, session, attributes);
+        }
         grouperSessionUtil.stopSession(session);
         return result;
     }
