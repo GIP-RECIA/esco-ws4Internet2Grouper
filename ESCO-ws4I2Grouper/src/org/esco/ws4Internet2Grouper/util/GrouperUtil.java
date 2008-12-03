@@ -701,7 +701,7 @@ public class GrouperUtil  {
         }
     }
     /**
-     * Removes a memeber of a group.
+     * Removes a member of a group.
      * @param session The grouper session. 
      * @param definition The group definitnion.
      * @param subjectId The subject Id.

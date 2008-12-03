@@ -24,6 +24,7 @@ import org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.TemplateElement;
 import org.esco.ws4Internet2Grouper.exceptions.UnknownTemplateElementTempateElement;
+import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
 import org.esco.ws4Internet2Grouper.util.GrouperUtil;
 import org.springframework.beans.factory.InitializingBean;
@@ -321,8 +322,15 @@ implements InitializingBean, EntityResolver {
     /** 
      * Registers a template element.
      */
-    protected void handleTemplateElement() {
-        TemplateElement.registerTemplateElement(attributeHandler.getKey());
+    protected void handleTemplateElement() { 
+        if (attributeHandler.getDefaultValue() == null) {
+            // Registers a template element without default value.
+            TemplateElement.registerTemplateElement(attributeHandler.getKey());
+        } else {
+            // Registers a template element with a default value.
+            TemplateElement.registerTemplateElement(attributeHandler.getKey(), 
+                    attributeHandler.getDefaultValue());
+        }
     }
 
     /**
@@ -404,7 +412,7 @@ implements InitializingBean, EntityResolver {
         if (attributeHandler.getType() == null) {
             handleAttributeError(MEMBERS_TAG, 
                     SGSAttributeHandler.TYPE_ATTR, 
-                    MembersDefinition.MembersType.values(), 
+                    ISarapisGroupService.PersonType.values(), 
                     null);
         }
         

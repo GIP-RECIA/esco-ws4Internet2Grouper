@@ -9,7 +9,8 @@ import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
-import static org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition.MembersType;
+import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService;
+
 
 /** 
  * Cache manager for the Sarapis Group Service.
@@ -84,8 +85,8 @@ public class SGSCache {
      * @param type The type of members.
      * @param attributes The list of attributes.
      */
-    public void cacheMemebrships(final Set<GroupOrFolderDefinition> definitions,
-            final MembersType type, 
+    public void cacheMemberships(final Set<GroupOrFolderDefinition> definitions,
+            final ISarapisGroupService.PersonType type, 
             final String...attributes) {
         final String key = type + Arrays.toString(attributes);
         membershipsCache.put(new Element(key, definitions));
@@ -100,7 +101,7 @@ public class SGSCache {
      * @param attributes The list of attributes.
      */
     public void cacheMemebrshipsForTemplates(final Set<GroupOrFolderDefinition> definitions,
-            final MembersType type, 
+            final ISarapisGroupService.PersonType type, 
             final String...attributes) {
         final String key = type + Arrays.toString(attributes);
         membershipsTemplatesCache.put(new Element(key, definitions));
@@ -113,7 +114,7 @@ public class SGSCache {
      * @return The memberships if found, null otherwise
      */
     @SuppressWarnings("unchecked") 
-    public Set<GroupOrFolderDefinition> getMemberships(final MembersType type, 
+    public Set<GroupOrFolderDefinition> getMemberships(final ISarapisGroupService.PersonType type, 
             final String...attributes) {
         final String key = type + Arrays.toString(attributes);
         final Element elt = membershipsCache.get(key);
@@ -131,7 +132,7 @@ public class SGSCache {
      * @return The memberships if found, null otherwise
      */
     @SuppressWarnings("unchecked") 
-    public Set<GroupOrFolderDefinition> getMembershipsForTemplates(final MembersType type, 
+    public Set<GroupOrFolderDefinition> getMembershipsForTemplates(final ISarapisGroupService.PersonType type, 
             final String...attributes) {
         final String key = type + Arrays.toString(attributes);
         final Element elt = membershipsTemplatesCache.get(key);
