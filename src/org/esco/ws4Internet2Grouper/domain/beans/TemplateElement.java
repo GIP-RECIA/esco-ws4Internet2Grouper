@@ -26,6 +26,9 @@ public class TemplateElement {
     /** Key for the template. */
     private String key;
     
+    /** The default value for the template element. */
+    private String defaultValue;
+    
     /** Mask associated to this template element. */
     private int mask = nextMask();
  
@@ -41,6 +44,16 @@ public class TemplateElement {
         if (this.key.charAt(key.length() - 1) != SEPARATOR) {
             this.key += SEPARATOR;
         }
+    }
+    
+    /**
+     * Builds an instance of TemplateElement.
+     * @param key The key of the template.
+     * @param defaultValue The default value to use.
+     */
+    protected TemplateElement(final String key, final String defaultValue) {
+        this(key);
+        this.defaultValue = defaultValue;
     }
     
     /**
@@ -151,6 +164,17 @@ public class TemplateElement {
     }
     
     /**
+     * Adds a template element, so this elements can be used in the static methods.
+     * <b>Note :</b> The order of the registration is important as it has consequences
+     * on the evaluation process.
+     * @param key The key of the template element to register.
+     * @param defaultValue The default value to use for the template element to register.
+     */
+    public static void registerTemplateElement(final String key, final String defaultValue) {
+        registerTemplateElement(new TemplateElement(key, defaultValue));
+    }
+    
+    /**
      * Removes all the registered template elements.
      */
     public static void removeAllRegisteredTemplateElements() {
@@ -190,12 +214,18 @@ public class TemplateElement {
      * Resolves the template element in a source string.
      * @param testedMask The mask associated to the source string. 
      * @param src The source string that may contains the key of this template element.
-     * @param value The value to use in replacement of the key.
+     * @param value The value to use in replacement of the key. If the value is empty and the template has a default
+     * value, then the default value is used.
      * @return The String with the  keys replaces by values.
      */
     public String evaluate(final int testedMask, final String src, final String value) {
+        String checkedValue = value;
+        if ("".equals(value) && hasDefaultValue()) {
+            checkedValue = defaultValue;
+        }
+        
         if (hasFlag(testedMask)) {
-            return replace(src, value);
+            return replace(src, checkedValue);
         }
         return src;
     }
@@ -304,5 +334,21 @@ public class TemplateElement {
      */
     public static TemplateElement getAvailableTemplateElement(final int index) {
         return availableTemplateElements.get(index);
+    }
+
+    /**
+     * Tests if the template element has a default value.
+     * @return True if the template element has a default value.
+     */
+    public boolean hasDefaultValue() {
+        return defaultValue != null;
+    }
+
+    /**
+     * Setter for defaultValue.
+     * @param defaultValue the new value for defaultValue.
+     */
+    public void setDefaultValue(final String defaultValue) {
+        this.defaultValue = defaultValue;
     }
 }

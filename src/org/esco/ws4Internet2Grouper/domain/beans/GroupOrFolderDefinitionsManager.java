@@ -16,6 +16,7 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.cache.SGSCache;
+import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService;
 
 /**
  * Manager for the groups or folders definitions.
@@ -124,7 +125,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
      * for the templates evaluations.
      * @return An iterator over the groups.
      */
-    public Iterator<GroupOrFolderDefinition> getMembershipsForTemplates(final MembersDefinition.MembersType type, 
+    public Iterator<GroupOrFolderDefinition> getMembershipsForTemplates(final ISarapisGroupService.PersonType type, 
             final String...attributes) {
 
         if (definitionsByMembersDefinitions == null) {
@@ -164,7 +165,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
                     + memberships);
         }
 
-        cache.cacheMemebrships(memberships, type, attributes);
+        cache.cacheMemberships(memberships, type, attributes);
 
         return memberships.iterator();
     }
@@ -176,7 +177,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
      * for the templates evaluations.
      * @return An iterator over the groups.
      */
-    public Iterator<GroupOrFolderDefinition> getMemberships(final MembersDefinition.MembersType type, 
+    public Iterator<GroupOrFolderDefinition> getMemberships(final ISarapisGroupService.PersonType type, 
             final String...attributes) {
 
         if (definitionsByMembersDefinitions == null) {
@@ -200,14 +201,20 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
         // The memberships has to be evaluated.
         memberships = new HashSet<GroupOrFolderDefinition>();
 
+        // Builds the possible members definitions to use as key for retrieving
+        // the effectively defined ones.
         final List<MembersDefinition> mbDefs = new ArrayList<MembersDefinition>();
         mbDefs.add(new MembersDefinition(type));
         final int nbElts = Math.min(attributes.length, TemplateElement.countAvailableTemplateElements());
         for (int i = 0; i < nbElts; i++) {
-            if (!"".equals(attributes[i])) {
+            // The corresponding attribute to a template element is not null or there is 
+            // a default value.
+            if (!"".equals(attributes[i]) || TemplateElement.getAvailableTemplateElement(i).hasDefaultValue()) {
                 mbDefs.add(new MembersDefinition(type, TemplateElement.getAvailableTemplateElement(i)));
-            }
+            } 
         }
+        
+        
         for (MembersDefinition mbDef : mbDefs) {
             final List<GroupOrFolderDefinition> gofDefs = definitionsByMembersDefinitions.get(mbDef);
             
@@ -232,7 +239,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
                 }
             }
         }
-        cache.cacheMemebrships(memberships, type, attributes);
+        cache.cacheMemberships(memberships, type, attributes);
 
         return memberships.iterator();
     }

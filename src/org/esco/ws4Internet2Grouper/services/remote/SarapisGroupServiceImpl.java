@@ -16,7 +16,6 @@ import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
 import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
-import org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition.MembersType;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.esco.ws4Internet2Grouper.parsing.SGSParsingUtil;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
@@ -39,7 +38,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
     /** Separator. */
     private static final String SEP = "---------------------------------";
-    
+
     /** The definition manager. */
     private GroupOrFolderDefinitionsManager definitionsManager;
 
@@ -51,7 +50,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
     /** Parsing Util. */
     private SGSParsingUtil parsingUtil;
-    
+
     /**
      * Builds an instance of SarapisGroupsServiceImpl.
      */
@@ -121,7 +120,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             LOGGER.info("Preexisting definitions checked.");
             LOGGER.info(SEP);
         }
-        
+
         // Creates the group or folders that have to be created even if they have no mebers.
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(SEP);
@@ -132,7 +131,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
         while (createIt.hasNext()) {
             final GroupOrFolderDefinition def = createIt.next();
             final GroupOrStem result = grouperUtil.retrieveOrCreate(session, def);
-            
+
             if (result == null) {
                 // Error : One group or folder definition can't be retrieved or created.
                 String msg = "Error while creating group or folder for the definition: " + def;
@@ -141,16 +140,18 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
                 throw new WS4GrouperException(msg);
             }
         }
-        
+
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(SEP);
             LOGGER.info("Groups and folders created.");
             LOGGER.info(SEP);
         }
-        
+
         grouperSessionUtil.stopSession(session);
     }
-    
+
+
+
     /**
      * Handles the groups or folders definition template to create even if there is no
      * memebrs to add.
@@ -159,7 +160,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @return The Grouper operation result.
      */
     protected GrouperOperationResultDTO handlesEmptyGroupsOrFoldersDefinitionTemplates(final GrouperSession session, 
-                final String...attributes) {
+            final String...attributes) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(SEP);
             LOGGER.debug("Handles empty groups or folders templates to create.");
@@ -167,7 +168,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
         }
         final Iterator<GroupOrFolderDefinition> it = definitionsManager.getGroupsOrFoldersTemplatesToCreate(attributes);
         while (it.hasNext()) {
-           
+
             final GroupOrFolderDefinition def =  it.next();
             if (SGSCache.instance().emptyTemplateIsCached(def)) {
                 if (LOGGER.isDebugEnabled()) {
@@ -177,11 +178,11 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Definition: " + def + ".");
                 }
-            
+
                 final GroupOrStem result = grouperUtil.retrieveOrCreate(session, def, attributes);
                 if (result == null) {
                     final StringBuilder msg = 
-                    new StringBuilder("Error while creating empty group or folder template for the definition: ");
+                        new StringBuilder("Error while creating empty group or folder template for the definition: ");
                     msg.append(def);
                     msg.append(" with the attribute values: ");
                     msg.append(attributes);
@@ -192,13 +193,13 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
                 SGSCache.instance().cacheEmptyTemplate(def);
             }   
         }
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(SEP);
             LOGGER.debug("End of empty creation of group or folder templates.");
             LOGGER.debug(SEP);
         }
-        
+
         return GrouperOperationResultDTO.RESULT_OK;
     }
 
@@ -209,7 +210,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param attributes The user attributes.
      * @return The grouper operation result.
      */
-    protected GrouperOperationResultDTO removeFromGroups(final MembersType type, 
+    protected GrouperOperationResultDTO removeFromGroups(final ISarapisGroupService.PersonType type, 
             final String userId, 
             final String...attributes) {
 
@@ -236,7 +237,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
         // Handle memberships for all type of persons.
         final Iterator<GroupOrFolderDefinition> allMemberships = 
-            definitionsManager.getMembershipsForTemplates(MembersType.ALL, attributes);
+            definitionsManager.getMembershipsForTemplates(ISarapisGroupService.PersonType.ALL, attributes);
 
         while (allMemberships.hasNext()) {
             final GrouperOperationResultDTO result = grouperUtil.removeMember(session, 
@@ -263,7 +264,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param attributes The user attributes.
      * @return The grouper operation result.
      */
-    protected GrouperOperationResultDTO updateGroups(final MembersType type, 
+    protected GrouperOperationResultDTO updateGroups(final ISarapisGroupService.PersonType type, 
             final String userId, 
             final String...attributes) {
 
@@ -292,7 +293,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             LOGGER.debug(SEP);
         }
 
-        return GrouperOperationResultDTO.RESULT_OK;
+        return result;
     }
 
     /**
@@ -302,7 +303,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param attributes The user attributes.
      * @return The grouper operation result.
      */
-    protected GrouperOperationResultDTO addToGroups(final MembersType type, 
+    protected GrouperOperationResultDTO addToGroups(final ISarapisGroupService.PersonType type, 
             final String userId, 
             final String...attributes) {
         final GrouperSession session = grouperSessionUtil.createSession();
@@ -322,7 +323,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param attributes The user attributes.
      * @return The grouper operation result.
      */
-    protected GrouperOperationResultDTO addToGroups(final MembersType type, 
+    protected GrouperOperationResultDTO addToGroups(final ISarapisGroupService.PersonType type, 
             final String userId,
             final GrouperSession session, 
             final String...attributes) {
@@ -349,7 +350,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
         // Handles memberships for all type of persons.
         final Iterator<GroupOrFolderDefinition> allMemberships = 
-            definitionsManager.getMemberships(MembersType.ALL, attributes);
+            definitionsManager.getMemberships(ISarapisGroupService.PersonType.ALL, attributes);
 
         while (allMemberships.hasNext()) {
             final GrouperOperationResultDTO result = grouperUtil.addMember(session, 
@@ -374,15 +375,25 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param establishmentUAI The UAI of the establishment.
      * @param establishmentName The name of the establishment.
      * @param userId The id of the employee.
+     * @param function The function of the employee.
      * @return The result object which contains the informations about how the operation
      * has been performed.
      * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #addAdministrativeToEstablishment(String, String, String)
+     * #addAdministrativeToEstablishment(String, String, String, String)
      */
     public GrouperOperationResultDTO addAdministrativeToEstablishment(final  String establishmentUAI, 
             final String establishmentName, 
-            final String userId) {
-        return addToGroups(MembersType.ADMINISTRATIVE, userId, establishmentUAI, establishmentName);
+            final String userId,
+            final String function) {
+        return addToGroups(ISarapisGroupService.PersonType.ADMINISTRATIVE, 
+                userId, 
+                establishmentUAI, 
+                establishmentName,
+                "",
+                "",
+                "",
+                "",
+                function);
     }
 
     /**
@@ -398,7 +409,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
     public GrouperOperationResultDTO addParentToEstablishment(final  String establishmentUAI, 
             final String establishmentName, 
             final String userId) {
-        return addToGroups(MembersType.PARENT, userId, establishmentUAI, establishmentName);
+        return addToGroups(ISarapisGroupService.PersonType.PARENT, userId, establishmentUAI, establishmentName);
     }
 
     /**
@@ -420,7 +431,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final String classDescription, 
             final String userId) {
 
-        return addToGroups(MembersType.STUDENT, 
+        return addToGroups(ISarapisGroupService.PersonType.STUDENT, 
                 userId,
                 establishmentUAI, 
                 establishmentName, 
@@ -447,7 +458,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final String className,
             final String classDescription, 
             final String userId) {
-        return addToGroups(MembersType.TEACHER, 
+        return addToGroups(ISarapisGroupService.PersonType.TEACHER, 
                 userId,
                 establishmentUAI, 
                 establishmentName, 
@@ -455,8 +466,8 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
                 className, 
                 classDescription);
     }
-    
-    
+
+
     /**
      * Adds a teacher to a list of disciplines in an establishment.
      * @param establishmentUAI The UAI of the establishment.
@@ -473,7 +484,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final String userId) {
         GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
         for (String discipline : disciplines) {
-            result =  addToGroups(MembersType.TEACHER, userId, 
+            result =  addToGroups(ISarapisGroupService.PersonType.TEACHER, userId, 
                     establishmentUAI, 
                     establishmentName, 
                     "",
@@ -500,7 +511,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
     public GrouperOperationResultDTO addTOSToEstablishment(final String establishmentUAI, 
             final String establishmentName, 
             final String userId) {
-        return addToGroups(MembersType.TOS,  
+        return addToGroups(ISarapisGroupService.PersonType.TOS,  
                 userId,
                 establishmentUAI, 
                 establishmentName);
@@ -517,7 +528,8 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      */
     public GrouperOperationResultDTO removeAdministrativeFromEstablishment(final String establishmentUAI, 
             final String establishmentName, final String userId) {
-        return removeFromGroups(MembersType.ADMINISTRATIVE, userId, establishmentUAI, establishmentName);
+        return removeFromGroups(ISarapisGroupService.PersonType.ADMINISTRATIVE, 
+                userId, establishmentUAI, establishmentName);
     }
 
     /**
@@ -533,7 +545,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final String establishmentUAI, 
             final String establishmentName, 
             final String userId) {
-        return removeFromGroups(MembersType.PARENT, userId, establishmentUAI, establishmentName);
+        return removeFromGroups(ISarapisGroupService.PersonType.PARENT, userId, establishmentUAI, establishmentName);
     }
 
     /**
@@ -566,7 +578,8 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final String level,
             final String className, 
             final String userId) {
-        return removeFromGroups(MembersType.STUDENT, userId, establishmentUAI, establishmentName, level, className);
+        return removeFromGroups(ISarapisGroupService.PersonType.STUDENT, 
+                userId, establishmentUAI, establishmentName, level, className);
     }
 
     /**
@@ -583,7 +596,8 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final String level,
             final String className, 
             final String userId) {
-        return removeFromGroups(MembersType.TEACHER, userId, establishmentUAI, establishmentName, level, className);
+        return removeFromGroups(ISarapisGroupService.PersonType.TEACHER, 
+                userId, establishmentUAI, establishmentName, level, className);
     }
 
     /**
@@ -602,7 +616,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final String userId) {
         GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
         for (String discipline : disciplines) {
-            result =  removeFromGroups(MembersType.TEACHER, userId, 
+            result =  removeFromGroups(ISarapisGroupService.PersonType.TEACHER, userId, 
                     establishmentUAI, 
                     establishmentName, 
                     "",
@@ -628,7 +642,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
     public GrouperOperationResultDTO removeTOSFromEstablishment(final String establishmentUAI, 
             final String establishmentName, 
             final String userId) {
-        return removeFromGroups(MembersType.TOS, userId, establishmentUAI, establishmentName);
+        return removeFromGroups(ISarapisGroupService.PersonType.TOS, userId, establishmentUAI, establishmentName);
     }
 
     /**
@@ -700,15 +714,25 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param establishmentUAI The UAI of the establishment.
      * @param establishmentName The name of the establishment.
      * @param userId The id of the employee.
+     * @param function The function of the employee.
      * @return The result object which contains the informations about how the operation
      * has been performed.
      * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #updateAdministrativeToEstablishment(String, String, String)
+     * #updateAdministrativeToEstablishment(String, String, String, String)
      */
     public GrouperOperationResultDTO updateAdministrativeToEstablishment(final String establishmentUAI, 
             final String establishmentName, 
-            final String userId) {
-        return updateGroups(MembersType.ADMINISTRATIVE, userId, establishmentUAI, establishmentName);
+            final String userId,
+            final String function) {
+        return updateGroups(ISarapisGroupService.PersonType.ADMINISTRATIVE, 
+                userId, 
+                establishmentUAI, 
+                establishmentName,
+                "",
+                "",
+                "",
+                "",
+                function);
     }
 
     /**
@@ -723,7 +747,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      */
     public GrouperOperationResultDTO updateParentToEstablishment(final String establishmentUAI, 
             final String establishmentName, final String userId) {
-        return updateGroups(MembersType.PARENT, userId, establishmentUAI, establishmentName);
+        return updateGroups(ISarapisGroupService.PersonType.PARENT, userId, establishmentUAI, establishmentName);
     }
 
     /**
@@ -741,7 +765,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
     public GrouperOperationResultDTO updateStudentToClass(final String establishmentUAI, 
             final String establishmentName, final String level,
             final String className, final String classDescription, final String userId) {
-        return updateGroups(MembersType.STUDENT, userId, establishmentUAI, establishmentName, 
+        return updateGroups(ISarapisGroupService.PersonType.STUDENT, userId, establishmentUAI, establishmentName, 
                 level, className, classDescription);
     }
 
@@ -757,248 +781,359 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      */
     public GrouperOperationResultDTO updateTOSToEstablishment(final String establishmentUAI, 
             final String establishmentName, final String userId) {
-        return updateGroups(MembersType.TOS, userId, establishmentUAI, establishmentName);
+        return updateGroups(ISarapisGroupService.PersonType.TOS, userId, establishmentUAI, establishmentName);
+    }
+
+    /**
+     * Adds a person to groups.
+     * @param personDescription The descriptionof the person.
+     * @return The result object which contains the informations about how the operation
+     * has been performed.
+     */
+    public GrouperOperationResultDTO addToGroups(final IPersonDescription personDescription) {
+        GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
+        if (personDescription.getDisciplines() != null) {
+            for (String discipline : personDescription.getDisciplines()) {
+                result =  addToGroups(personDescription.getType(), 
+                        personDescription.getId(), 
+                        personDescription.getEstablishmentUAI(), 
+                        personDescription.getEstablishmentName(), 
+                        personDescription.getLevel(),
+                        personDescription.getClassName(),
+                        personDescription.getClassDescription(),
+                        discipline,
+                        personDescription.getFunction());
+                if (result.isError()) {
+                    return result;
+                }
+            }
+        } else {
+            result = addToGroups(personDescription.getType(), 
+                    personDescription.getId(), 
+                    personDescription.getEstablishmentUAI(), 
+                    personDescription.getEstablishmentName(), 
+                    personDescription.getLevel(),
+                    personDescription.getClassName(),
+                    personDescription.getClassDescription(),
+                    "",
+                    personDescription.getFunction());
+        }
+        return result;
+    }
+
+    /**
+     * Updates the memberships of a peron.
+     * @param personDescription The descriptionof the person.
+     * @return The result object which contains the informations about how the operation
+     * has been performed.
+     */
+    public GrouperOperationResultDTO updateMemberships(final IPersonDescription personDescription) {
+        GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
+        if (personDescription.getDisciplines() != null) {
+            for (String discipline : personDescription.getDisciplines()) {
+                result =  updateGroups(personDescription.getType(), 
+                        personDescription.getId(), 
+                        personDescription.getEstablishmentUAI(), 
+                        personDescription.getEstablishmentName(), 
+                        personDescription.getLevel(),
+                        personDescription.getClassName(),
+                        personDescription.getClassDescription(),
+                        discipline,
+                        personDescription.getFunction());
+                if (result.isError()) {
+                    return result;
+                }
+            }
+        } else {
+            result = updateGroups(personDescription.getType(), 
+                    personDescription.getId(), 
+                    personDescription.getEstablishmentUAI(), 
+                    personDescription.getEstablishmentName(), 
+                    personDescription.getLevel(),
+                    personDescription.getClassName(),
+                    personDescription.getClassDescription(),
+                    "",
+                    personDescription.getFunction());
+        }
+        return result;
+    }
+
+    /**
+     * Removes a person from the groups managed by this service.
+     * @param userId The id of the person to remove from the groups.
+     * @return The result of the Grouper operation.
+     */
+    public GrouperOperationResultDTO removeFromGroups(final String userId) {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(SEP);
+            LOGGER.debug("Starting to remove from groups ");
+            LOGGER.debug("for the user: " + userId);
+            LOGGER.debug(SEP);
+        }
+        final GrouperSession session = grouperSessionUtil.createSession();
+        GrouperOperationResultDTO result = grouperUtil.removeFromAllGroups(session, userId);
+
+        if (result.isError()) {
+            LOGGER.error("Error while removing from groups for user: " + userId);
+            LOGGER.error(result.getException(), result.getException());
+        } 
+        grouperSessionUtil.stopSession(session);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(SEP);
+            LOGGER.debug("End of removing from groups.");
+            LOGGER.debug(SEP);
+        }
+
+        return result; 
     }
 
 
-  
-//    public static void main(final String args[]) {
-//
-//    import java.util.ArrayList;
-//    import java.util.Random;
-//    import org.springframework.context.ApplicationContext;
-//    import org.springframework.context.support.FileSystemXmlApplicationContext;
-//    
-//        final ThreadLocal<ApplicationContext> springCtx = new ThreadLocal<ApplicationContext>();
-//        springCtx.set(new FileSystemXmlApplicationContext("classpath:properties/applicationContext.xml"));
-//        final ISarapisGroupService sgs = (ISarapisGroupService) springCtx.get().getBean("SarapisGroupService");
-//        final String usersPrefix = "STRESS_TEST__Person_";
-//        final int nbUsers = 3000;
-//        final int thousand = 1000;
-//
-//
-//        final int nbStudents = 00;
-//        final int nbTeachers = 3;
-//        final int nbParents = 00;
-//        final int nbAdministrative = 00;
-//        final int nbTos = 00;
-//        final int nbEstab = 1;
-//        final int nbLevels = 3;
-//        final int nbClasses = 3;
-//        final int nbDisciplines = 10;
-//        final int nbMaxDisplPerTeacher = 5;
-//        final String[] estabNames = new String[nbEstab];
-//        final String[] estabUAI = new String[nbEstab];
-//        final String[] levels = new String[nbLevels];
-//        final String[] classesNames = new String[nbClasses];
-//        final String[] classesDesc = new String[nbClasses];
-//        final String[] disciplinesNames = new String[nbDisciplines];
-//
-//        for (int  i = 0; i < nbEstab; i++) {
-//            estabNames[i] = "Estab_name_" + i;
-//            estabUAI[i] = "Estab_UAI_" + i;
-//        }
-//
-//        for (int  i = 0; i < nbLevels; i++) {
-//            levels[i] = "Level_" + i;
-//        }
-//
-//        for (int  i = 0; i < nbClasses; i++) {
-//            classesNames[i] = "Class_name_" + i;
-//            classesDesc[i] = "Class_desc_" + i;
-//        }
-//
-//        for (int  i = 0; i < nbDisciplines; i++) {
-//            disciplinesNames[i] = "discipl_name_" + i;
-//        }
-//
-//        final Random rand = new Random();
-//        rand.setSeed(1L);
-//
-//        int userIndex = 0;
-//        long top1 = System.currentTimeMillis();
-//        System.out.println("--- Students: " + nbStudents + " ---");
-//        for (int i = 0; i < nbStudents; i++) {
-//            final int estabInd = userIndex % nbEstab;
-//            final int levelInd = userIndex % nbLevels;
-//            final int classInd = userIndex % nbClasses;
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.addStudentToClass(estabUAI[estabInd], 
-//                    estabNames[estabInd], levels[levelInd], 
-//                    classesNames[classInd], classesDesc[classInd], userId);
-//            System.out.println(userId + " ==> " + result);
-//        }
-//
-//        long ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End students (" + ellapsed + "s) ---");
-//
-//
-//
-//        System.out.println("\n\n\n--- Teachers : " + nbTeachers + " ---");
-//        top1 = System.currentTimeMillis();
-//        for (int i = 0; i < nbTeachers; i++) {
-//            rand.setSeed(userIndex);
-//            final int estabInd = userIndex % nbEstab;
-//            final int levelInd = userIndex % nbLevels;
-//            final int classInd = userIndex % nbClasses;
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.addTeacherToClass(estabUAI[estabInd], 
-//                    estabNames[estabInd], levels[levelInd], 
-//                    classesNames[classInd], classesDesc[classInd], userId);
-//            System.out.println(userId + " to class  ==> " + result);
-//
-//            // Builds a random list of dispciplines for the teacher
-//            List<String> discipl = new ArrayList<String>();
-//            int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
-//            for (int j = 0; j < nbDispl; j++) {
-//                String d = disciplinesNames[rand.nextInt(nbDisciplines)];
-//                if (!discipl.contains(d)) {
-//                    discipl.add(d);
-//                }
-//            }
-//
-//            result = sgs.addTeacherToDisciplines(estabUAI[estabInd], 
-//                    estabNames[estabInd], discipl, userId);
-//            System.out.println(userId + " to dsciplines  ==> " + result);
-//        }
-//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End teachers (" + ellapsed + "s) ---");
-//
-//
-//
-//        System.out.println("\n\n\n--- Parents: " + nbParents + " ---");
-//        top1 = System.currentTimeMillis();
-//        for (int i = 0; i < nbParents; i++) {
-//            final int estabInd = userIndex % nbEstab;
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.addParentToEstablishment(estabUAI[estabInd], 
-//                    estabNames[estabInd], userId);
-//            System.out.println(userId + " ==> " + result);
-//        }
-//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End parents (" + ellapsed + "s) ---");
-//
-//        System.out.println("\n\n\n--- Administrative employees: " + nbAdministrative + " ---");
-//        top1 = System.currentTimeMillis();
-//        for (int i = 0; i < nbAdministrative; i++) {
-//            final int estabInd = rand.nextInt(nbEstab);
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.addAdministrativeToEstablishment(estabUAI[estabInd], 
-//                    estabNames[estabInd], userId);
-//            System.out.println(userId + " ==> " + result);
-//        }
-//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
-//
-//
-//
-//        System.out.println("\n\n\n--- TOS employees: " + nbTos + " ---");
-//        top1 = System.currentTimeMillis();
-//        for (int i = 0; i < nbTos; i++) {
-//            final int estabInd = userIndex % nbEstab;
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.addTOSToEstablishment(estabUAI[estabInd], 
-//                    estabNames[estabInd], userId);
-//            System.out.println(userId + " ==> " + result);
-//        }
-//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
-//
-//
-//        // --------- Suppression
-//
-//        userIndex = 0;
-//        top1 = System.currentTimeMillis();
-//        System.out.println("--- Remove Students: " + nbStudents + " ---");
-//        for (int i = 0; i < nbStudents; i++) {
-//            final int estabInd = userIndex % nbEstab;
-//            final int levelInd = userIndex % nbLevels;
-//            final int classInd = userIndex % nbClasses;
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.removeStudentFromClass(estabUAI[estabInd], 
-//                    estabNames[estabInd], levels[levelInd], 
-//                    classesNames[classInd], userId);
-//            System.out.println(userId + " ==> " + result);
-//        }
-//
-//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End students (" + ellapsed + "s) ---");
-//
-//
-//
-//
-//
-//        System.out.println("\n\n\n--- Removes teachers : " + nbTeachers + " ---");
-//        top1 = System.currentTimeMillis();
-//        for (int i = 0; i < nbTeachers; i++) {
-//            rand.setSeed(userIndex);
-//            final int estabInd = userIndex % nbEstab;
-//            final int levelInd = userIndex % nbLevels;
-//            final int classInd = userIndex % nbClasses;
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.removeTeacherFromClass(estabUAI[estabInd], 
-//                    estabNames[estabInd], levels[levelInd], 
-//                    classesNames[classInd], userId);
-//            System.out.println(userId + " to class  ==> " + result);
-//
-//            // Builds a random list of dispciplines for the teacher
-//            List<String> discipl = new ArrayList<String>();
-//            int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
-//            for (int j = 0; j < nbDispl; j++) {
-//                String d = disciplinesNames[rand.nextInt(nbDisciplines)];
-//                if (!discipl.contains(d)) {
-//                    discipl.add(d);
-//                }
-//            }
-//
-//            result = sgs.removeTeacherFromDisciplines(estabUAI[estabInd], 
-//                    estabNames[estabInd], discipl, userId);
-//            System.out.println(userId + " to dsciplines  ==> " + result);
-//        }
-//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End teachers (" + ellapsed + "s) ---");
-//
-//
-//
-//        System.out.println("\n\n\n--- Removes Parents: " + nbParents + " ---");
-//        top1 = System.currentTimeMillis();
-//        for (int i = 0; i < nbParents; i++) {
-//            final int estabInd = userIndex % nbEstab;
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.removeParentFromEstablishment(estabUAI[estabInd], 
-//                    estabNames[estabInd], userId);
-//            System.out.println(userId + " ==> " + result);
-//        }
-//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End parents (" + ellapsed + "s) ---");
-//
-//        System.out.println("\n\n\n--- Removes Administrative employees: " + nbAdministrative + " ---");
-//        top1 = System.currentTimeMillis();
-//        for (int i = 0; i < nbAdministrative; i++) {
-//            final int estabInd = rand.nextInt(nbEstab);
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.removeAdministrativeFromEstablishment(estabUAI[estabInd], 
-//                    estabNames[estabInd], userId);
-//            System.out.println(userId + " ==> " + result);
-//        }
-//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
-//
-//
-//
-//        System.out.println("\n\n\n--- Removes TOS employees: " + nbTos + " ---");
-//        top1 = System.currentTimeMillis();
-//        for (int i = 0; i < nbTos; i++) {
-//            final int estabInd = userIndex % nbEstab;
-//            final String userId = usersPrefix + userIndex++;
-//            GrouperOperationResultDTO result = sgs.removeTOSFromEstablishment(estabUAI[estabInd], 
-//                    estabNames[estabInd], userId);
-//            System.out.println(userId + " ==> " + result);
-//        }
-//        ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//        System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
-//
-//
-//    }
+    public static void main(final String args[]) {
+
+//      import java.util.ArrayList;
+//      import java.util.Random;
+//      import org.springframework.context.ApplicationContext;
+//      import org.springframework.context.support.FileSystemXmlApplicationContext;
+
+        final ThreadLocal<org.springframework.context.ApplicationContext> springCtx = 
+            new ThreadLocal<org.springframework.context.ApplicationContext>();
+        springCtx.set(new org.springframework.context.support.FileSystemXmlApplicationContext(
+        "classpath:properties/applicationContext.xml"));
+        final ISarapisGroupService sgs = (ISarapisGroupService) springCtx.get().getBean("SarapisGroupService");
+//      final String usersPrefix = "STRESS_TEST__Person_";
+//      final int nbUsers = 3000;
+//      final int thousand = 1000;
+
+
+//      final int nbStudents = 00;
+//      final int nbTeachers = 3;
+//      final int nbParents = 00;
+//      final int nbAdministrative = 00;
+//      final int nbTos = 00;
+//      final int nbEstab = 1;
+//      final int nbLevels = 3;
+//      final int nbClasses = 3;
+//      final int nbDisciplines = 10;
+//      final int nbMaxDisplPerTeacher = 5;
+//      final String[] estabNames = new String[nbEstab];
+//      final String[] estabUAI = new String[nbEstab];
+//      final String[] levels = new String[nbLevels];
+//      final String[] classesNames = new String[nbClasses];
+//      final String[] classesDesc = new String[nbClasses];
+//      final String[] disciplinesNames = new String[nbDisciplines];
+
+//      for (int  i = 0; i < nbEstab; i++) {
+//      estabNames[i] = "Estab_name_" + i;
+//      estabUAI[i] = "Estab_UAI_" + i;
+//      }
+
+//      for (int  i = 0; i < nbLevels; i++) {
+//      levels[i] = "Level_" + i;
+//      }
+
+//      for (int  i = 0; i < nbClasses; i++) {
+//      classesNames[i] = "Class_name_" + i;
+//      classesDesc[i] = "Class_desc_" + i;
+//      }
+
+//      for (int  i = 0; i < nbDisciplines; i++) {
+//      disciplinesNames[i] = "discipl_name_" + i;
+//      }
+
+//      final Random rand = new Random();
+//      rand.setSeed(1L);
+
+//      int userIndex = 0;
+//      long top1 = System.currentTimeMillis();
+//      System.out.println("--- Students: " + nbStudents + " ---");
+//      for (int i = 0; i < nbStudents; i++) {
+//      final int estabInd = userIndex % nbEstab;
+//      final int levelInd = userIndex % nbLevels;
+//      final int classInd = userIndex % nbClasses;
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.addStudentToClass(estabUAI[estabInd], 
+//      estabNames[estabInd], levels[levelInd], 
+//      classesNames[classInd], classesDesc[classInd], userId);
+//      System.out.println(userId + " ==> " + result);
+//      }
+
+//      long ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End students (" + ellapsed + "s) ---");
+
+
+
+//      System.out.println("\n\n\n--- Teachers : " + nbTeachers + " ---");
+//      top1 = System.currentTimeMillis();
+//      for (int i = 0; i < nbTeachers; i++) {
+//      rand.setSeed(userIndex);
+//      final int estabInd = userIndex % nbEstab;
+//      final int levelInd = userIndex % nbLevels;
+//      final int classInd = userIndex % nbClasses;
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.addTeacherToClass(estabUAI[estabInd], 
+//      estabNames[estabInd], levels[levelInd], 
+//      classesNames[classInd], classesDesc[classInd], userId);
+//      System.out.println(userId + " to class  ==> " + result);
+
+//      // Builds a random list of dispciplines for the teacher
+//      List<String> discipl = new ArrayList<String>();
+//      int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
+//      for (int j = 0; j < nbDispl; j++) {
+//      String d = disciplinesNames[rand.nextInt(nbDisciplines)];
+//      if (!discipl.contains(d)) {
+//      discipl.add(d);
+//      }
+//      }
+
+//      result = sgs.addTeacherToDisciplines(estabUAI[estabInd], 
+//      estabNames[estabInd], discipl, userId);
+//      System.out.println(userId + " to dsciplines  ==> " + result);
+//      }
+//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End teachers (" + ellapsed + "s) ---");
+
+
+
+//      System.out.println("\n\n\n--- Parents: " + nbParents + " ---");
+//      top1 = System.currentTimeMillis();
+//      for (int i = 0; i < nbParents; i++) {
+//      final int estabInd = userIndex % nbEstab;
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.addParentToEstablishment(estabUAI[estabInd], 
+//      estabNames[estabInd], userId);
+//      System.out.println(userId + " ==> " + result);
+//      }
+//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End parents (" + ellapsed + "s) ---");
+
+        GrouperOperationResultDTO result = sgs.addAdministrativeToEstablishment("TESTETAB_UAI", 
+                "TEST_ETAB_NOM", "Apd00000", "");
+        result = sgs.updateAdministrativeToEstablishment("TESTETAB_UAI", 
+                "TEST_ETAB_NOM", "Apd00000", "Une Fonction");
+
+//      System.out.println("\n\n\n--- Administrative employees: " + nbAdministrative + " ---");
+//      top1 = System.currentTimeMillis();
+//      for (int i = 0; i < nbAdministrative; i++) {
+//      final int estabInd = rand.nextInt(nbEstab);
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.addAdministrativeToEstablishment(estabUAI[estabInd], 
+//      estabNames[estabInd], userId);
+//      System.out.println(userId + " ==> " + result);
+//      }
+//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
+
+
+
+//      System.out.println("\n\n\n--- TOS employees: " + nbTos + " ---");
+//      top1 = System.currentTimeMillis();
+//      for (int i = 0; i < nbTos; i++) {
+//      final int estabInd = userIndex % nbEstab;
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.addTOSToEstablishment(estabUAI[estabInd], 
+//      estabNames[estabInd], userId);
+//      System.out.println(userId + " ==> " + result);
+//      }
+//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
+
+
+//      // --------- Suppression
+
+//      userIndex = 0;
+//      top1 = System.currentTimeMillis();
+//      System.out.println("--- Remove Students: " + nbStudents + " ---");
+//      for (int i = 0; i < nbStudents; i++) {
+//      final int estabInd = userIndex % nbEstab;
+//      final int levelInd = userIndex % nbLevels;
+//      final int classInd = userIndex % nbClasses;
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.removeStudentFromClass(estabUAI[estabInd], 
+//      estabNames[estabInd], levels[levelInd], 
+//      classesNames[classInd], userId);
+//      System.out.println(userId + " ==> " + result);
+//      }
+
+//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End students (" + ellapsed + "s) ---");
+
+
+
+
+
+//      System.out.println("\n\n\n--- Removes teachers : " + nbTeachers + " ---");
+//      top1 = System.currentTimeMillis();
+//      for (int i = 0; i < nbTeachers; i++) {
+//      rand.setSeed(userIndex);
+//      final int estabInd = userIndex % nbEstab;
+//      final int levelInd = userIndex % nbLevels;
+//      final int classInd = userIndex % nbClasses;
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.removeTeacherFromClass(estabUAI[estabInd], 
+//      estabNames[estabInd], levels[levelInd], 
+//      classesNames[classInd], userId);
+//      System.out.println(userId + " to class  ==> " + result);
+
+//      // Builds a random list of dispciplines for the teacher
+//      List<String> discipl = new ArrayList<String>();
+//      int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
+//      for (int j = 0; j < nbDispl; j++) {
+//      String d = disciplinesNames[rand.nextInt(nbDisciplines)];
+//      if (!discipl.contains(d)) {
+//      discipl.add(d);
+//      }
+//      }
+
+//      result = sgs.removeTeacherFromDisciplines(estabUAI[estabInd], 
+//      estabNames[estabInd], discipl, userId);
+//      System.out.println(userId + " to dsciplines  ==> " + result);
+//      }
+//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End teachers (" + ellapsed + "s) ---");
+
+
+
+//      System.out.println("\n\n\n--- Removes Parents: " + nbParents + " ---");
+//      top1 = System.currentTimeMillis();
+//      for (int i = 0; i < nbParents; i++) {
+//      final int estabInd = userIndex % nbEstab;
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.removeParentFromEstablishment(estabUAI[estabInd], 
+//      estabNames[estabInd], userId);
+//      System.out.println(userId + " ==> " + result);
+//      }
+//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End parents (" + ellapsed + "s) ---");
+
+//      System.out.println("\n\n\n--- Removes Administrative employees: " + nbAdministrative + " ---");
+//      top1 = System.currentTimeMillis();
+//      for (int i = 0; i < nbAdministrative; i++) {
+//      final int estabInd = rand.nextInt(nbEstab);
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.removeAdministrativeFromEstablishment(estabUAI[estabInd], 
+//      estabNames[estabInd], userId);
+//      System.out.println(userId + " ==> " + result);
+//      }
+//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
+
+
+
+//      System.out.println("\n\n\n--- Removes TOS employees: " + nbTos + " ---");
+//      top1 = System.currentTimeMillis();
+//      for (int i = 0; i < nbTos; i++) {
+//      final int estabInd = userIndex % nbEstab;
+//      final String userId = usersPrefix + userIndex++;
+//      GrouperOperationResultDTO result = sgs.removeTOSFromEstablishment(estabUAI[estabInd], 
+//      estabNames[estabInd], userId);
+//      System.out.println(userId + " ==> " + result);
+//      }
+//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+//      System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
+
+
+    }
 
 }

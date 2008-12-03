@@ -7,12 +7,12 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 import org.apache.log4j.Logger;
+import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXParseException;
 
-import static org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition.MembersType;
-
+ 
 /**
  * Atribute handler for the Sarapis Group Service (SGS). 
  * @author GIP RECIA - A. Deman
@@ -56,6 +56,9 @@ public class SGSAttributeHandler implements Serializable {
     
     /** Key attribute. */
     public static final String KEY_ATTR = "key";
+
+    /** Default value attribute. */
+    public static final String DEF_VAL_ATTR = "default-value";
     
     /** value attribute. */
     public static final String VALUE_ATTR = "value";
@@ -94,13 +97,16 @@ public class SGSAttributeHandler implements Serializable {
     private Boolean recursive;
     
     /** Type value. */
-    private MembersType type;
+    private ISarapisGroupService.PersonType type;
     
     /** Distribution by value. */
     private String distributionBy;
     
     /** Key for a template element. */
     private String key;
+    
+    /** Key for a defaultValue element. */
+    private String defaultValue;
     
     /** value attribute. */
     private Boolean value;
@@ -175,20 +181,20 @@ public class SGSAttributeHandler implements Serializable {
         } else if (RECURS_ATTR.equals(trimedAttrName)) {
             recursive = parseBoolean(locator, trimedAttrName, attributeValue);
         } else if (TYPE_ATTR.equals(trimedAttrName)) {
-            type = MembersType.parseIgnoreCase(attributeValue);
+            type = ISarapisGroupService.PersonType.parseIgnoreCase(attributeValue);
             if (type == null) {
                 throw new SAXParseException("Illegal value for atribute " 
                         + attributeName + " legal values are : " 
-                        + Arrays.toString(MembersType.values()) 
+                        + Arrays.toString(ISarapisGroupService.PersonType.values()) 
                         + " found : " + attributeValue + ".", locator);
             }
         } else if (DISTRIB_BY_ATTR.equals(trimedAttrName)) {
             distributionBy = attributeValue.trim();
         } else if (KEY_ATTR.equals(trimedAttrName)) {
             key = attributeValue.trim();
+        } else if (DEF_VAL_ATTR.equals(trimedAttrName)) {
+            defaultValue = attributeValue.trim();
         }
-        
-
     }
     
     /**
@@ -280,7 +286,7 @@ public class SGSAttributeHandler implements Serializable {
      * Getter for type.
      * @return type.
      */
-    public MembersType getType() {
+    public ISarapisGroupService.PersonType getType() {
         return type;
     }
 
@@ -330,5 +336,13 @@ public class SGSAttributeHandler implements Serializable {
      */
     public Boolean getCreate() {
         return create;
+    }
+
+    /**
+     * Getter for defaultValue.
+     * @return defaultValue.
+     */
+    public String getDefaultValue() {
+        return defaultValue;
     }
 }

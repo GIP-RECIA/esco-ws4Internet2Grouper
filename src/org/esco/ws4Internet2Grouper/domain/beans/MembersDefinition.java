@@ -5,7 +5,7 @@ package org.esco.ws4Internet2Grouper.domain.beans;
 
 import java.io.Serializable;
 
-import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
+import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService;
 
 
 /**
@@ -22,51 +22,8 @@ public class MembersDefinition implements Serializable {
     /** Serial default UID.*/
     private static final long serialVersionUID = 5449177734260605352L;
 
-    /** The type of subject that are members of a group. */
-    public static enum MembersType {
-        /** All type.*/
-        ALL, 
-        
-        /** The members are the teachers.*/
-        TEACHER, 
-
-        /** The members are the students.*/
-        STUDENT,
-
-        /** The members are the administrative employee.*/
-        ADMINISTRATIVE,
-
-        /** The members are the TOS employee.*/
-        TOS,
-
-        /** The members are the parents. */
-        PARENT;
-
-        /**
-         * Parse a string to a MembersType Instance.
-         * @param value The value to parse.
-         * @return The MembersType that is equal to the value if it exists,
-         * null otherwise.
-         */
-        public static MembersType parseIgnoreCase(final String value) {
-            try {
-                return valueOf(value.trim().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new WS4GrouperException("Invalid Type of member: " + value 
-                        + ". Legal values are: "
-                        + MembersType.STUDENT + ", " 
-                        + MembersType.TEACHER + ", " 
-                        + MembersType.PARENT + ", " 
-                        + MembersType.ADMINISTRATIVE + ", " 
-                        + MembersType.TOS + ", " 
-                        + MembersType.ALL + ".", e);
-            }
-        } 
-           
-    }
-
     /** The type of members of the group. */
-    private MembersType membersType;
+    private ISarapisGroupService.PersonType membersType;
 
     /** The element used to performs the distribution 
      * of the subjects in the groups. */
@@ -78,7 +35,8 @@ public class MembersDefinition implements Serializable {
      * @param membersType The type of memebrs of the group.
      * @param distributionElement The matching attribute.
      */
-    public MembersDefinition(final MembersType membersType, final TemplateElement distributionElement) {
+    public MembersDefinition(final ISarapisGroupService.PersonType membersType, 
+            final TemplateElement distributionElement) {
         this.membersType = membersType;
         this.distributionElement = distributionElement;
     }
@@ -87,7 +45,7 @@ public class MembersDefinition implements Serializable {
      * Builds an instance of MembersDefinition with members information.
      * @param membersType The type of memebrs of the group.
      */
-    public MembersDefinition(final MembersType membersType) {
+    public MembersDefinition(final ISarapisGroupService.PersonType membersType) {
         this.membersType = membersType;
     }
 
@@ -183,7 +141,7 @@ public class MembersDefinition implements Serializable {
      * Getter for membersType.
      * @return membersType.
      */
-    public MembersType getMembersType() {
+    public ISarapisGroupService.PersonType getMembersType() {
         return membersType;
     }
 

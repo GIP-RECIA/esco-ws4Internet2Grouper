@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!ELEMENT sarapis-group-service (comment?, user, delete-empty-folders?, delete-empty-groups?, force-privileges?,ordered-template-elements?, (folder|folder-template)+) >
+<!ELEMENT sarapis-group-service (comment?, user, delete-empty-folders?, delete-empty-groups?, force-privileges?, ordered-template-elements?, (folder|folder-template)+) >
 <!ELEMENT ordered-template-elements (comment?, template-element+)>
 <!ELEMENT template-element ANY>
 <!ELEMENT folder (comment?, privileges?,(folder|folder-template|group|group-template)*) >
@@ -37,7 +37,8 @@
 	create CDATA #IMPLIED>
 	
 <!ATTLIST template-element
-	key CDATA #REQUIRED>
+	key CDATA #REQUIRED
+	default-value CDATA #IMPLIED>
 
 <!ATTLIST folder-template
 	extension CDATA #REQUIRED
