@@ -21,10 +21,10 @@ import org.esco.ws4Internet2Grouper.domain.beans.EvaluableString;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.MembersDefinition;
+import org.esco.ws4Internet2Grouper.domain.beans.PersonType;
 import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.TemplateElement;
 import org.esco.ws4Internet2Grouper.exceptions.UnknownTemplateElementTempateElement;
-import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
 import org.esco.ws4Internet2Grouper.util.GrouperUtil;
 import org.springframework.beans.factory.InitializingBean;
@@ -412,7 +412,7 @@ implements InitializingBean, EntityResolver {
         if (attributeHandler.getType() == null) {
             handleAttributeError(MEMBERS_TAG, 
                     SGSAttributeHandler.TYPE_ATTR, 
-                    ISarapisGroupService.PersonType.values(), 
+                    PersonType.values(), 
                     null);
         }
         

@@ -5,7 +5,8 @@ package org.esco.ws4Internet2Grouper.services.remote;
 
 import java.util.Collection;
 
-import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService.PersonType;
+import org.esco.ws4Internet2Grouper.domain.beans.PersonType;
+
 
 /**
  * Implementation of a person description.
@@ -15,6 +16,10 @@ import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService.PersonT
  *
  */
 public class PersonDescriptionImpl implements IPersonDescription {
+
+   
+    /** Serial version UID.*/
+    private static final long serialVersionUID = 1L;
 
     /** The type of the person. */
     private PersonType type;
@@ -29,20 +34,19 @@ public class PersonDescriptionImpl implements IPersonDescription {
     private String establishmentUAI;
     
     /** The level associated to the person. */
-    private String level;
+    private String level = "";
     
     /** The name of the class associated to the person. */
-    private String className;
+    private String className = "";
     
     /** The description of the class. */
-    private String classDescription;
+    private String classDescription = "";
     
     /** The disciplines. */
     private Collection<String> disciplines;
     
     /** The fonction of the person. */
-    private String function;
-    
+    private String function = "";
     
     /**
      * Builds an instance of PersonDescriptionImpl.
@@ -54,15 +58,112 @@ public class PersonDescriptionImpl implements IPersonDescription {
             
     /**
      * Builds an instance of PersonDescriptionImpl.
+     * @param type The type of the person.
      * @param establishmentUAI The UAI of the establishment.
      * @param establishmentName The name of the establishment.
      * @param id The id of the person.
      */
-    public PersonDescriptionImpl(final String establishmentUAI, 
+    public PersonDescriptionImpl(final PersonType type,
+            final String establishmentUAI, 
             final String establishmentName, final String id) {
+        this.type = type;
         this.establishmentUAI = establishmentUAI;
         this.establishmentName = establishmentName;
         this.id = id;
+    }
+    
+    /**
+     * Gives the string representation of the instance.
+     * @return The String that denotes the person.
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        
+     final StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+     sb.append("#{");
+     boolean comma = false;
+     
+     if (!"".equals(type.toString()))  {
+         comma = true;
+         sb.append("type=");
+         sb.append(type);
+     }
+     
+     if (!"".equals(id)) {
+         if (comma) {
+             sb.append(", ");
+         }
+         comma = true;
+         sb.append("id=");
+         sb.append(id);
+     }
+     
+     if (!"".equals(establishmentUAI)) {
+         if (comma) {
+             sb.append(", ");
+         }
+         comma = true;
+         sb.append("UAI=");
+         sb.append(establishmentUAI);
+     }
+     
+     if (!"".equals(establishmentName)) {
+         if (comma) {
+             sb.append(", ");
+         }
+         comma = true;
+         sb.append("establishment=");
+         sb.append(establishmentName);
+     }
+     
+     if (!"".equals(level)) {
+         if (comma) {
+             sb.append(", ");
+         }
+         comma = true;
+         sb.append("level=");
+         sb.append(level);
+     }
+     
+     if (!"".equals(className)) {
+         if (comma) {
+             sb.append(", ");
+         }
+         comma = true;
+         sb.append("className=");
+         sb.append(className);
+     }
+     
+     if (!"".equals(classDescription)) {
+         if (comma) {
+             sb.append(", ");
+         }
+         comma = true;
+         sb.append("classDescription=");
+         sb.append(classDescription);
+     }
+     
+     if (disciplines != null) {
+         if (comma) {
+             sb.append(", ");
+         }
+         comma = true;
+         sb.append("classDescription=");
+         sb.append(classDescription);
+     }
+     
+     if (!"".equals(function)) {
+         if (comma) {
+             sb.append(", ");
+         }
+         comma = true;
+         sb.append("function=");
+         sb.append(function);
+     }
+     sb.append("}");
+     
+     return sb.toString();
     }
     
     /**
@@ -72,6 +173,7 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public PersonType getType() {
         return type;
     }
+    
     /**
      * Setter for type.
      * @param type the new value for type.
@@ -79,6 +181,15 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public void setType(final PersonType type) {
         this.type = type;
     }
+    
+    /**
+     * Tests if there is a type information.
+     * @return True if there is a type information.
+     */
+    public boolean hasTypeInformation() {
+        return type != null;
+    }
+    
     /**
      * Getter for establishmentName.
      * @return establishmentName.
@@ -93,6 +204,15 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public void setEstablishmentName(final String establishmentName) {
         this.establishmentName = establishmentName;
     }
+    
+    /**
+     * Tests if there is an EstablishmentName information.
+     * @return True if there is an EstablishmentName information.
+     */
+    public boolean hasEstablishmentNameInformation() {
+        return !"".equals(establishmentName);
+    }
+    
     /**
      * Getter for establishmentUAI.
      * @return establishmentUAI.
@@ -100,6 +220,7 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public String getEstablishmentUAI() {
         return establishmentUAI;
     }
+    
     /**
      * Setter for establishmentUAI.
      * @param establishmentUAI the new value for establishmentUAI.
@@ -107,6 +228,16 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public void setEstablishmentUAI(final String establishmentUAI) {
         this.establishmentUAI = establishmentUAI;
     }
+    
+    
+    /**
+     * Tests if there is an EstablishmentUAI information.
+     * @return True if there is an EstablishmentUAI information.
+     */
+    public boolean hasEstablishmentUAIInformation() {
+        return !"".equals(establishmentUAI);
+    }
+    
     /**
      * Getter for level.
      * @return level.
@@ -114,6 +245,15 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public String getLevel() {
         return level;
     }
+    
+    /**
+     * Tests if there is a level information.
+     * @return True if there is a level information.
+     */
+    public boolean hasLevelInformation() {
+        return !"".equals(level);
+    }
+    
     /**
      * Setter for level.
      * @param level the new value for level.
@@ -121,6 +261,7 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public void setLevel(final String level) {
         this.level = level;
     }
+    
     /**
      * Getter for className.
      * @return className.
@@ -128,6 +269,15 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public String getClassName() {
         return className;
     }
+    
+    /**
+     * Tests if there is a class name information.
+     * @return True if there is a class name information.
+     */
+    public boolean hasClassNameInformation() {
+        return !"".equals(className);
+    }
+    
     /**
      * Setter for className.
      * @param className the new value for className.
@@ -135,6 +285,7 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public void setClassName(final String className) {
         this.className = className;
     }
+    
     /**
      * Getter for classDescription.
      * @return classDescription.
@@ -142,6 +293,7 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public String getClassDescription() {
         return classDescription;
     }
+    
     /**
      * Setter for classDescription.
      * @param classDescription the new value for classDescription.
@@ -149,6 +301,15 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public void setClassDescription(final String classDescription) {
         this.classDescription = classDescription;
     }
+
+    /**
+     * Tests if there is a class description information.
+     * @return True if there is a class description information.
+     */
+    public boolean hasClassDescriptionInformation() {
+        return !"".equals(classDescription);
+    }
+    
     /**
      * Getter for disciplines.
      * @return disciplines.
@@ -156,6 +317,7 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public Collection<String> getDisciplines() {
         return disciplines;
     }
+    
     /**
      * Setter for disciplines.
      * @param disciplines the new value for disciplines.
@@ -163,6 +325,15 @@ public class PersonDescriptionImpl implements IPersonDescription {
     public void setDisciplines(final Collection<String> disciplines) {
         this.disciplines = disciplines;
     }
+
+    /**
+     * Tests if there is a disciplines information.
+     * @return True if there is a disciplines information.
+     */
+    public boolean hasDisciplinesInformation() {
+        return disciplines != null;
+    }
+    
     /**
      * Getter for function.
      * @return function.
@@ -179,6 +350,14 @@ public class PersonDescriptionImpl implements IPersonDescription {
     }
 
     /**
+     * Tests if there is a function information.
+     * @return True if there is a function information.
+     */
+    public boolean hasFunctionInformation() {
+        return !"".equals(function);
+    }
+    
+    /**
      * Getter for id.
      * @return id.
      */
@@ -194,5 +373,12 @@ public class PersonDescriptionImpl implements IPersonDescription {
         this.id = id;
     }
     
-
+    /**
+     * Tests if there is an id information.
+     * @return True if there is an id information.
+     */
+    public boolean hasIdInformation() {
+        return !"".equals(id);
+    }
+   
 }
