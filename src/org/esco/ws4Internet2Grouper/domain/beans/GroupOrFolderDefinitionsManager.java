@@ -16,7 +16,6 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.cache.SGSCache;
-import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService;
 
 /**
  * Manager for the groups or folders definitions.
@@ -125,7 +124,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
      * for the templates evaluations.
      * @return An iterator over the groups.
      */
-    public Iterator<GroupOrFolderDefinition> getMembershipsForTemplates(final ISarapisGroupService.PersonType type, 
+    public Iterator<GroupOrFolderDefinition> getMembershipsForTemplates(final PersonType type, 
             final String...attributes) {
 
         if (definitionsByMembersDefinitions == null) {
@@ -177,7 +176,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
      * for the templates evaluations.
      * @return An iterator over the groups.
      */
-    public Iterator<GroupOrFolderDefinition> getMemberships(final ISarapisGroupService.PersonType type, 
+    public Iterator<GroupOrFolderDefinition> getMemberships(final PersonType type, 
             final String...attributes) {
 
         if (definitionsByMembersDefinitions == null) {

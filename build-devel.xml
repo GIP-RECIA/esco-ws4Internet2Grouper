@@ -91,7 +91,7 @@
 		<if>
 			<not>
 				<available file="${rename-application.config}" />
-			</not>
+			</not>_dist
 			<then>
 				<fail>file ${rename-application.config} not found.</fail>
 			</then>
@@ -112,11 +112,15 @@
 	<target name="_sgs-ws-client.lib"  depends="_compile">
 		<property file="${basedir}/version.properties" />
 		<property name="dist.dir" value="${basedir}/dist"/>
-			
+		<delete file="${dist.dir}/sgs-ws-client-${app.version}.jar"/>		
 		<jar destfile="${dist.dir}/sgs-ws-client-${app.version}.jar"
        		 basedir="${build.classes}"
-       		 includes="org/esco/ws4Internet2Grouper/services/remote/ISarapisGroupService.class, org/esco/ws4Internet2Grouper/domain/beans/GrouperOperationResultDTO.class"
-       		/>
+       		 includes="org/esco/ws4Internet2Grouper/services/remote/ISarapisGroupService.class, 
+	                   org/esco/ws4Internet2Grouper/services/remote/IPersonDescription.class,
+			           org/esco/ws4Internet2Grouper/services/remote/PersonDescriptionImpl.class,
+			           org/esco/ws4Internet2Grouper/exceptions/WS4GrouperException.class,
+			           org/esco/ws4Internet2Grouper/domain/beans/GrouperOperationResultDTO.class,
+		               org/esco/ws4Internet2Grouper/domain/beans/PersonType.class" />
 	</target>
 </project>
 

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 import org.apache.log4j.Logger;
-import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService;
+import org.esco.ws4Internet2Grouper.domain.beans.PersonType;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXParseException;
@@ -97,7 +97,7 @@ public class SGSAttributeHandler implements Serializable {
     private Boolean recursive;
     
     /** Type value. */
-    private ISarapisGroupService.PersonType type;
+    private PersonType type;
     
     /** Distribution by value. */
     private String distributionBy;
@@ -181,11 +181,11 @@ public class SGSAttributeHandler implements Serializable {
         } else if (RECURS_ATTR.equals(trimedAttrName)) {
             recursive = parseBoolean(locator, trimedAttrName, attributeValue);
         } else if (TYPE_ATTR.equals(trimedAttrName)) {
-            type = ISarapisGroupService.PersonType.parseIgnoreCase(attributeValue);
+            type = PersonType.parseIgnoreCase(attributeValue);
             if (type == null) {
                 throw new SAXParseException("Illegal value for atribute " 
                         + attributeName + " legal values are : " 
-                        + Arrays.toString(ISarapisGroupService.PersonType.values()) 
+                        + Arrays.toString(PersonType.values()) 
                         + " found : " + attributeValue + ".", locator);
             }
         } else if (DISTRIB_BY_ATTR.equals(trimedAttrName)) {
@@ -286,7 +286,7 @@ public class SGSAttributeHandler implements Serializable {
      * Getter for type.
      * @return type.
      */
-    public ISarapisGroupService.PersonType getType() {
+    public PersonType getType() {
         return type;
     }
 

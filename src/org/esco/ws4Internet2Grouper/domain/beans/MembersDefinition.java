@@ -5,7 +5,6 @@ package org.esco.ws4Internet2Grouper.domain.beans;
 
 import java.io.Serializable;
 
-import org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService;
 
 
 /**
@@ -23,7 +22,7 @@ public class MembersDefinition implements Serializable {
     private static final long serialVersionUID = 5449177734260605352L;
 
     /** The type of members of the group. */
-    private ISarapisGroupService.PersonType membersType;
+    private PersonType membersType;
 
     /** The element used to performs the distribution 
      * of the subjects in the groups. */
@@ -35,7 +34,7 @@ public class MembersDefinition implements Serializable {
      * @param membersType The type of memebrs of the group.
      * @param distributionElement The matching attribute.
      */
-    public MembersDefinition(final ISarapisGroupService.PersonType membersType, 
+    public MembersDefinition(final PersonType membersType, 
             final TemplateElement distributionElement) {
         this.membersType = membersType;
         this.distributionElement = distributionElement;
@@ -45,7 +44,7 @@ public class MembersDefinition implements Serializable {
      * Builds an instance of MembersDefinition with members information.
      * @param membersType The type of memebrs of the group.
      */
-    public MembersDefinition(final ISarapisGroupService.PersonType membersType) {
+    public MembersDefinition(final PersonType membersType) {
         this.membersType = membersType;
     }
 
@@ -141,7 +140,7 @@ public class MembersDefinition implements Serializable {
      * Getter for membersType.
      * @return membersType.
      */
-    public ISarapisGroupService.PersonType getMembersType() {
+    public PersonType getMembersType() {
         return membersType;
     }
 

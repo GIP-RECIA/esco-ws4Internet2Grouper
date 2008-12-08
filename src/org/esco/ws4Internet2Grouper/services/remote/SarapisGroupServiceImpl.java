@@ -6,9 +6,7 @@ package org.esco.ws4Internet2Grouper.services.remote;
 
 import edu.internet2.middleware.grouper.GrouperSession;
 
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.cache.SGSCache;
@@ -16,6 +14,7 @@ import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
 import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
+import org.esco.ws4Internet2Grouper.domain.beans.PersonType;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.esco.ws4Internet2Grouper.parsing.SGSParsingUtil;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
@@ -210,7 +209,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param attributes The user attributes.
      * @return The grouper operation result.
      */
-    protected GrouperOperationResultDTO removeFromGroups(final ISarapisGroupService.PersonType type, 
+    protected GrouperOperationResultDTO removeFromGroups(final PersonType type, 
             final String userId, 
             final String...attributes) {
 
@@ -237,7 +236,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
         // Handle memberships for all type of persons.
         final Iterator<GroupOrFolderDefinition> allMemberships = 
-            definitionsManager.getMembershipsForTemplates(ISarapisGroupService.PersonType.ALL, attributes);
+            definitionsManager.getMembershipsForTemplates(PersonType.ALL, attributes);
 
         while (allMemberships.hasNext()) {
             final GrouperOperationResultDTO result = grouperUtil.removeMember(session, 
@@ -264,7 +263,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param attributes The user attributes.
      * @return The grouper operation result.
      */
-    protected GrouperOperationResultDTO updateGroups(final ISarapisGroupService.PersonType type, 
+    protected GrouperOperationResultDTO updateGroups(final PersonType type, 
             final String userId, 
             final String...attributes) {
 
@@ -303,7 +302,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param attributes The user attributes.
      * @return The grouper operation result.
      */
-    protected GrouperOperationResultDTO addToGroups(final ISarapisGroupService.PersonType type, 
+    protected GrouperOperationResultDTO addToGroups(final PersonType type, 
             final String userId, 
             final String...attributes) {
         final GrouperSession session = grouperSessionUtil.createSession();
@@ -323,7 +322,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param attributes The user attributes.
      * @return The grouper operation result.
      */
-    protected GrouperOperationResultDTO addToGroups(final ISarapisGroupService.PersonType type, 
+    protected GrouperOperationResultDTO addToGroups(final PersonType type, 
             final String userId,
             final GrouperSession session, 
             final String...attributes) {
@@ -350,7 +349,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
         // Handles memberships for all type of persons.
         final Iterator<GroupOrFolderDefinition> allMemberships = 
-            definitionsManager.getMemberships(ISarapisGroupService.PersonType.ALL, attributes);
+            definitionsManager.getMemberships(PersonType.ALL, attributes);
 
         while (allMemberships.hasNext()) {
             final GrouperOperationResultDTO result = grouperUtil.addMember(session, 
@@ -369,281 +368,6 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
         return GrouperOperationResultDTO.RESULT_OK;
     }
 
-
-    /**
-     * Adds an administrative employee to an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the employee.
-     * @param function The function of the employee.
-     * @return The result object which contains the informations about how the operation
-     * has been performed.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #addAdministrativeToEstablishment(String, String, String, String)
-     */
-    public GrouperOperationResultDTO addAdministrativeToEstablishment(final  String establishmentUAI, 
-            final String establishmentName, 
-            final String userId,
-            final String function) {
-        return addToGroups(ISarapisGroupService.PersonType.ADMINISTRATIVE, 
-                userId, 
-                establishmentUAI, 
-                establishmentName,
-                "",
-                "",
-                "",
-                "",
-                function);
-    }
-
-    /**
-     * Adds a parent to an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the parent.
-     * @return The result object which contains the informations about how the operation
-     * has been performed.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #addParentToEstablishment(String, String, String)
-     */
-    public GrouperOperationResultDTO addParentToEstablishment(final  String establishmentUAI, 
-            final String establishmentName, 
-            final String userId) {
-        return addToGroups(ISarapisGroupService.PersonType.PARENT, userId, establishmentUAI, establishmentName);
-    }
-
-    /**
-     * Adds a student to a class of an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param level The level of the class.
-     * @param className The name of the class.
-     * @param classDescription The description of the class.
-     * @param userId The id of the student.
-     * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #addStudentToClass(String, String, String, String, String, String)
-     */
-    public GrouperOperationResultDTO addStudentToClass(final  String establishmentUAI,
-            final String establishmentName, 
-            final String level, 
-            final String className,
-            final String classDescription, 
-            final String userId) {
-
-        return addToGroups(ISarapisGroupService.PersonType.STUDENT, 
-                userId,
-                establishmentUAI, 
-                establishmentName, 
-                level, 
-                className, 
-                classDescription);
-    }
-
-    /**
-     * Adds a teacher to a class of an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param level The level of the class.
-     * @param className The name of the class.
-     * @param classDescription The description of the class.
-     * @param userId The id of the teacher.
-     * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #addTeacherToClass(String, String, String, String, String, String)
-     */
-    public GrouperOperationResultDTO addTeacherToClass(final  String establishmentUAI,
-            final String establishmentName, 
-            final String level, 
-            final String className,
-            final String classDescription, 
-            final String userId) {
-        return addToGroups(ISarapisGroupService.PersonType.TEACHER, 
-                userId,
-                establishmentUAI, 
-                establishmentName, 
-                level, 
-                className, 
-                classDescription);
-    }
-
-
-    /**
-     * Adds a teacher to a list of disciplines in an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param disciplines The list of diciplines for the teacher.
-     * @param userId The id of the teacher.
-     * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #addTeacherToDisciplines(String, String, Collection, String)
-     */
-    public GrouperOperationResultDTO addTeacherToDisciplines(final String establishmentUAI, 
-            final String establishmentName,
-            final Collection<String> disciplines, 
-            final String userId) {
-        GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
-        for (String discipline : disciplines) {
-            result =  addToGroups(ISarapisGroupService.PersonType.TEACHER, userId, 
-                    establishmentUAI, 
-                    establishmentName, 
-                    "",
-                    "",
-                    "",
-                    discipline);
-            if (result.isError()) {
-                return result;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Adds a TOS employee to an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the employee.
-     * @return The result object which contains the informations about how the operation
-     * has been performed.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #addTOSToEstablishment(String, String, String)
-     */
-    public GrouperOperationResultDTO addTOSToEstablishment(final String establishmentUAI, 
-            final String establishmentName, 
-            final String userId) {
-        return addToGroups(ISarapisGroupService.PersonType.TOS,  
-                userId,
-                establishmentUAI, 
-                establishmentName);
-    }
-
-    /**
-     * Removes an administrative employee from an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the employee.
-     * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #removeAdministrativeFromEstablishment(String, String, String)
-     */
-    public GrouperOperationResultDTO removeAdministrativeFromEstablishment(final String establishmentUAI, 
-            final String establishmentName, final String userId) {
-        return removeFromGroups(ISarapisGroupService.PersonType.ADMINISTRATIVE, 
-                userId, establishmentUAI, establishmentName);
-    }
-
-    /**
-     * Removes a parent from an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the parent.
-     * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #removeParentFromEstablishment(String, String, String)
-     */
-    public GrouperOperationResultDTO removeParentFromEstablishment(
-            final String establishmentUAI, 
-            final String establishmentName, 
-            final String userId) {
-        return removeFromGroups(ISarapisGroupService.PersonType.PARENT, userId, establishmentUAI, establishmentName);
-    }
-
-    /**
-     * Removes a person from all his establishment groups.
-     * @param userId The id of the user.
-     * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #removePersonFromAllManagedGroups(String)
-     */
-    public GrouperOperationResultDTO removePersonFromAllManagedGroups(final String userId) {
-        final GrouperSession session = grouperSessionUtil.createSession();
-        final GrouperOperationResultDTO result =  grouperUtil.removeFromAllGroups(session, userId);
-        grouperSessionUtil.stopSession(session);
-        return result;
-    }
-
-    /**
-     * Removes a student from a class of an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param level The level of the class.
-     * @param className The name of the class.
-     * @param userId The id of the student.
-     * @return The object that denotes the result of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #removeStudentFromClass(String, String, String, String, String)
-     */
-    public GrouperOperationResultDTO removeStudentFromClass(final String establishmentUAI, 
-            final String establishmentName, 
-            final String level,
-            final String className, 
-            final String userId) {
-        return removeFromGroups(ISarapisGroupService.PersonType.STUDENT, 
-                userId, establishmentUAI, establishmentName, level, className);
-    }
-
-    /**
-     * Removes a teacher from a class of an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param level The level of the class.
-     * @param className The name of the class.
-     * @param userId The id of the teacher.
-     * @return The object that denotes the result of the operation.
-     */
-    public GrouperOperationResultDTO removeTeacherFromClass(final String establishmentUAI, 
-            final String establishmentName, 
-            final String level,
-            final String className, 
-            final String userId) {
-        return removeFromGroups(ISarapisGroupService.PersonType.TEACHER, 
-                userId, establishmentUAI, establishmentName, level, className);
-    }
-
-    /**
-     * Removes a teacher from a list of disciplines in an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param disciplines The list of diciplines.
-     * @param userId The id of the teacher.
-     * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #removeTeacherFromDisciplines(String, String, List, String)
-     */
-    public GrouperOperationResultDTO removeTeacherFromDisciplines(final String establishmentUAI, 
-            final String establishmentName,
-            final List<String> disciplines, 
-            final String userId) {
-        GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
-        for (String discipline : disciplines) {
-            result =  removeFromGroups(ISarapisGroupService.PersonType.TEACHER, userId, 
-                    establishmentUAI, 
-                    establishmentName, 
-                    "",
-                    "",
-                    "",
-                    discipline);
-            if (result.isError()) {
-                return result;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Removes a TOS employee from an establishment.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the employee.
-     * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #removeTOSFromEstablishment(String, String, String)
-     */
-    public GrouperOperationResultDTO removeTOSFromEstablishment(final String establishmentUAI, 
-            final String establishmentName, 
-            final String userId) {
-        return removeFromGroups(ISarapisGroupService.PersonType.TOS, userId, establishmentUAI, establishmentName);
-    }
 
     /**
      * Getter for definitionsManager.
@@ -724,7 +448,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final String establishmentName, 
             final String userId,
             final String function) {
-        return updateGroups(ISarapisGroupService.PersonType.ADMINISTRATIVE, 
+        return updateGroups(PersonType.ADMINISTRATIVE, 
                 userId, 
                 establishmentUAI, 
                 establishmentName,
@@ -734,56 +458,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
                 "",
                 function);
     }
-
-    /**
-     * Updates establishment groups for a parent.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the parent.
-     * @return The result object which contains the informations about how the operation
-     * has been performed.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService
-     * #updateParentToEstablishment(String, String, String)
-     */
-    public GrouperOperationResultDTO updateParentToEstablishment(final String establishmentUAI, 
-            final String establishmentName, final String userId) {
-        return updateGroups(ISarapisGroupService.PersonType.PARENT, userId, establishmentUAI, establishmentName);
-    }
-
-    /**
-     * Updates establishment groups for a student.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param level The level of the class.
-     * @param className The name of the class.
-     * @param classDescription The description of the class.
-     * @param userId The id of the student.
-     * @return The result object of the operation.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService#
-     * updateStudentToClass(String, String, String, String, String, String)
-     */
-    public GrouperOperationResultDTO updateStudentToClass(final String establishmentUAI, 
-            final String establishmentName, final String level,
-            final String className, final String classDescription, final String userId) {
-        return updateGroups(ISarapisGroupService.PersonType.STUDENT, userId, establishmentUAI, establishmentName, 
-                level, className, classDescription);
-    }
-
-    /**
-     * Udaptes establishment groups for TOS employee.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the employee.
-     * @return The result object which contains the informations about how the operation
-     * has been performed.
-     * @see org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService#
-     * updateTOSToEstablishment(String, String, String)
-     */
-    public GrouperOperationResultDTO updateTOSToEstablishment(final String establishmentUAI, 
-            final String establishmentName, final String userId) {
-        return updateGroups(ISarapisGroupService.PersonType.TOS, userId, establishmentUAI, establishmentName);
-    }
-
+    
     /**
      * Adds a person to groups.
      * @param personDescription The descriptionof the person.
@@ -890,18 +565,18 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
     }
 
 
-    public static void main(final String args[]) {
+//    public static void main(final String args[]) {
 
 //      import java.util.ArrayList;
 //      import java.util.Random;
 //      import org.springframework.context.ApplicationContext;
 //      import org.springframework.context.support.FileSystemXmlApplicationContext;
 
-        final ThreadLocal<org.springframework.context.ApplicationContext> springCtx = 
-            new ThreadLocal<org.springframework.context.ApplicationContext>();
-        springCtx.set(new org.springframework.context.support.FileSystemXmlApplicationContext(
-        "classpath:properties/applicationContext.xml"));
-        final ISarapisGroupService sgs = (ISarapisGroupService) springCtx.get().getBean("SarapisGroupService");
+//        final ThreadLocal<org.springframework.context.ApplicationContext> springCtx = 
+//            new ThreadLocal<org.springframework.context.ApplicationContext>();
+//        springCtx.set(new org.springframework.context.support.FileSystemXmlApplicationContext(
+//            "classpath:properties/applicationContext.xml"));
+//        final ISarapisGroupService sgs = (ISarapisGroupService) springCtx.get().getBean("SarapisGroupService");
 //      final String usersPrefix = "STRESS_TEST__Person_";
 //      final int nbUsers = 3000;
 //      final int thousand = 1000;
@@ -1007,11 +682,13 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 //      }
 //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
 //      System.out.println("--- End parents (" + ellapsed + "s) ---");
-
-        GrouperOperationResultDTO result = sgs.addAdministrativeToEstablishment("TESTETAB_UAI", 
-                "TEST_ETAB_NOM", "Apd00000", "");
-        result = sgs.updateAdministrativeToEstablishment("TESTETAB_UAI", 
-                "TEST_ETAB_NOM", "Apd00000", "Une Fonction");
+//        final IPersonDescription persDescr = new PersonDescriptionImpl(PersonType.ADMINISTRATIVE,
+//                "TESTETAB_UAI", "TEST_ETAB_NOM", "Apd00000");
+//        GrouperOperationResultDTO result = sgs.addToGroups(persDescr);
+//        
+//        result = sgs.updateAdministrativeToEstablishment("TESTETAB_UAI", 
+//                "TEST_ETAB_NOM", "Apd00000", "Une Fonction");
+        
 
 //      System.out.println("\n\n\n--- Administrative employees: " + nbAdministrative + " ---");
 //      top1 = System.currentTimeMillis();
@@ -1134,6 +811,6 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 //      System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
 
 
-    }
+//    }
 
 }
