@@ -12,9 +12,9 @@
     <ordered-template-elements>  
         <comment>
             Valeurs pouvant être substituées
-            dans les definitions de modèles de groupes, de dossiers, 
-            de privileges d'administration, etc.
-            Remarque: L'ordre de definition est important et car il intervient dans le
+            dans les définitions de modèles de groupes, de dossiers, 
+            de privilèges d'administration, etc.
+            Remarque: L'ordre de définition est important et car il intervient dans le
             processus d'évaluation des modèles.
         </comment>
         <template-element key="%UAI_ETAB%"/>
@@ -38,10 +38,10 @@
                 Ce privilège d'administration sera positionné pour toute
                 l'arborescence située sous ce dossier. 
                 Remarques : 
-                - Seuls les dossiers et groups créés par le module
-                Sarapis sont pris en compte (attribut peexisting=false).
+                - Seuls les dossiers et groups créés par ce module
+                  sont pris en compte (attribut peexisting=false).
                 - On utilise ici un chemin relatif mais le chemin absolu aurait également
-                été correct : ESCO:admin:central.
+                  été correct : ESCO:admin:central.
             </comment>
             <privilege right="admin" path=".:admin:central" recursive="true"/>
         </privileges>
@@ -51,7 +51,7 @@
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           -->
         <folder extension="admin" 
-                display-extension="administration"
+                display-extension="Administration"
                 description="Racine des groupes d'administration"
                 preexisting="true">
             <group extension="central"
@@ -65,7 +65,7 @@
                     preexisting="false">
 
                 <group-template extension="admin_%NOM_ETAB%_%UAI_ETAB%"
-                                display-extension="administration établissement %NOM_ETAB%"
+                                display-extension="Administration établissement %NOM_ETAB%"
                                 description="Administration locale pour l'établissement %NOM_ETAB%" />
             </folder>
 
@@ -133,8 +133,8 @@
                         
                     </group-template> 
 
-                    <group-template extension="%NOM_CLASSE%" 
-                                    display-extension="%NOM_CLASSE%" 
+                    <group-template extension="Eleves_%NOM_CLASSE%" 
+                                    display-extension="Elèves %NOM_CLASSE%" 
                                     description="Elèves de la classe %NOM_CLASSE%">
                         <member-of path="..:Tous_%NOM_CLASSE%" />
                         <member-of path="..:..:Eleves" />
@@ -159,13 +159,23 @@
                     <member-of path="..:Tous_%NOM_ETAB%" />
                 </group>
                 
+
+
                 <folder-template extension="Administratifs"
                                  display-extension="Administratifs"
                                  description="Racine pour le personnel administratif">
+
+                    <group extension="Tous_Administratifs" 
+                           display-extension="Tous Administratifs"
+                           description="Tout le personnel administratif de l'établissement %NOM_ETAB%">
+                        <member-of path="..:..:Tous_%NOM_ETAB%" />
+                    </group>
+                
+
                 	<group-template extension="%ADMIN_FONCTION%" 
                     	   display-extension="%ADMIN_FONCTION%"
                        	   description="Personnel administratif - fonction %ADMIN_FONCTION%">
-                    	<member-of path="..:..:Tous_%NOM_ETAB%" />
+                    	<member-of path="..:Tous_Administratifs" />
                     	<members type="administrative" distribution-by=" %ADMIN_FONCTION%"/>
                 	</group-template>
                 </folder-template>	
@@ -185,7 +195,7 @@
                 </group>                   
 
                 <group extension="Tous_%NOM_ETAB%" 
-                       display-extension="Tous_%NOM_ETAB%"
+                       display-extension="Tous %NOM_ETAB%"
                        description="Personnel, parents et élèves de l'établissement %NOM_ETAB%"/>
                 
                 
