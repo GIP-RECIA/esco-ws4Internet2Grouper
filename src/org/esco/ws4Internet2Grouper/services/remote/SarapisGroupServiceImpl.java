@@ -98,7 +98,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             final GroupOrFolderDefinition definition = preexitingIt.next();
             if (grouperUtil.exists(session, definition)) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Preexistion definition " + definition.getPath() + " checked.");
+                    LOGGER.debug("Preexisting definition " + definition.getPath() + " checked.");
                 }
             } else {
                 // Error: one of the preexisting group or folder can't be retrieved from Grouper.
@@ -123,7 +123,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
         // Creates the group or folders that have to be created even if they have no mebers.
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(SEP);
-            LOGGER.info("Create Empty groups groups or folders.");
+            LOGGER.info("Creating Empty groups groups or folders (if needed).");
             LOGGER.info(SEP);
         }
         final Iterator<GroupOrFolderDefinition> createIt = definitionsManager.getGroupsOrFoldersToCreate();
