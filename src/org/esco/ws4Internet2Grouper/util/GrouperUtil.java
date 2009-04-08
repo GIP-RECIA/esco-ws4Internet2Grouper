@@ -538,7 +538,7 @@ public class GrouperUtil  {
             for (Object o : memberships) {
                 final Membership m = (Membership) o;
                 final Group g = m.getGroup();
-                if (session.getSubject().equals(g.getCreateSubject())) {
+                if (session.getSubject().equals(m.getCreator().getSubject())) {
                     m.getGroup().deleteMember(subject);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Removes subject: " + userId 
