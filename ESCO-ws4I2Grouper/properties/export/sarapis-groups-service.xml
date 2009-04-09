@@ -22,7 +22,7 @@
         <template-element key="%NIVEAU%"/>
         <template-element key="%NOM_CLASSE%"/>
         <template-element key="%DESC_CLASSE%"/>
-        <template-element key="%ENSEIGNEMENT%" default-value="Autre"/>
+        <template-element key="%ENSEIGNEMENT%"/>
         <template-element key="%ADMIN_FONCTION%" default-value="Autre"/>
     </ordered-template-elements>
 
@@ -38,7 +38,7 @@
                 Ce privilège d'administration sera positionné pour toute
                 l'arborescence située sous ce dossier. 
                 Remarques : 
-                - Seuls les dossiers et groups créés par ce module
+                - Seuls les dossiers et groupes créés par ce module
                   sont pris en compte (attribut peexisting=false).
                 - On utilise ici un chemin relatif mais le chemin absolu aurait également
                   été correct : ESCO:admin:central.
@@ -117,7 +117,7 @@
                 <privileges>
                     <privilege right="GROUP_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                     <privilege right="FOLDER_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
-                    <privilege right="READ" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
+                    <privilege right="ADMIN" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                 </privileges>
                 
                 <folder-template extension="%NIVEAU%"
@@ -146,11 +146,11 @@
                                     description="Enseignants et élèves de la classe %NOM_CLASSE%" />
                 </folder-template>
                 
-                <!-- group extension="Profs" 
+                <group extension="Profs" 
                        display-extension="Profs"
                        description="Enseignants de l'établissement %NOM_ETAB%">
                     <member-of path="..:Tous_%NOM_ETAB%" />
-                </group-->
+                </group>
                 
                 <group extension="Eleves" 
                        display-extension="Elèves"
@@ -206,8 +206,8 @@
                     <group-template extension="%ENSEIGNEMENT%" 
                                     display-extension="%ENSEIGNEMENT%" 
                                     description="Enseignants - %ENSEIGNEMENT%">
-                        <members type="Teacher" distribution-by="%ENSEIGNEMENT%" />
                         <member-of path="esco:Etablissements:%NOM_ETAB%_%UAI_ETAB%:Profs" />
+                        <members type="Teacher" distribution-by="%ENSEIGNEMENT%" />
                     </group-template>
                     
                     
