@@ -27,7 +27,7 @@
 			</description>
 		</property>
 		
-		<property name="recipientEmail" value="my.name@domain.edu" >
+		<property name="recipientEmail" value="ent@recia.fr" >
 			<description>
 				The email address the exception reports will be sent to. This property is
 				optional; if the tag is ommited or empty, then no mail is sent.

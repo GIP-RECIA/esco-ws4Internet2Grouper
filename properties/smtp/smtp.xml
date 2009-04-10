@@ -19,8 +19,7 @@
         		The SMTP servers to try. 
         	</description>
 			<list>
-				<ref bean="smtpServer1" />
-				<ref bean="smtpServer2" />
+				<ref bean="smtpServer" />
 			</list>
 		</property>
 		<property name="fromAddress" ref="smtpFromAddress" >
@@ -49,8 +48,8 @@
     	<description>
     		see above.
     	</description>
-        <property name="address" value="devel@esup-portail.org" />
-        <property name="personal" value="ESUP-Portail" />
+        <property name="address" value="no-reply@netocentre.fr" />
+        <property name="personal" value="ESCO-Portail ws4Internet2Grouper" />
     </bean>
     
     <bean 
@@ -60,47 +59,18 @@
     	<description>
     		see above.
     	</description>
-        <property name="address" value="my.address@domain.edu" />
-        <property name="personal" value="My Name" />
+        <property name="address" value="ent@recia.fr" />
+        <property name="personal" value="Ent Recia Error" />
     </bean>
     
     <bean 
-    	id="smtpServer1" 
+    	id="smtpServer" 
     	class="org.esupportail.commons.services.smtp.SmtpServer" 
     	>
-    	<description>
-    		This beans describes a SMTP server.
-    	</description>
-        <property name="host" value="smtp1.esup-portail.org" >
-			<description>
-				The host name or IP number of the server, defaults to localhost.
-			</description>
-        </property>
-        <property name="port" value="25" >
-			<description>
-				The port number the SMTP server is running on (defaults to 25).
-			</description>
-        </property>
-		<property name="user" value="paubry" >
-			<description>
-				The SMTP user (comment or leave empty for an anonymous connection).
-			</description>
-        </property>
-		<property name="password" value="secret" >
-			<description>
-				The SMTP password (ignored for an anonymous connection).
-			</description>
-        </property>
-    </bean>
-    
-    <bean 
-    	id="smtpServer2" 
-    	class="org.esupportail.commons.services.smtp.SmtpServer" 
-    	>
-        <property name="host" value="smtp2.esup-portail.org" />
+        <property name="host" value="smtp.giprecia.net" />
         <property name="port" value="25" />
-		<property name="user" value="paubry" />
-		<property name="password" value="secret" />
+		<property name="user" value="" />
+		<property name="password" value="" />
     </bean>
     
 </beans>
