@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd"
+	>
+
+	<!-- 
+		/properties/export/export.xml
+		The configuration file for remote (web) services.
+		This file is referenced by /properties/applicationContext.xml.
+	-->
+
+	<import resource="classpath:org/codehaus/xfire/spring/xfire.xml" /> 
+
+	<bean id="abstractXFire"
+		class="org.codehaus.xfire.spring.remoting.XFireExporter"
+		abstract="true" >
+		<property name="serviceFactory" ref="xfire.serviceFactory" />
+		<property name="xfire" ref="xfire" />
+	</bean> 
+
+	<bean id="GrouperServiceExposerXFire"
+		parent="abstractXFire" >
+		<property name="serviceBean" ref="GrouperServiceExposer" />
+		<property name="serviceClass" value="org.esco.ws4Internet2Grouper.services.remote.IGrouperAPIExposer" />
+	</bean>
+	<bean id="GrouperSessionUtil"
+		class="org.esco.ws4Internet2Grouper.util.GrouperSessionUtil"
+		scope="singleton">
+	</bean>
+	<bean 
+		id="GrouperServiceExposer" 
+		class="org.esco.ws4Internet2Grouper.services.remote.GrouperAPIExposerImpl"/>
+		
+	<bean id="DefinitionsManager"
+		class="org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager"
+		scope="singleton"/>
+	
+	<bean id="GrouperUtil"
+		class="org.esco.ws4Internet2Grouper.util.GrouperUtil"
+		scope="singleton">
+		<property name="definitionsManager" ref="DefinitionsManager"/>		
+	</bean>
+		
+	<bean id="ParsingUtil"
+		class="org.esco.ws4Internet2Grouper.parsing.SGSParsingUtil"
+		scope="singleton">
+		<property name="definitionsManager" ref="DefinitionsManager"/>	
+		<property name="definitionsFileURI" value="properties/export/sarapis-groups-service.xml"/>
+		<property name="grouperSessionUtil" ref="GrouperSessionUtil"/>	
+		<property name="grouperUtil" ref="GrouperUtil"/>	
+	</bean>
+	
+	<bean id="SGSXFire"
+		parent="abstractXFire" >
+		<property name="serviceBean" ref="SarapisGroupService" />
+		<property name="serviceClass" value="org.esco.ws4Internet2Grouper.services.remote.ISarapisGroupService" />
+	</bean>
+	
+	<bean id="SarapisGroupService"
+		class="org.esco.ws4Internet2Grouper.services.remote.SarapisGroupServiceImpl"
+		scope="singleton">
+		<property name="grouperSessionUtil" ref="GrouperSessionUtil"/>		
+		<property name="grouperUtil" ref="GrouperUtil"/>		
+		<property name="parsingUtil" ref="ParsingUtil"/>		
+		<property name="definitionsManager" ref="DefinitionsManager"/>		
+	</bean>
+		
+
+</beans>

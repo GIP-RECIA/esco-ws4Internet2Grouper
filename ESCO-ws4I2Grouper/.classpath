@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/esup-commons"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/commons-math-1.1.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/i2mi-common-0.1.0.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jug-1.1.1.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/mysql-connector-java-5.0.8-bin.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/subject-0.3.0-rc1-cvs.jar" sourcepath="/subject"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/grouper-lib-1.2.1.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/xercesImpl.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/grouper-1.2.1.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/aspectwerkz-2.0.RC3.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/aspectwerkz-core-2.0.RC3.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jarjar-0.3.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jrexx-1.1.1.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/trove-1.0.2.jar"/>
+	<classpathentry kind="output" path="build/WEB-INF/classes"/>
+</classpath>
