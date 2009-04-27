@@ -1,4 +1,22 @@
 /**
+ *   Copyright (C) 2008  GIP RECIA (Groupement d'Intérêt Public REgion 
+ *   Centre InterActive)
+ * 
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+/**
  * 
  */
 package org.esco.ws4Internet2Grouper.services.remote;
@@ -6,7 +24,9 @@ package org.esco.ws4Internet2Grouper.services.remote;
 
 import edu.internet2.middleware.grouper.GrouperSession;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.cache.SGSCache;
@@ -209,53 +229,53 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      * @param attributes The user attributes.
      * @return The grouper operation result.
      */
-    protected GrouperOperationResultDTO removeFromGroups(final PersonType type, 
-            final String userId, 
-            final String...attributes) {
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(SEP);
-            LOGGER.debug("Starting to remove from groups ");
-            LOGGER.debug("for the user: " + userId);
-            LOGGER.debug("Type: " + type + ".");
-            LOGGER.debug(SEP);
-        }
-
-        // Handles specific memeberships.
-        final GrouperSession session = grouperSessionUtil.createSession();
-        final Iterator<GroupOrFolderDefinition> specificMemberships = 
-            definitionsManager.getMembershipsForTemplates(type, attributes);
-
-        while (specificMemberships.hasNext()) {
-            final GrouperOperationResultDTO result = grouperUtil.removeMember(session, 
-                    specificMemberships.next(), userId);
-            if (result.isError()) {
-                return result;
-            }
-        }
-
-        // Handle memberships for all type of persons.
-        final Iterator<GroupOrFolderDefinition> allMemberships = 
-            definitionsManager.getMembershipsForTemplates(PersonType.ALL, attributes);
-
-        while (allMemberships.hasNext()) {
-            final GrouperOperationResultDTO result = grouperUtil.removeMember(session, 
-                    allMemberships.next(), userId);
-            if (result.isError()) {
-                return result;
-            }
-        }
-
-        grouperSessionUtil.stopSession(session);
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(SEP);
-            LOGGER.debug("End of removing from groups.");
-            LOGGER.debug(SEP);
-        }
-
-        return GrouperOperationResultDTO.RESULT_OK;
-    }
+//    protected GrouperOperationResultDTO removeFromGroups(final PersonType type, 
+//            final String userId, 
+//            final String...attributes) {
+//
+//        if (LOGGER.isDebugEnabled()) {
+//            LOGGER.debug(SEP);
+//            LOGGER.debug("Starting to remove from groups ");
+//            LOGGER.debug("for the user: " + userId);
+//            LOGGER.debug("Type: " + type + ".");
+//            LOGGER.debug(SEP);
+//        }
+//
+//        // Handles specific memeberships.
+//        final GrouperSession session = grouperSessionUtil.createSession();
+//        final Iterator<GroupOrFolderDefinition> specificMemberships = 
+//            definitionsManager.getMembershipsForTemplates(type, attributes);
+//
+//        while (specificMemberships.hasNext()) {
+//            final GrouperOperationResultDTO result = grouperUtil.removeMember(session, 
+//                    specificMemberships.next(), userId);
+//            if (result.isError()) {
+//                return result;
+//            }
+//        }
+//
+//        // Handle memberships for all type of persons.
+//        final Iterator<GroupOrFolderDefinition> allMemberships = 
+//            definitionsManager.getMembershipsForTemplates(PersonType.ALL, attributes);
+//
+//        while (allMemberships.hasNext()) {
+//            final GrouperOperationResultDTO result = grouperUtil.removeMember(session, 
+//                    allMemberships.next(), userId);
+//            if (result.isError()) {
+//                return result;
+//            }
+//        }
+//
+//        grouperSessionUtil.stopSession(session);
+//
+//        if (LOGGER.isDebugEnabled()) {
+//            LOGGER.debug(SEP);
+//            LOGGER.debug("End of removing from groups.");
+//            LOGGER.debug(SEP);
+//        }
+//
+//        return GrouperOperationResultDTO.RESULT_OK;
+//    }
     /**
      * Updates the memebrships for a given user and a set of attributes.
      * @param type The type of user (student, teacher, etc.)
@@ -275,14 +295,18 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
             LOGGER.debug(SEP);
         }
         final GrouperSession session = grouperSessionUtil.createSession();
-        GrouperOperationResultDTO result = grouperUtil.removeFromAllGroups(session, userId);
+        final Set<String> previousManagedGroups =  new HashSet<String>();
+        GrouperOperationResultDTO result = grouperUtil.retrieveManagedGroups(session, userId, previousManagedGroups);
 
         if (result.isError()) {
-            LOGGER.error("Error while removing from previous groups for user: " + userId);
+            LOGGER.error("Error while retrieving the previous managed groups for user: " + userId);
             LOGGER.error(result.getException(), result.getException());
         } else {
-
-            result = addToGroups(type, userId, session, attributes);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Previous managed groups " + previousManagedGroups);
+            }
+            
+            result = updateGroups(type, userId, session, previousManagedGroups, attributes);
         }
         grouperSessionUtil.stopSession(session);
 
@@ -315,7 +339,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
     }
 
     /**
-     * Handles the memebrships for a given user.
+     * Handles the memeberships for a given user.
      * @param type The type of user (student, teacher, etc.)
      * @param userId The id of the user.
      * @param session The Grouper session.
@@ -368,6 +392,79 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
         return GrouperOperationResultDTO.RESULT_OK;
     }
 
+    /**
+     * Handles the memeberships for a given user.
+     * @param type The type of user (student, teacher, etc.)
+     * @param userId The id of the user.
+     * @param session The Grouper session.
+     * @param previousManagedGroups The previous managed groups of the user.
+     * @param attributes The user attributes.
+     * @return The grouper operation result.
+     */
+    protected GrouperOperationResultDTO updateGroups(final PersonType type, 
+            final String userId,
+            final GrouperSession session,
+            final Set<String> previousManagedGroups,
+            final String...attributes) {
+
+        
+        // Handles specific memeberships.
+        final Iterator<GroupOrFolderDefinition> specificMemberships = 
+            definitionsManager.getMemberships(type, attributes);
+
+        while (specificMemberships.hasNext()) {
+            final GroupOrFolderDefinition groupDefinition = specificMemberships.next();
+           
+            if (previousManagedGroups.contains(groupDefinition.getPath())) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("User " + userId + " is already a member of the group " + groupDefinition.getPath());
+                }
+            } else {
+                final GrouperOperationResultDTO result = grouperUtil.addMember(session, 
+                        groupDefinition, userId, attributes);
+                
+                if (result.isError()) {
+                    return result;
+                }
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("User " + userId + " is added to the group " + groupDefinition.getPath());
+                }
+            }
+            previousManagedGroups.remove(groupDefinition.getPath());
+        }
+
+        // Handles memberships for all type of persons.
+        final Iterator<GroupOrFolderDefinition> allMemberships = 
+            definitionsManager.getMemberships(PersonType.ALL, attributes);
+
+        while (allMemberships.hasNext()) {
+            final GroupOrFolderDefinition groupDefinition = allMemberships.next();
+            
+            if (previousManagedGroups.contains(groupDefinition.getPath())) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("User " + userId + " is already a member of the group " + groupDefinition.getPath());
+                }
+            } else {
+                final GrouperOperationResultDTO result = grouperUtil.addMember(session, 
+                        groupDefinition, userId, attributes);
+                if (result.isError()) {
+                    return result;
+                }
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("User " + userId + " is added to the group " + groupDefinition.getPath());
+                }
+            }
+            previousManagedGroups.remove(groupDefinition.getPath());
+        }
+        
+        // Removes the user from its old managed groups.
+        final GrouperOperationResultDTO result = grouperUtil.removeFromGroups(session, userId, previousManagedGroups);
+        if (result.isError()) {
+            return result;
+        }
+
+        return GrouperOperationResultDTO.RESULT_OK;
+    }
 
     /**
      * Getter for definitionsManager.
@@ -458,7 +555,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
                 "",
                 function);
     }
-    
+
     /**
      * Adds a person to groups.
      * @param personDescription The descriptionof the person.
@@ -467,6 +564,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
      */
     public GrouperOperationResultDTO addToGroups(final IPersonDescription personDescription) {
         GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
+        
         if (personDescription.getDisciplines() != null) {
             for (String discipline : personDescription.getDisciplines()) {
                 result =  addToGroups(personDescription.getType(), 
@@ -534,15 +632,15 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
     }
 
     /**
-     * Removes a person from the groups managed by this service.
+     * Removes a person from the groups, including the groups not managed by this service.
      * @param userId The id of the person to remove from the groups.
      * @return The result of the Grouper operation.
      */
-    public GrouperOperationResultDTO removeFromGroups(final String userId) {
+    public GrouperOperationResultDTO removeFromAllGroups(final String userId) {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(SEP);
-            LOGGER.debug("Starting to remove from groups ");
+            LOGGER.debug("Starting to remove from all groups ");
             LOGGER.debug("for the user: " + userId);
             LOGGER.debug(SEP);
         }
@@ -563,254 +661,284 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
         return result; 
     }
-
-
-//    public static void main(final String args[]) {
-
-//      import java.util.ArrayList;
-//      import java.util.Random;
-//      import org.springframework.context.ApplicationContext;
-//      import org.springframework.context.support.FileSystemXmlApplicationContext;
-
-//        final ThreadLocal<org.springframework.context.ApplicationContext> springCtx = 
-//            new ThreadLocal<org.springframework.context.ApplicationContext>();
-//        springCtx.set(new org.springframework.context.support.FileSystemXmlApplicationContext(
-//            "classpath:properties/applicationContext.xml"));
-//        final ISarapisGroupService sgs = (ISarapisGroupService) springCtx.get().getBean("SarapisGroupService");
-//      final String usersPrefix = "STRESS_TEST__Person_";
-//      final int nbUsers = 3000;
-//      final int thousand = 1000;
-
-
-//      final int nbStudents = 00;
-//      final int nbTeachers = 3;
-//      final int nbParents = 00;
-//      final int nbAdministrative = 00;
-//      final int nbTos = 00;
-//      final int nbEstab = 1;
-//      final int nbLevels = 3;
-//      final int nbClasses = 3;
-//      final int nbDisciplines = 10;
-//      final int nbMaxDisplPerTeacher = 5;
-//      final String[] estabNames = new String[nbEstab];
-//      final String[] estabUAI = new String[nbEstab];
-//      final String[] levels = new String[nbLevels];
-//      final String[] classesNames = new String[nbClasses];
-//      final String[] classesDesc = new String[nbClasses];
-//      final String[] disciplinesNames = new String[nbDisciplines];
-
-//      for (int  i = 0; i < nbEstab; i++) {
-//      estabNames[i] = "Estab_name_" + i;
-//      estabUAI[i] = "Estab_UAI_" + i;
-//      }
-
-//      for (int  i = 0; i < nbLevels; i++) {
-//      levels[i] = "Level_" + i;
-//      }
-
-//      for (int  i = 0; i < nbClasses; i++) {
-//      classesNames[i] = "Class_name_" + i;
-//      classesDesc[i] = "Class_desc_" + i;
-//      }
-
-//      for (int  i = 0; i < nbDisciplines; i++) {
-//      disciplinesNames[i] = "discipl_name_" + i;
-//      }
-
-//      final Random rand = new Random();
-//      rand.setSeed(1L);
-
-//      int userIndex = 0;
-//      long top1 = System.currentTimeMillis();
-//      System.out.println("--- Students: " + nbStudents + " ---");
-//      for (int i = 0; i < nbStudents; i++) {
-//      final int estabInd = userIndex % nbEstab;
-//      final int levelInd = userIndex % nbLevels;
-//      final int classInd = userIndex % nbClasses;
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.addStudentToClass(estabUAI[estabInd], 
-//      estabNames[estabInd], levels[levelInd], 
-//      classesNames[classInd], classesDesc[classInd], userId);
-//      System.out.println(userId + " ==> " + result);
-//      }
-
-//      long ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End students (" + ellapsed + "s) ---");
-
-
-
-//      System.out.println("\n\n\n--- Teachers : " + nbTeachers + " ---");
-//      top1 = System.currentTimeMillis();
-//      for (int i = 0; i < nbTeachers; i++) {
-//      rand.setSeed(userIndex);
-//      final int estabInd = userIndex % nbEstab;
-//      final int levelInd = userIndex % nbLevels;
-//      final int classInd = userIndex % nbClasses;
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.addTeacherToClass(estabUAI[estabInd], 
-//      estabNames[estabInd], levels[levelInd], 
-//      classesNames[classInd], classesDesc[classInd], userId);
-//      System.out.println(userId + " to class  ==> " + result);
-
-//      // Builds a random list of dispciplines for the teacher
-//      List<String> discipl = new ArrayList<String>();
-//      int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
-//      for (int j = 0; j < nbDispl; j++) {
-//      String d = disciplinesNames[rand.nextInt(nbDisciplines)];
-//      if (!discipl.contains(d)) {
-//      discipl.add(d);
-//      }
-//      }
-
-//      result = sgs.addTeacherToDisciplines(estabUAI[estabInd], 
-//      estabNames[estabInd], discipl, userId);
-//      System.out.println(userId + " to dsciplines  ==> " + result);
-//      }
-//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End teachers (" + ellapsed + "s) ---");
-
-
-
-//      System.out.println("\n\n\n--- Parents: " + nbParents + " ---");
-//      top1 = System.currentTimeMillis();
-//      for (int i = 0; i < nbParents; i++) {
-//      final int estabInd = userIndex % nbEstab;
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.addParentToEstablishment(estabUAI[estabInd], 
-//      estabNames[estabInd], userId);
-//      System.out.println(userId + " ==> " + result);
-//      }
-//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End parents (" + ellapsed + "s) ---");
-//        final IPersonDescription persDescr = new PersonDescriptionImpl(PersonType.ADMINISTRATIVE,
-//                "TESTETAB_UAI", "TEST_ETAB_NOM", "Apd00000");
-//        GrouperOperationResultDTO result = sgs.addToGroups(persDescr);
-//        
-//        result = sgs.updateAdministrativeToEstablishment("TESTETAB_UAI", 
-//                "TEST_ETAB_NOM", "Apd00000", "Une Fonction");
+    /**
+     * Removes a person from the groups, including the groups not managed by this service.
+     * @param userId The id of the person to remove from the groups.
+     * @return The result of the Grouper operation.
+     */
+    public GrouperOperationResultDTO removeFromManagedGroups(final String userId) {
         
-
-//      System.out.println("\n\n\n--- Administrative employees: " + nbAdministrative + " ---");
-//      top1 = System.currentTimeMillis();
-//      for (int i = 0; i < nbAdministrative; i++) {
-//      final int estabInd = rand.nextInt(nbEstab);
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.addAdministrativeToEstablishment(estabUAI[estabInd], 
-//      estabNames[estabInd], userId);
-//      System.out.println(userId + " ==> " + result);
-//      }
-//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
-
-
-
-//      System.out.println("\n\n\n--- TOS employees: " + nbTos + " ---");
-//      top1 = System.currentTimeMillis();
-//      for (int i = 0; i < nbTos; i++) {
-//      final int estabInd = userIndex % nbEstab;
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.addTOSToEstablishment(estabUAI[estabInd], 
-//      estabNames[estabInd], userId);
-//      System.out.println(userId + " ==> " + result);
-//      }
-//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(SEP);
+            LOGGER.debug("Starting to remove from managed groups ");
+            LOGGER.debug("for the user: " + userId);
+            LOGGER.debug(SEP);
+        }
+        final GrouperSession session = grouperSessionUtil.createSession();
+        GrouperOperationResultDTO result = grouperUtil.removeFromManagedGroups(session, userId);
+        
+        if (result.isError()) {
+            LOGGER.error("Error while removing from groups for user: " + userId);
+            LOGGER.error(result.getException(), result.getException());
+        } 
+        grouperSessionUtil.stopSession(session);
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(SEP);
+            LOGGER.debug("End of removing from groups.");
+            LOGGER.debug(SEP);
+        }
+        
+        return result; 
+    }
 
 
-//      // --------- Suppression
+    //    public static void main(final String args[]) {
 
-//      userIndex = 0;
-//      top1 = System.currentTimeMillis();
-//      System.out.println("--- Remove Students: " + nbStudents + " ---");
-//      for (int i = 0; i < nbStudents; i++) {
-//      final int estabInd = userIndex % nbEstab;
-//      final int levelInd = userIndex % nbLevels;
-//      final int classInd = userIndex % nbClasses;
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.removeStudentFromClass(estabUAI[estabInd], 
-//      estabNames[estabInd], levels[levelInd], 
-//      classesNames[classInd], userId);
-//      System.out.println(userId + " ==> " + result);
-//      }
+    //      import java.util.ArrayList;
+    //      import java.util.Random;
+    //      import org.springframework.context.ApplicationContext;
+    //      import org.springframework.context.support.FileSystemXmlApplicationContext;
 
-//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End students (" + ellapsed + "s) ---");
+    //        final ThreadLocal<org.springframework.context.ApplicationContext> springCtx = 
+    //            new ThreadLocal<org.springframework.context.ApplicationContext>();
+    //        springCtx.set(new org.springframework.context.support.FileSystemXmlApplicationContext(
+    //            "classpath:properties/applicationContext.xml"));
+    //        final ISarapisGroupService sgs = (ISarapisGroupService) springCtx.get().getBean("SarapisGroupService");
+    //      final String usersPrefix = "STRESS_TEST__Person_";
+    //      final int nbUsers = 3000;
+    //      final int thousand = 1000;
 
 
+    //      final int nbStudents = 00;
+    //      final int nbTeachers = 3;
+    //      final int nbParents = 00;
+    //      final int nbAdministrative = 00;
+    //      final int nbTos = 00;
+    //      final int nbEstab = 1;
+    //      final int nbLevels = 3;
+    //      final int nbClasses = 3;
+    //      final int nbDisciplines = 10;
+    //      final int nbMaxDisplPerTeacher = 5;
+    //      final String[] estabNames = new String[nbEstab];
+    //      final String[] estabUAI = new String[nbEstab];
+    //      final String[] levels = new String[nbLevels];
+    //      final String[] classesNames = new String[nbClasses];
+    //      final String[] classesDesc = new String[nbClasses];
+    //      final String[] disciplinesNames = new String[nbDisciplines];
 
+    //      for (int  i = 0; i < nbEstab; i++) {
+    //      estabNames[i] = "Estab_name_" + i;
+    //      estabUAI[i] = "Estab_UAI_" + i;
+    //      }
 
+    //      for (int  i = 0; i < nbLevels; i++) {
+    //      levels[i] = "Level_" + i;
+    //      }
 
-//      System.out.println("\n\n\n--- Removes teachers : " + nbTeachers + " ---");
-//      top1 = System.currentTimeMillis();
-//      for (int i = 0; i < nbTeachers; i++) {
-//      rand.setSeed(userIndex);
-//      final int estabInd = userIndex % nbEstab;
-//      final int levelInd = userIndex % nbLevels;
-//      final int classInd = userIndex % nbClasses;
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.removeTeacherFromClass(estabUAI[estabInd], 
-//      estabNames[estabInd], levels[levelInd], 
-//      classesNames[classInd], userId);
-//      System.out.println(userId + " to class  ==> " + result);
+    //      for (int  i = 0; i < nbClasses; i++) {
+    //      classesNames[i] = "Class_name_" + i;
+    //      classesDesc[i] = "Class_desc_" + i;
+    //      }
 
-//      // Builds a random list of dispciplines for the teacher
-//      List<String> discipl = new ArrayList<String>();
-//      int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
-//      for (int j = 0; j < nbDispl; j++) {
-//      String d = disciplinesNames[rand.nextInt(nbDisciplines)];
-//      if (!discipl.contains(d)) {
-//      discipl.add(d);
-//      }
-//      }
+    //      for (int  i = 0; i < nbDisciplines; i++) {
+    //      disciplinesNames[i] = "discipl_name_" + i;
+    //      }
 
-//      result = sgs.removeTeacherFromDisciplines(estabUAI[estabInd], 
-//      estabNames[estabInd], discipl, userId);
-//      System.out.println(userId + " to dsciplines  ==> " + result);
-//      }
-//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End teachers (" + ellapsed + "s) ---");
+    //      final Random rand = new Random();
+    //      rand.setSeed(1L);
 
+    //      int userIndex = 0;
+    //      long top1 = System.currentTimeMillis();
+    //      System.out.println("--- Students: " + nbStudents + " ---");
+    //      for (int i = 0; i < nbStudents; i++) {
+    //      final int estabInd = userIndex % nbEstab;
+    //      final int levelInd = userIndex % nbLevels;
+    //      final int classInd = userIndex % nbClasses;
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.addStudentToClass(estabUAI[estabInd], 
+    //      estabNames[estabInd], levels[levelInd], 
+    //      classesNames[classInd], classesDesc[classInd], userId);
+    //      System.out.println(userId + " ==> " + result);
+    //      }
 
-
-//      System.out.println("\n\n\n--- Removes Parents: " + nbParents + " ---");
-//      top1 = System.currentTimeMillis();
-//      for (int i = 0; i < nbParents; i++) {
-//      final int estabInd = userIndex % nbEstab;
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.removeParentFromEstablishment(estabUAI[estabInd], 
-//      estabNames[estabInd], userId);
-//      System.out.println(userId + " ==> " + result);
-//      }
-//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End parents (" + ellapsed + "s) ---");
-
-//      System.out.println("\n\n\n--- Removes Administrative employees: " + nbAdministrative + " ---");
-//      top1 = System.currentTimeMillis();
-//      for (int i = 0; i < nbAdministrative; i++) {
-//      final int estabInd = rand.nextInt(nbEstab);
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.removeAdministrativeFromEstablishment(estabUAI[estabInd], 
-//      estabNames[estabInd], userId);
-//      System.out.println(userId + " ==> " + result);
-//      }
-//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
+    //      long ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End students (" + ellapsed + "s) ---");
 
 
 
-//      System.out.println("\n\n\n--- Removes TOS employees: " + nbTos + " ---");
-//      top1 = System.currentTimeMillis();
-//      for (int i = 0; i < nbTos; i++) {
-//      final int estabInd = userIndex % nbEstab;
-//      final String userId = usersPrefix + userIndex++;
-//      GrouperOperationResultDTO result = sgs.removeTOSFromEstablishment(estabUAI[estabInd], 
-//      estabNames[estabInd], userId);
-//      System.out.println(userId + " ==> " + result);
-//      }
-//      ellapsed = (System.currentTimeMillis() - top1) / thousand;
-//      System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
+    //      System.out.println("\n\n\n--- Teachers : " + nbTeachers + " ---");
+    //      top1 = System.currentTimeMillis();
+    //      for (int i = 0; i < nbTeachers; i++) {
+    //      rand.setSeed(userIndex);
+    //      final int estabInd = userIndex % nbEstab;
+    //      final int levelInd = userIndex % nbLevels;
+    //      final int classInd = userIndex % nbClasses;
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.addTeacherToClass(estabUAI[estabInd], 
+    //      estabNames[estabInd], levels[levelInd], 
+    //      classesNames[classInd], classesDesc[classInd], userId);
+    //      System.out.println(userId + " to class  ==> " + result);
+
+    //      // Builds a random list of dispciplines for the teacher
+    //      List<String> discipl = new ArrayList<String>();
+    //      int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
+    //      for (int j = 0; j < nbDispl; j++) {
+    //      String d = disciplinesNames[rand.nextInt(nbDisciplines)];
+    //      if (!discipl.contains(d)) {
+    //      discipl.add(d);
+    //      }
+    //      }
+
+    //      result = sgs.addTeacherToDisciplines(estabUAI[estabInd], 
+    //      estabNames[estabInd], discipl, userId);
+    //      System.out.println(userId + " to dsciplines  ==> " + result);
+    //      }
+    //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End teachers (" + ellapsed + "s) ---");
 
 
-//    }
+
+    //      System.out.println("\n\n\n--- Parents: " + nbParents + " ---");
+    //      top1 = System.currentTimeMillis();
+    //      for (int i = 0; i < nbParents; i++) {
+    //      final int estabInd = userIndex % nbEstab;
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.addParentToEstablishment(estabUAI[estabInd], 
+    //      estabNames[estabInd], userId);
+    //      System.out.println(userId + " ==> " + result);
+    //      }
+    //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End parents (" + ellapsed + "s) ---");
+    //        final IPersonDescription persDescr = new PersonDescriptionImpl(PersonType.ADMINISTRATIVE,
+    //                "TESTETAB_UAI", "TEST_ETAB_NOM", "Apd00000");
+    //        GrouperOperationResultDTO result = sgs.addToGroups(persDescr);
+    //        
+    //        result = sgs.updateAdministrativeToEstablishment("TESTETAB_UAI", 
+    //                "TEST_ETAB_NOM", "Apd00000", "Une Fonction");
+
+
+    //      System.out.println("\n\n\n--- Administrative employees: " + nbAdministrative + " ---");
+    //      top1 = System.currentTimeMillis();
+    //      for (int i = 0; i < nbAdministrative; i++) {
+    //      final int estabInd = rand.nextInt(nbEstab);
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.addAdministrativeToEstablishment(estabUAI[estabInd], 
+    //      estabNames[estabInd], userId);
+    //      System.out.println(userId + " ==> " + result);
+    //      }
+    //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
+
+
+
+    //      System.out.println("\n\n\n--- TOS employees: " + nbTos + " ---");
+    //      top1 = System.currentTimeMillis();
+    //      for (int i = 0; i < nbTos; i++) {
+    //      final int estabInd = userIndex % nbEstab;
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.addTOSToEstablishment(estabUAI[estabInd], 
+    //      estabNames[estabInd], userId);
+    //      System.out.println(userId + " ==> " + result);
+    //      }
+    //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
+
+
+    //      // --------- Suppression
+
+    //      userIndex = 0;
+    //      top1 = System.currentTimeMillis();
+    //      System.out.println("--- Remove Students: " + nbStudents + " ---");
+    //      for (int i = 0; i < nbStudents; i++) {
+    //      final int estabInd = userIndex % nbEstab;
+    //      final int levelInd = userIndex % nbLevels;
+    //      final int classInd = userIndex % nbClasses;
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.removeStudentFromClass(estabUAI[estabInd], 
+    //      estabNames[estabInd], levels[levelInd], 
+    //      classesNames[classInd], userId);
+    //      System.out.println(userId + " ==> " + result);
+    //      }
+
+    //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End students (" + ellapsed + "s) ---");
+
+
+
+
+
+    //      System.out.println("\n\n\n--- Removes teachers : " + nbTeachers + " ---");
+    //      top1 = System.currentTimeMillis();
+    //      for (int i = 0; i < nbTeachers; i++) {
+    //      rand.setSeed(userIndex);
+    //      final int estabInd = userIndex % nbEstab;
+    //      final int levelInd = userIndex % nbLevels;
+    //      final int classInd = userIndex % nbClasses;
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.removeTeacherFromClass(estabUAI[estabInd], 
+    //      estabNames[estabInd], levels[levelInd], 
+    //      classesNames[classInd], userId);
+    //      System.out.println(userId + " to class  ==> " + result);
+
+    //      // Builds a random list of dispciplines for the teacher
+    //      List<String> discipl = new ArrayList<String>();
+    //      int nbDispl = rand.nextInt(nbMaxDisplPerTeacher - 1) + 1;
+    //      for (int j = 0; j < nbDispl; j++) {
+    //      String d = disciplinesNames[rand.nextInt(nbDisciplines)];
+    //      if (!discipl.contains(d)) {
+    //      discipl.add(d);
+    //      }
+    //      }
+
+    //      result = sgs.removeTeacherFromDisciplines(estabUAI[estabInd], 
+    //      estabNames[estabInd], discipl, userId);
+    //      System.out.println(userId + " to dsciplines  ==> " + result);
+    //      }
+    //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End teachers (" + ellapsed + "s) ---");
+
+
+
+    //      System.out.println("\n\n\n--- Removes Parents: " + nbParents + " ---");
+    //      top1 = System.currentTimeMillis();
+    //      for (int i = 0; i < nbParents; i++) {
+    //      final int estabInd = userIndex % nbEstab;
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.removeParentFromEstablishment(estabUAI[estabInd], 
+    //      estabNames[estabInd], userId);
+    //      System.out.println(userId + " ==> " + result);
+    //      }
+    //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End parents (" + ellapsed + "s) ---");
+
+    //      System.out.println("\n\n\n--- Removes Administrative employees: " + nbAdministrative + " ---");
+    //      top1 = System.currentTimeMillis();
+    //      for (int i = 0; i < nbAdministrative; i++) {
+    //      final int estabInd = rand.nextInt(nbEstab);
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.removeAdministrativeFromEstablishment(estabUAI[estabInd], 
+    //      estabNames[estabInd], userId);
+    //      System.out.println(userId + " ==> " + result);
+    //      }
+    //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End Administrative employees (" + ellapsed + "s) ---");
+
+
+
+    //      System.out.println("\n\n\n--- Removes TOS employees: " + nbTos + " ---");
+    //      top1 = System.currentTimeMillis();
+    //      for (int i = 0; i < nbTos; i++) {
+    //      final int estabInd = userIndex % nbEstab;
+    //      final String userId = usersPrefix + userIndex++;
+    //      GrouperOperationResultDTO result = sgs.removeTOSFromEstablishment(estabUAI[estabInd], 
+    //      estabNames[estabInd], userId);
+    //      System.out.println(userId + " ==> " + result);
+    //      }
+    //      ellapsed = (System.currentTimeMillis() - top1) / thousand;
+    //      System.out.println("--- End TOS employees (" + ellapsed + "s) ---");
+
+
+    //    }
 
 }

@@ -59,7 +59,7 @@
     	<description>
     		see above.
     	</description>
-        <property name="address" value="ent@recia.fr" />
+        <property name="address" value="arnaud.deman@recia.fr" />
         <property name="personal" value="Ent Recia Error" />
     </bean>
     

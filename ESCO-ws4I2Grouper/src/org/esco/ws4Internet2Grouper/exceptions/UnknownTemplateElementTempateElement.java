@@ -16,35 +16,32 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package org.esco.ws4Internet2Grouper.web.controllers;
+/**
+ * 
+ */
+package org.esco.ws4Internet2Grouper.exceptions;
 
-
-
-
-
-
+import org.esco.ws4Internet2Grouper.domain.beans.TemplateElement;
 
 /**
- * Juste pour tests : à supprimer.
+ * 
  * @author GIP RECIA - A. Deman
- * 28 nov. 07
+ * 7 août 08
  *
  */
-public class TCtrl {
-	
-	/**
-	 * Constructor for TCtrl.
-	 */
-	public TCtrl() {
-		/* */
-	}
-	
-	/**
-	 * Test.
-	 * @return String.
-	 */
-	public String getText() {
-		//final GrouperDTO infos = new GrouperAPIExposerImpl().findGroup("esco:ENT_Groupes:subGroup1");
-		return "Test: ";
-	}
+public class UnknownTemplateElementTempateElement extends Exception {
+
+    /** Serial version UID.*/
+    private static final long serialVersionUID = 8273546847763385330L;
+
+    /**
+     * Builds an instance of UnknownTemplateElementTempateElement.
+     * @param invalidTemplateKey The template key that is the cause of the error.
+     */
+    public UnknownTemplateElementTempateElement(final String invalidTemplateKey) {
+        super("Unknown Template Element in the string: " + invalidTemplateKey 
+                + " - Known template elements are: " 
+                + TemplateElement.getAvailableTemplateElements() + ".");
+    }
+
 }

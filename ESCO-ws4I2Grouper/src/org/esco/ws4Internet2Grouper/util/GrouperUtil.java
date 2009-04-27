@@ -1,3 +1,21 @@
+/**
+ *   Copyright (C) 2008  GIP RECIA (Groupement d'Intérêt Public REgion 
+ *   Centre InterActive)
+ * 
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
 package org.esco.ws4Internet2Grouper.util;
 
 import edu.internet2.middleware.grouper.GrantPrivilegeException;
@@ -32,6 +50,7 @@ import edu.internet2.middleware.subject.SubjectNotUniqueException;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.esco.ws4Internet2Grouper.cache.SGSCache;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
@@ -60,7 +79,7 @@ public class GrouperUtil  {
 
     /** Flag to determine if empty folder should be deleted. */
     private boolean deleteEmptyFolders;
-    
+
     /** Flag to force the privileges. */
     private boolean forcePrivileges;
 
@@ -98,12 +117,12 @@ public class GrouperUtil  {
 
         if (!definition.isPreexisting()) {
             final Stem folder = groupOrStem.asStem();
-          
+
             if ((folder.getChildStems().size() == 0 && folder.getChildGroups().size() == 0) || forcePrivileges) {
                 // The administration privileges are checked for the empty folders.
 
                 if (LOGGER.isDebugEnabled()) {
-                    
+
                     if (forcePrivileges) {
                         LOGGER.debug("Forcing privileges on the folder" 
                                 + " " + definition.getPath() 
@@ -114,7 +133,7 @@ public class GrouperUtil  {
                                 + " is empty so the privileges are checked.");
                     }
                 }
-                
+
                 // Adds privileges for some groups if needed.
                 for (int i = 0; i < definition.countPrivileges(); i++) {
                     final PrivilegeDefinition privDef = definition.getPrivilege(i); 
@@ -173,60 +192,68 @@ public class GrouperUtil  {
 
         if (!definition.isPreexisting()) {
 
+
             final Group group = groupOrStem.asGroup();
+            final String groupName = group.getName();
             
-            if (group.getImmediateMembers().size() == 0 || forcePrivileges) {
+            if (!SGSCache.instance().hasInGroupsPrivielgesCache(groupName)) {
+                if (group.getImmediateMembers().size() == 0 || forcePrivileges) {
 
-                // The administration privileges are checked for the empty groups.
-                if (LOGGER.isDebugEnabled()) {
-                    if (forcePrivileges) {
-                        LOGGER.debug("Forcing privileges on the group" 
-                                + " " + definition.getPath() 
-                                + ".");
-                    } else {
-                        LOGGER.debug("The group" 
-                                + " " + definition.getPath() 
-                                + " is empty so the privileges are checked.");
-                    
-                    }
-                    
-                }
+                    // The administration privileges are checked for the empty groups.
+                    if (LOGGER.isDebugEnabled()) {
+                        if (forcePrivileges) {
+                            LOGGER.debug("Forcing privileges on the group" 
+                                    + " " + definition.getPath() 
+                                    + ".");
+                        } else {
+                            LOGGER.debug("The group" 
+                                    + " " + definition.getPath() 
+                                    + " is empty so the privileges are checked.");
 
-                for (int i = 0; i < definition.countPrivileges(); i++) {
-                    final PrivilegeDefinition privDef = definition.getPrivilege(i); 
-                    final String path = privDef.getPath().getString();
-                    final GroupOrFolderDefinition privilegedGroupDef = definitionsManager.getDefinition(path, values);
-                    final GroupOrStem privilegedGroupWrapper = retrieveOrCreate(session, privilegedGroupDef, values);
-                    final Subject subj = privilegedGroupWrapper.asGroup().toSubject(); 
-                    try {
-                        if (Right.ADMIN.equals(privDef.getPrivilege())) {
-                            addAdminPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
-                            addReadPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
-                            addViewPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
-                        } else if (Right.READ.equals(privDef.getPrivilege())) {
-                            addReadPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
-                            addViewPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
                         }
-                    } catch (GrantPrivilegeException e) {
-                        LOGGER.fatal(e, e);
-                        throw new WS4GrouperException(e);
-                    } catch (InsufficientPrivilegeException e) {
-                        LOGGER.fatal(e, e);
-                        throw new WS4GrouperException(e);
-                    } catch (SchemaException e) {
-                        LOGGER.fatal(e, e);
-                        throw new WS4GrouperException(e);
+
+                    }
+
+                    for (int i = 0; i < definition.countPrivileges(); i++) {
+                        final PrivilegeDefinition privDef = definition.getPrivilege(i); 
+                        final String path = privDef.getPath().getString();
+                        final GroupOrFolderDefinition privilegedGroupDef = 
+                            definitionsManager.getDefinition(path, values);
+                        final GroupOrStem privilegedGroupWrapper = 
+                            retrieveOrCreate(session, privilegedGroupDef, values);
+                        final Subject subj = privilegedGroupWrapper.asGroup().toSubject(); 
+                        try {
+                            if (Right.ADMIN.equals(privDef.getPrivilege())) {
+                                addAdminPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                                addReadPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                                addViewPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                            } else if (Right.READ.equals(privDef.getPrivilege())) {
+                                addReadPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                                addViewPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                            }
+                        } catch (GrantPrivilegeException e) {
+                            LOGGER.fatal(e, e);
+                            throw new WS4GrouperException(e);
+                        } catch (InsufficientPrivilegeException e) {
+                            LOGGER.fatal(e, e);
+                            throw new WS4GrouperException(e);
+                        } catch (SchemaException e) {
+                            LOGGER.fatal(e, e);
+                            throw new WS4GrouperException(e);
+                        }
+                    }
+
+                } else {
+                    // The folder is not empty: administration privileges should be right as they
+                    // are checked before adding the first child.
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("The group " 
+                                + definition.getPath() 
+                                + " is not empty so the privileges are supposed to be valid.");
                     }
                 }
-
-            } else {
-                // The folder is not empty: administration privileges should be right as they
-                // are checked before adding the first child.
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("The group " 
-                            + definition.getPath() 
-                            + " is not empty so the privileges are supposed to be valid.");
-                }
+                SGSCache.instance().cacheInGroupsPrivilegesCache(groupName);
+                
             }
         }
     }
@@ -249,50 +276,57 @@ public class GrouperUtil  {
 
         if (!definition.isPreexisting()) {
             final Group group = groupOrStem.asGroup();
+            final String groupName = group.getName();
+            
+            if (!SGSCache.instance().hasInGroupsMembershipsCache(groupName)) {
+                if (group.getImmediateMembers().size() == 0) {
 
-            if (group.getImmediateMembers().size() == 0) {
+                    // The memeberships are checked for the empty groups.
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("The group " 
+                                + definition.getPath() 
+                                + " is empty so the memberships for this group are checked.");
+                    }
 
-                // The memeberships are checked for the empty groups.
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("The group " 
-                            + definition.getPath() 
-                            + " is empty so the memberships for this group are checked.");
-                }
-
-                // Adds this group as a member of other group(s) if needed.
-                for (int i = 0; i < definition.countContainingGroupsPaths(); i++) {
-                    final String path = definition.getContainingGroupPath(i);
-                    final GroupOrFolderDefinition containingGroupDef = definitionsManager.getDefinition(path, values);
-                    final GroupOrStem containingGroupWrapper = retrieveOrCreate(session, containingGroupDef, values);
-                    final Group containingGroup =  containingGroupWrapper.asGroup();
-                    try {
-                        final Subject subj = group.toSubject();
-                        if (!containingGroup.hasImmediateMember(subj)) {
-                            containingGroup.addMember(subj);
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("Adding the group: " + definition.getPath() 
-                                        + " as a member of: " + containingGroupDef.getPath());
+                    // Adds this group as a member of other group(s) if needed.
+                    for (int i = 0; i < definition.countContainingGroupsPaths(); i++) {
+                        final String path = definition.getContainingGroupPath(i);
+                        final GroupOrFolderDefinition containingGroupDef = 
+                            definitionsManager.getDefinition(path, values);
+                        final GroupOrStem containingGroupWrapper = 
+                            retrieveOrCreate(session, containingGroupDef, values);
+                        final Group containingGroup =  containingGroupWrapper.asGroup();
+                        try {
+                            final Subject subj = group.toSubject();
+                            if (!containingGroup.hasImmediateMember(subj)) {
+                                containingGroup.addMember(subj);
+                                if (LOGGER.isDebugEnabled()) {
+                                    LOGGER.debug("Adding the group: " + definition.getPath() 
+                                            + " as a member of: " + containingGroupDef.getPath());
+                                }
                             }
+                        } catch (GrouperRuntimeException e) {
+                            LOGGER.fatal(e, e);
+                            throw new WS4GrouperException(e);
+                        } catch (InsufficientPrivilegeException e) {
+                            LOGGER.fatal(e, e);
+                            throw new WS4GrouperException(e);
+                        } catch (MemberAddException e) {
+                            LOGGER.fatal(e, e);
+                            throw new WS4GrouperException(e);
                         }
-                    } catch (GrouperRuntimeException e) {
-                        LOGGER.fatal(e, e);
-                        throw new WS4GrouperException(e);
-                    } catch (InsufficientPrivilegeException e) {
-                        LOGGER.fatal(e, e);
-                        throw new WS4GrouperException(e);
-                    } catch (MemberAddException e) {
-                        LOGGER.fatal(e, e);
-                        throw new WS4GrouperException(e);
+                    }
+                    
+                } else {
+                    // The folder is not empty: memberships should be ok as they
+                    // are checked before adding the first child.
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("The group " 
+                                + definition.getPath() 
+                                + " is not empty so the memberships are supposed to be valid.");
                     }
                 }
-            } else {
-                // The folder is not empty: memberships should be ok as they
-                // are checked before adding the first child.
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("The group " 
-                            + definition.getPath() 
-                            + " is not empty so the memberships are supposed to be valid.");
-                }
+                SGSCache.instance().cacheInGroupsMembershipsCache(groupName);
             }
         }
     }
@@ -315,7 +349,7 @@ public class GrouperUtil  {
         addCreatePrivilege(folderPath, privilegedPath, folder, subject);
         addStemPrivilege(folderPath, privilegedPath, folder, subject);
     }
-    
+
     /**
      * Adds create privilege to a folder.
      * @param folderPath The path of the target folder.
@@ -339,7 +373,7 @@ public class GrouperUtil  {
             }
         }
     }
-    
+
     /**
      * Adds Stem privilege to a folder.
      * @param folderPath The path of the target folder.
@@ -355,7 +389,7 @@ public class GrouperUtil  {
             final Stem folder, 
             final Subject subject) 
     throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
-      
+
         if (!folder.hasStem(subject)) {
             folder.grantPriv(subject, Constants.STEM_PRIV);
             if (LOGGER.isDebugEnabled()) {
@@ -364,7 +398,7 @@ public class GrouperUtil  {
             }
         }
     }
-    
+
     /**
      * Adds administration privilege to a group.
      * @param groupPath The path of the target group.
@@ -380,16 +414,16 @@ public class GrouperUtil  {
             final Group group, 
             final Subject subject) 
     throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
-        
-            if (!group.hasAdmin(subject)) {
-                group.grantPriv(subject, Constants.ADMIN_PRIV);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Adding administration privilege to the group: " 
-                            + privilegedPath + " on the group: " + groupPath);
+
+        if (!group.hasAdmin(subject)) {
+            group.grantPriv(subject, Constants.ADMIN_PRIV);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding administration privilege to the group: " 
+                        + privilegedPath + " on the group: " + groupPath);
             }
         }
     }
-    
+
     /**
      * Adds Read privilege to a group.
      * @param groupPath The path of the target group.
@@ -405,7 +439,7 @@ public class GrouperUtil  {
             final Group group, 
             final Subject subject) 
     throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
-        
+
         if (!group.hasRead(subject)) {
             group.grantPriv(subject, Constants.READ_PRIV);
             if (LOGGER.isDebugEnabled()) {
@@ -414,7 +448,7 @@ public class GrouperUtil  {
             }
         }
     }
-    
+
     /**
      * Adds view privilege to a group.
      * @param groupPath The path of the target group.
@@ -430,7 +464,7 @@ public class GrouperUtil  {
             final Group group, 
             final Subject subject) 
     throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
-        
+
         if (!group.hasView(subject)) {
             group.grantPriv(subject, Constants.VIEW_PRIV);
             if (LOGGER.isDebugEnabled()) {
@@ -518,15 +552,116 @@ public class GrouperUtil  {
         }
     }
 
+    /**
+     * Retrieves the groups managed by the module for a given user.
+     * @param session The current grouper session.
+     * @param userId The id of the considered user.
+     * @param result The set of the groups managed for the user.
+     * @return The result of the grouper operation.
+     */
+    public GrouperOperationResultDTO retrieveManagedGroups(final GrouperSession session, 
+            final String userId, 
+            final Set<String> result) {
+        try {
+            final Subject subject = SubjectFinder.findById(userId);
+            final Member member = MemberFinder.findBySubject(session, subject);
+            @SuppressWarnings("unchecked")
+            final Set memberships = member.getImmediateMemberships();
 
+            for (Object o : memberships) {
+                final Membership m = (Membership) o;
+                final Group g = m.getGroup();
+                if (session.getSubject().equals(m.getCreator().getSubject())) {
+                    result.add(g.getName());
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Group " + g.getName() + " is managed by the module for user " + userId + ".");
+                    }
+                } else {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Group " + g.getName() + " is not managed by the module for user " + userId + ".");
+
+                    }
+                }
+            } 
+            return GrouperOperationResultDTO.RESULT_OK;
+
+        } catch (SubjectNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (GroupNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (GrouperRuntimeException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (MemberNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (SubjectNotUniqueException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        }
+    }
 
     /**
-     * Removes a member from its groups.
+     * Removes a member from its groups. All the groups are considered iven if they are not managed 
+     * by this module.
      * @param session The grouper session.
      * @param userId The id of the member.
      * @return The Grouper operation result.
      */
     public GrouperOperationResultDTO removeFromAllGroups(final GrouperSession session, 
+            final String userId) {
+        try {
+
+            final Subject subject = SubjectFinder.findById(userId);
+            final Member member = MemberFinder.findBySubject(session, subject);
+            @SuppressWarnings("unchecked")
+            final Set memberships = member.getImmediateMemberships();
+
+            for (Object o : memberships) {
+                final Membership m = (Membership) o;
+                m.getGroup().deleteMember(subject);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Removes subject: " + userId 
+                            + " from group: " + m.getGroup());
+                }
+
+                handlesEmptyGroupIfNeeded(session, m.getGroup());
+
+
+            }
+            return GrouperOperationResultDTO.RESULT_OK;
+
+        } catch (SubjectNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (SubjectNotUniqueException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (MemberNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (InsufficientPrivilegeException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (MemberDeleteException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (GroupNotFoundException e) {
+            LOGGER.error(e, e);
+            return new GrouperOperationResultDTO(e);
+        } catch (WS4GrouperException e) {
+            return new GrouperOperationResultDTO(e);
+        }
+    }
+    /**
+     * Removes a member from its groups which are managed by this module.
+     * @param session The grouper session.
+     * @param userId The id of the member.
+     * @return The Grouper operation result.
+     */
+    public GrouperOperationResultDTO removeFromManagedGroups(final GrouperSession session, 
             final String userId) {
         try {
 
@@ -700,6 +835,50 @@ public class GrouperUtil  {
             }
         }
     }
+
+    /**
+     * Removes a user from a set of groups.
+     * @param session The grouper session.
+     * @param userId The id of the user to remove.
+     * @param groupNames The name of the group.
+     * @return The result of the grouper operation result.
+     */
+    public GrouperOperationResultDTO removeFromGroups(final GrouperSession session, 
+            final String userId,
+            final Set<String> groupNames) {
+        try {
+            final Subject subject = SubjectFinder.findById(userId);
+
+            for (String groupName : groupNames) {
+                final Group group = GroupFinder.findByName(session, groupName);
+                if (group.hasImmediateMember(subject)) {
+                    group.deleteMember(subject);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("User " + userId + " removed from the group " + groupName + ".");
+                    }
+                } else {
+                    LOGGER.warn("User " + userId + " is not member of the group " + groupName + ".");
+                }
+            }
+            return GrouperOperationResultDTO.RESULT_OK;
+        } catch (SubjectNotFoundException e) {
+            LOGGER.error(e, e);
+            throw new WS4GrouperException(e);
+        } catch (SubjectNotUniqueException e) {
+            LOGGER.error(e, e);
+            throw new WS4GrouperException(e);
+        } catch (GroupNotFoundException e) {
+            LOGGER.error(e, e);
+            throw new WS4GrouperException(e);
+        } catch (InsufficientPrivilegeException e) {
+            LOGGER.error(e, e);
+            throw new WS4GrouperException(e);
+        } catch (MemberDeleteException e) {
+            LOGGER.error(e, e);
+            throw new WS4GrouperException(e);
+        }
+    }
+
     /**
      * Removes a member of a group.
      * @param session The grouper session. 

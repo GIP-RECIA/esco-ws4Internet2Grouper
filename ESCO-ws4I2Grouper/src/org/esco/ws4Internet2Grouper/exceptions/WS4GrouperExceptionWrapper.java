@@ -16,35 +16,35 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package org.esco.ws4Internet2Grouper.web.controllers;
-
-
-
-
-
-
+/**
+ * 
+ */
+package org.esco.ws4Internet2Grouper.exceptions;
 
 /**
- * Juste pour tests : à supprimer.
+ * Exception used by the web sevice used to wrap a Grouper exception.
  * @author GIP RECIA - A. Deman
- * 28 nov. 07
- *
+ * 26 nov. 07
  */
-public class TCtrl {
+public class WS4GrouperExceptionWrapper extends WS4GrouperException {
 	
+	/**Serial Version UID.*/
+	private static final long serialVersionUID = -7288015012953680653L;
+
 	/**
-	 * Constructor for TCtrl.
+	 * Constructor for WS4GrouperException.
+	 * @param wrappedException The Grouper exception to wrap.
 	 */
-	public TCtrl() {
-		/* */
+	public WS4GrouperExceptionWrapper(final Exception wrappedException) {
+		super(wrappedException);
 	}
-	
+
 	/**
-	 * Test.
-	 * @return String.
+	 * Constructor for WS4GrouperException.
+	 * @param message The message to use add to the source exception.
+	 * @param wrappedException The Grouper exception to wrap.
 	 */
-	public String getText() {
-		//final GrouperDTO infos = new GrouperAPIExposerImpl().findGroup("esco:ENT_Groupes:subGroup1");
-		return "Test: ";
+	public WS4GrouperExceptionWrapper(final String message, final Exception wrappedException) {
+		super(message, wrappedException);
 	}
 }

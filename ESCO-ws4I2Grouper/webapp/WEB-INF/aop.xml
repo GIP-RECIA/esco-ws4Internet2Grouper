@@ -1,0 +1,28 @@
+<!-- 
+
+	JVM Directive to specify the aop configuration file : 
+	-Daspectwerkz.definition.file=.. 
+-->
+
+<aspectwerkz>
+
+    <system id="ESCO-ws4I2GrouperAOP">
+    
+    	<package name="org.esco.ws4Internet2Grouper.util">
+			<!-- 
+    		<aspect class="ProfilingAspect">
+            	<pointcut name="cw" expression="execution(* org.esco.ws4Internet2Grouper.util.GrouperUtil.*(..))"/>
+                <advice name="checkWeaving" type="after" bind-to="cw"/>
+            </aspect>
+            -->
+    		<aspect class="ProfilingAspect">
+            	<pointcut name="profileGrouperUtil" expression="execution(* org.esco.ws4Internet2Grouper.util.GrouperUtil.*(..))"/>
+                <advice name="displayResultsIfNeededBeforeProfiling" type="around" bind-to="profileGrouperUtil"/>
+            
+            	<pointcut name="sgsInvoc" expression="execution(org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO org.esco.ws4Internet2Grouper.services.remote.SarapisGroupServiceImpl.addToGroups(org.esco.ws4Internet2Grouper.services.remote.IPersonDescription))"/>
+                <advice name="startProfilingIfNeeded" type="before" bind-to="sgsInvoc"/>
+            </aspect>
+            
+       </package>
+    </system>
+</aspectwerkz>

@@ -1,5 +1,5 @@
 <project name="ws4Internet2Grouper" default="compile" basedir=".">
-		
+	<property name="profiling" value="false"/>
 	<property name="recover.previous-versions" value="0.10.0,0.9.1,0.9.0" />
 	<property name="app.recover.files" value="
 		properties/init/init.xml
@@ -67,8 +67,34 @@
          </copy>
     </target>
 	<target name="deploy" depends="deploy_org, grouper" />
-	<target name="deploy_org" depends="compile-web,commons-deploy" description="deploy the application" />
-
+	<target name="deploy_org" depends="compile-web, weaving, commons-deploy" description="deploy the application" />
+	
+			
+					
+					
+									
+		
+	<target name="weaving" description="Performs the weaving" >
+		<if>
+			
+				
+		<ispropertytrue property="profiling" />	
+		<then>					
+			<echo >
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Profiling Activated
+Should not be used in production environment
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
+			</echo>
+					
+			
+		<taskdef name="awc" classname="org.codehaus.aspectwerkz.compiler.AspectWerkzCTask"/>
+		<awc verbose="true" taskverbose="true" details="true" definition="webapp/WEB-INF/aop.xml" classpathref="compile.classpath">
+				<target path="build/WEB-INF/classes/"/>
+		</awc>
+		</then>
+	</if>					
+	</target>
 	<target name="clean" depends="commons-clean" description="clean the project" />
 
 	<target name="recover-config" depends="commons-recover-config" description="recover configuration files from an older version" />
@@ -86,6 +112,20 @@
 	<target name="start" depends="deploy,check-web-config,commons-start-tomcat" description="Start the application" />
 
 	<target name="stop" depends="commons-stop-tomcat" description="Stop the application" />
+	
+	<target name="sgs-ws-client.lib"  depends="compile">
+		<property file="${basedir}/version.properties" />
+		<property name="dist.dir" value="${basedir}/dist"/>
+		<delete file="${dist.dir}/sgs-ws-client-${app.version}.jar"/>		
+		<jar destfile="${dist.dir}/sgs-ws-client-${app.version}.jar"
+       		 basedir="${build.classes}"
+       		 includes="org/esco/ws4Internet2Grouper/services/remote/ISarapisGroupService.class, 
+	                   org/esco/ws4Internet2Grouper/services/remote/IPersonDescription.class,
+			           org/esco/ws4Internet2Grouper/services/remote/PersonDescriptionImpl.class,
+			           org/esco/ws4Internet2Grouper/exceptions/WS4GrouperException.class,
+			           org/esco/ws4Internet2Grouper/domain/beans/GrouperOperationResultDTO.class,
+		               org/esco/ws4Internet2Grouper/domain/beans/PersonType.class" />
+	</target>
 	
 </project>
 
