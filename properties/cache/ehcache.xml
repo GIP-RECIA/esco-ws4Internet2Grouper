@@ -65,6 +65,20 @@
           timeToLiveSeconds="3600"
           overflowToDisk="false"
   />
+  <cache  name="org.esco.ws4Internet2Grouper.cache.SGSCache.groups-memberhips"
+          maxElementsInMemory="500"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="3600"
+          overflowToDisk="false"
+  />
+  <cache  name="org.esco.ws4Internet2Grouper.cache.SGSCache.groups-privileges"
+          maxElementsInMemory="500"
+          eternal="false"
+          timeToIdleSeconds="30"
+          timeToLiveSeconds="3600"
+          overflowToDisk="false"
+  />
 
 <!--
   Grouper Caches

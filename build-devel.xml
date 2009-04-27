@@ -9,6 +9,7 @@
 		webapp/META-INF/MANIFEST.MF
 		webapp/stylesheets/**/*
 		webapp/WEB-INF/**/web.xml
+		webapp/WEB-INF/aop.xml
 		webapp/WEB-INF/lib/*
 		properties/**/*.xml
 		properties/export/*.dtd
@@ -78,8 +79,7 @@
 		
 	<target name="_restart" depends="_stop,_start" description="deploy and restart Tomcat" />
 
-	<target name="_dist.org" depends="_commons-dist" description="build ZIP archives" />
-	<target name="_dist" depends="_dist.org, _sgs-ws-client.lib" description="build ZIP archives" />
+	<target name="_dist" depends="_commons-dist" description="build ZIP archives" />
 
 	<target name="_doc" depends="_commons-doc" description="build the web site" />
 
@@ -109,19 +109,7 @@
 
 	
 
-	<target name="_sgs-ws-client.lib"  depends="_compile">
-		<property file="${basedir}/version.properties" />
-		<property name="dist.dir" value="${basedir}/dist"/>
-		<delete file="${dist.dir}/sgs-ws-client-${app.version}.jar"/>		
-		<jar destfile="${dist.dir}/sgs-ws-client-${app.version}.jar"
-       		 basedir="${build.classes}"
-       		 includes="org/esco/ws4Internet2Grouper/services/remote/ISarapisGroupService.class, 
-	                   org/esco/ws4Internet2Grouper/services/remote/IPersonDescription.class,
-			           org/esco/ws4Internet2Grouper/services/remote/PersonDescriptionImpl.class,
-			           org/esco/ws4Internet2Grouper/exceptions/WS4GrouperException.class,
-			           org/esco/ws4Internet2Grouper/domain/beans/GrouperOperationResultDTO.class,
-		               org/esco/ws4Internet2Grouper/domain/beans/PersonType.class" />
-	</target>
+	
 </project>
 
 

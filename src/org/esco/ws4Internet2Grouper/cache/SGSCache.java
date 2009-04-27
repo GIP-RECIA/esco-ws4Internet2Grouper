@@ -1,3 +1,21 @@
+/**
+ *   Copyright (C) 2008  GIP RECIA (Groupement d'Intérêt Public REgion 
+ *   Centre InterActive)
+ * 
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
 package org.esco.ws4Internet2Grouper.cache;
 
 
@@ -32,6 +50,12 @@ public class SGSCache {
     /** Cache name for the template which are created even if they are empty. */
     private static final String EMPTY_TEMPLATES_CACHE_NAME =  SGSCache.class + ".empty-templates";
 
+    /** Cache name for the groups or folders memberships. */
+    private static final String GROUPS_MEMBERSHIPS_CACHE_NAME =  SGSCache.class + ".gof-memberhips";
+    
+    /** Cache name for the groups or folders privileges. */
+    private static final String GROUPS_PRIVILEGES_CACHE_NAME =  SGSCache.class + ".gof-privileges";
+
     /** Singleton. */
     private static final SGSCache INSTANCE = new SGSCache();
 
@@ -44,6 +68,12 @@ public class SGSCache {
     
     /** Cache for the empty templates. */
     private Cache emptyTemplatesCache;
+    
+    /** Cache for the groups memeberships. */
+    private Cache groupsMembershipsCache; 
+    
+    /** Cache for the groups privileges. */
+    private Cache groupsPrivilegesCache; 
 
 
     /**
@@ -63,10 +93,18 @@ public class SGSCache {
         if (!cacheManager.cacheExists(EMPTY_TEMPLATES_CACHE_NAME)) {
             cacheManager.addCache(EMPTY_TEMPLATES_CACHE_NAME);
         }
+        if (!cacheManager.cacheExists(GROUPS_MEMBERSHIPS_CACHE_NAME)) {
+            cacheManager.addCache(GROUPS_MEMBERSHIPS_CACHE_NAME);
+        }
+        if (!cacheManager.cacheExists(GROUPS_PRIVILEGES_CACHE_NAME)) {
+            cacheManager.addCache(GROUPS_PRIVILEGES_CACHE_NAME);
+        }
 
         membershipsCache = cacheManager.getCache(MEMBERSHIPS_CACHE_NAME);
         membershipsTemplatesCache = cacheManager.getCache(MEMBERSHIPS_FOR_TEMPLATES_CACHE_NAME);
         emptyTemplatesCache = cacheManager.getCache(EMPTY_TEMPLATES_CACHE_NAME);
+        groupsMembershipsCache = cacheManager.getCache(GROUPS_MEMBERSHIPS_CACHE_NAME);
+        groupsPrivilegesCache = cacheManager.getCache(GROUPS_PRIVILEGES_CACHE_NAME);
     }
 
     /**
@@ -75,6 +113,42 @@ public class SGSCache {
      */
     public static SGSCache instance() {
         return INSTANCE;
+    }
+    
+    /**
+     * Checks if the memberships for a group is in cache.
+     * @param groupName The name of the group/
+     * @return True if groups name is in the groups memeberships cache.
+     */
+    public boolean hasInGroupsMembershipsCache(final String groupName) {
+        return groupsMembershipsCache.get(groupName) != null;
+    }
+
+    
+    /**
+     * Adds a group in the groups membership cache.
+     * @param groupName The name of the group to cache.
+     */
+    public void cacheInGroupsMembershipsCache(final String groupName) {
+        groupsMembershipsCache.put(new Element(groupName, ""));
+    }
+    
+    /**
+     * Checks if the memberships for a group is in cache.
+     * @param groupName The name of the group/
+     * @return True if groups name is in the groups memeberships cache.
+     */
+    public boolean hasInGroupsPrivielgesCache(final String groupName) {
+        return groupsPrivilegesCache.get(groupName) != null;
+    }
+
+    
+    /**
+     * Adds a group in the groups membership cache.
+     * @param groupName The name of the group to cache.
+     */
+    public void cacheInGroupsPrivilegesCache(final String groupName) {
+        groupsPrivilegesCache.put(new Element(groupName, ""));
     }
 
   
