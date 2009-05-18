@@ -59,7 +59,10 @@ import org.esco.ws4Internet2Grouper.domain.beans.GrouperDTO;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
 import org.jasig.portal.groups.IGroupConstants;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 /**
  * Implementation used to expose some methods of the grouper API.
  * @author GIP RECIA - A. Deman
@@ -523,11 +526,22 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
                 
             } else {
                 // The target is a stem.
-                final Set<Group> childGroups = gos.asStem().getChildGroups(Scope.SUB);
-                final Iterator<Group> it = childGroups.iterator();
-                while (it.hasNext() && !member) {
-                    member = it.next().hasEffectiveMember(subject);
+                // We don't use the method gos.asStem().getChildStems(Scope.SUB)
+                // in order to avoid to load all the groups in memory.
+                final Set<Stem> childStems = gos.asStem().getChildStems(Scope.ONE);
+                final Iterator<Stem> stemsIt = childStems.iterator();
+                while (stemsIt.hasNext() && !member) {
+                    member = hasDeepMember(stemsIt.next().getName(), subjectId);
                 }
+                if (!member) {
+                    final Set<Group> childGroups = gos.asStem().getChildGroups(Scope.ONE);
+                    final Iterator<Group> grpIt = childGroups.iterator();
+                    while (grpIt.hasNext() && !member) {
+                        member = grpIt.next().hasEffectiveMember(subject);
+                    }
+                }
+
+                
                 if (LOGGER.isDebugEnabled()) {
                     final StringBuffer sb = new StringBuffer("Folder: ");
                     sb.append(name);
@@ -1143,4 +1157,13 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
         }
         return ids.toArray(new String[ids.size()]);
     }
+    
+//    public static void main(final String[] args) {
+//        ThreadLocal<ApplicationContext> appCtx = new ThreadLocal<ApplicationContext>();
+//        appCtx.set(new FileSystemXmlApplicationContext("classpath:applicationContext.xml"));
+//        BeanFactory beanFactory = appCtx.get();
+//        IGrouperAPIExposer exp = (IGrouperAPIExposer) beanFactory.getBean("GrouperServiceExposer");
+//        System.out.println("==>" + exp.hasDeepMember("esco", "F089032"));
+//        System.out.println("==>" + exp.hasDeepMember("esco", "F089032o"));
+//    }
 }
