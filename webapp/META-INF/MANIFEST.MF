@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
 Implementation-Title: ws4Internet2Grouper
-Implementation-Version: 1.3.3
+Implementation-Version: 1.3.4
 Implementation-Vendor: ESCO-Portail consortium

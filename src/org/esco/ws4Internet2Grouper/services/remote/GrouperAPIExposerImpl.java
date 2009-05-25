@@ -475,7 +475,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
         if (gos != null) {
             if (gos.isGroup()) {
                 final Subject subject = fetchSubject(subjectId);
-                member = gos.asGroup().hasMember(subject);
+                member = gos.asGroup().hasImmediateMember(subject);
             }
         }
 
@@ -507,11 +507,11 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
         final GroupOrStem gos = fetchGroupOrStem(session, name);
         boolean member = false;
         final Subject subject = fetchSubject(subjectId);
-        if (gos != null) { 
+        if (gos != null && subject != null) { 
             if (gos.isGroup()) {
                 // The target is a group.
                 
-                member = gos.asGroup().hasEffectiveMember(subject);
+                member = gos.asGroup().hasMember(subject);
                 
                 if (LOGGER.isDebugEnabled()) {
                     final StringBuffer sb = new StringBuffer("Group: ");
@@ -525,23 +525,24 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
 
                 
             } else {
-                // The target is a stem.
-                // We don't use the method gos.asStem().getChildStems(Scope.SUB)
-                // in order to avoid to load all the groups in memory.
-                final Set<Stem> childStems = gos.asStem().getChildStems(Scope.ONE);
-                final Iterator<Stem> stemsIt = childStems.iterator();
-                while (stemsIt.hasNext() && !member) {
-                    member = hasDeepMember(stemsIt.next().getName(), subjectId);
-                }
-                if (!member) {
-                    final Set<Group> childGroups = gos.asStem().getChildGroups(Scope.ONE);
-                    final Iterator<Group> grpIt = childGroups.iterator();
-                    while (grpIt.hasNext() && !member) {
-                        member = grpIt.next().hasEffectiveMember(subject);
+                // The target is a folder.
+                final Member subjectAsMember = fetchMember(session, subject);
+                if (subjectAsMember != null) {
+                    
+                    @SuppressWarnings("unchecked")
+                    final Iterator memberships = subjectAsMember.getMemberships().iterator();
+                    
+                    while (memberships.hasNext() && !member) {
+                        final Membership m = (Membership) memberships.next();
+                        try {
+                            member = m.getGroup().getName().startsWith(name);
+                        
+                        } catch (GroupNotFoundException e) {
+                            LOGGER.error(e, e);
+                        }
                     }
-                }
 
-                
+                }
                 if (LOGGER.isDebugEnabled()) {
                     final StringBuffer sb = new StringBuffer("Folder: ");
                     sb.append(name);
@@ -1163,7 +1164,33 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
 //        appCtx.set(new FileSystemXmlApplicationContext("classpath:applicationContext.xml"));
 //        BeanFactory beanFactory = appCtx.get();
 //        IGrouperAPIExposer exp = (IGrouperAPIExposer) beanFactory.getBean("GrouperServiceExposer");
-//        System.out.println("==>" + exp.hasDeepMember("esco", "F089032"));
-//        System.out.println("==>" + exp.hasDeepMember("esco", "F089032o"));
+//        System.out.println("--------------- hasDeepMember ---------------");
+//        String subjectId = "F089032o";
+//        System.out.println("1 stem y ==>" + exp.hasDeepMember("esco", subjectId));
+//        System.out.println("2 direct group y ==>" 
+//                + exp.hasDeepMember("esco:Etablissements:LEONARD DE VINCI_0370001A:Parents", subjectId));
+//        System.out.println("3 indirect group y ==>"  
+//                + exp.hasDeepMember("esco:Etablissements:LEONARD DE VINCI_0370001A:Tous_LEONARD DE VINCI", 
+//                        subjectId));
+//        System.out.println("4 direct stem y ==>" 
+//                + exp.hasDeepMember("esco:Etablissements:LEONARD DE VINCI_0370001A", subjectId));
+//        System.out.println("5 indirect stem y ==>" + exp.hasDeepMember("esco:admin:local", subjectId));
+//        System.out.println("6 stem n ==>" + exp.hasDeepMember("esco:Applications", subjectId));
+//        System.out.println("7 group n ==>" 
+//          + exp.hasDeepMember("esco:Applications:newsPortlet:LEGTA_VENDOME_BLOIS_MONTOIRE",
+//                subjectId));
+//        System.out.println("8 incorect group or stem n ==>" + exp.hasDeepMember("esco:Applications_", subjectId));
+//        System.out.println("9 incorect subject n ==>" + exp.hasDeepMember("esco:Applications", "x"));
+//        
+//        System.out.println("\n\n--------------- hasMember ---------------");
+//        System.out.println("1 stem n ==>" + exp.hasMember("esco", subjectId));
+//        System.out.println(" direct group y ==>" 
+//                + exp.hasMember("esco:Etablissements:LEONARD DE VINCI_0370001A:Parents", 
+//                        subjectId));
+//        System.out.println("3 indirect group n ==>"  
+//                + exp.hasMember("esco:Etablissements:LEONARD DE VINCI_0370001A:Tous_LEONARD DE VINCI", 
+//                        subjectId));
+//        
+//        
 //    }
 }
