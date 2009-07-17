@@ -39,7 +39,7 @@
                 l'arborescence située sous ce dossier. 
                 Remarques : 
                 - Seuls les dossiers et groupes créés par ce module
-                  sont pris en compte (attribut peexisting=false).
+                  sont pris en compte.
                 - On utilise ici un chemin relatif mais le chemin absolu aurait également
                   été correct : ESCO:admin:central.
             </comment>
@@ -66,7 +66,13 @@
 
                 <group-template extension="admin_%NOM_ETAB%_%UAI_ETAB%"
                                 display-extension="Administration établissement %NOM_ETAB%"
-                                description="Administration locale pour l'établissement %NOM_ETAB%" />
+                                description="Administration locale pour l'établissement %NOM_ETAB%">
+                    <privileges>
+                       <privilege right="UPDATE" path="." recursive="false"/> 
+                       <privilege right="READ" path="." recursive="false"/> 
+                    </privileges>
+                </group-template>                
+                                
             </folder>
 
             <folder extension="sarapis" 
@@ -81,7 +87,7 @@
                 
                 <folder extension="local" 
                         display-extension="Administration locale Sarapis"
-                        description="Administrateurs centraux de Sarapis"
+                        description="Administrateurs locaux de Sarapis"
                         preexisting="false"
                         create="true">
                     
@@ -90,14 +96,247 @@
                                     description="Administration de Sarapis pour l'établissement %NOM_ETAB%" 
                                     create="true">
                         <privileges>
-                            <privilege right="Admin" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                            <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                            <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                         </privileges>
                     </group-template>
                 </folder>
             </folder>
+            <!--  -->
+            <folder extension="CAHIER_TEXTE_CAEN" 
+                    display-extension="Cahier de texte"
+                    description="Racine pour les groupes d'administration du cahier de texte"
+                    create="true">
+                
+                <folder extension="local" 
+                        display-extension="Administration locale du cahier de texte"
+                        description="Administrateurs locaux du cahier de texte"
+                        preexisting="false"
+                        create="true">
+                    
+                    <group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Administration du cahier de texte pour l'établissement %NOM_ETAB%" 
+                                    create="true">
+                        <privileges>
+                            <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                            <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                        </privileges>
+                    </group-template>
+                </folder>
+            </folder>
+            <!--  -->
             
         </folder>
+        <!-- 
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+             Arborescence des groupes applicatifs 
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          -->
+        <folder extension="Applications" 
+                display-extension="Applications"
+                description="Racine pour les groupes applicatifs"
+                preexisting="false">
+            
+            <comment> Racine pour tous les groupes applicatifs. </comment>
+            
+            <folder extension="Annuaire_Personnes" 
+                    display-extension="Annuaire des personnes"
+                    description="Annuaire des personnes"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal Annuaire des personnes pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder> 
+
+            <folder extension="Annuaire_Structures" 
+                    display-extension="Annuaire des structures"
+                    description="Annuaire des structures"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal Annuaire des structures pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder> 
+
+            <folder extension="Cahier_de_texte" 
+                    display-extension="Cahier de texte"
+                    description="Accès au cahier de texte"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du cahier de texte pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder> 
+
+            <folder extension="Courriel_Eleves" 
+                    display-extension="Courriel pour les élèves"
+                    description="Accès au canal Courriel pour les élèves"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal Courriel pour les élèves pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder> 
+            
+            <folder extension="Espace_Moodle" 
+                    display-extension="Espace Moodle"
+                    description="Accès au canal Espace Moodle"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal Espace Moodle pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder>  
+            
+            <folder extension="Espaces_stockage_Lycees" 
+                    display-extension="Espaces de stockage dans mon lycée"
+                    description="Accès au canal Espaces de stockage dans mon lycée"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal Espaces de stockage dans mon lycée pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder>
+            
+            <folder extension="GRR" 
+                    display-extension="Gestion et réservation de ressources"
+                    description="Accès au canal Gestion et réservation de ressources"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal Gestion et réservation de ressources pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder>
+            
+            <folder extension="newsPortlet" 
+                    display-extension="newsPortlet"
+                    description="Accès au canal Acces au canal newsPortlet"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal newsPortlet pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder>
+            
+            <folder extension="Ressources_Editoriales" 
+                    display-extension="Ressources éditoriales"
+                    description="Utilisateurs des ressources éditoriales dans Esup-Lecture"
+                    preexisting="false"
+                    create="true">
+                    
+               <folder extension="Autres_Ressources" 
+                       display-extension="Autres ressources"
+                       description="Utilisateurs d'autres ressources éditoriales dans esup-Lecture"
+                       preexisting="false"
+                       create="true">
+					
+			      <group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                  display-extension="%NOM_ETAB%"
+                                  description="Utilisateur des autres ressources éditoriales pour l'établissement %NOM_ETAB%"
+                                  create="true">
+                     <privileges>
+                        <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                        <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                     </privileges>
+			      </group-template>
+               </folder>
+               <folder extension="CNS" 
+                       display-extension="CNS"
+                       description="Utilisateurs des ressources du CNS dans Esup-Lecture"
+                       preexisting="false"
+                       create="true">
+					
+			      <group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                  display-extension="%NOM_ETAB%"
+                                  description="Utilisateur des ressources éditoriales CNS pour l'établissement %NOM_ETAB%"
+                                  create="true">
+                     <privileges>
+                        <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                        <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                     </privileges>
+			      </group-template>
+               </folder>
+               
+            </folder>
+            
+            <folder extension="Sakai" 
+                    display-extension="Sakai"
+                    description="Accès au canal Sakai"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal Sakai pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder>
+
+        </folder>
         
+        <!--  -->
 
         <!-- 
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -117,7 +356,8 @@
                 <privileges>
                     <privilege right="GROUP_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                     <privilege right="FOLDER_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
-                    <privilege right="ADMIN" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
+                    <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
+                    <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                 </privileges>
                 
                 <folder-template extension="%NIVEAU%"
@@ -126,9 +366,8 @@
                     <group-template extension="Profs_%NOM_CLASSE%"  
                                     display-extension="Prof. %NOM_CLASSE%"
                                     description="Enseignants de la classe %NOM_CLASSE%">
-                        
-                        <member-of path="..:Tous_%NOM_CLASSE%" />
-                        <members type="Teacher" distribution-by="%NOM_CLASSE%" />
+                       <member-of path="..:Tous_%NOM_CLASSE%" />
+                       <members type="Teacher" distribution-by="%NOM_CLASSE%" />
                         
                     </group-template> 
 
@@ -143,7 +382,8 @@
 
                     <group-template extension="Tous_%NOM_CLASSE%"
                                     display-extension="Tous %NOM_CLASSE%"
-                                    description="Enseignants et élèves de la classe %NOM_CLASSE%" />
+                                    description="Enseignants et élèves de la classe %NOM_CLASSE%"/>
+                    
                 </folder-template>
                 
                 <group extension="Profs" 
@@ -181,7 +421,7 @@
                 
                 <group extension="TOS" 
                        display-extension="TOS"
-                       description="Personnel TOS de l'établissement %NOM_ETAB%">
+                       description="Personnel TOS de l'établissement %NOM_ETAB%">  
                     <member-of path="..:Tous_%NOM_ETAB%" />
                     <members type="TOS" distribution-by="%NOM_ETAB%" />
                 </group>
@@ -209,14 +449,21 @@
                         <member-of path="esco:Etablissements:%NOM_ETAB%_%UAI_ETAB%:Profs" />
                         <members type="Teacher" distribution-by="%ENSEIGNEMENT%" />
                     </group-template>
-                    
-                    
-                    
                 </folder>
-                
             </folder-template>
         </folder>
-    </folder>
+        
+        <!-- 
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            Racine pour les groupes inter-etablissements 
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        -->
+        <folder extension="Inter_etablissements" 
+                display-extension="Inter-établissements"
+                description="Racine pour les groupes inter-établissements"
+                preexisting="false"
+                create="true"/>
+    </folder> 
 </sarapis-group-service>
 
 
