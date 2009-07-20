@@ -249,7 +249,7 @@ public class SGSAttributeHandler implements Serializable {
             return false;
         }
         throw new SAXParseException("Illegal value for boolean atribute " 
-                + attribute + " (should be true or fale): " + valueStr + ".", locator);
+                + attribute + " (should be true or false): " + valueStr + ".", locator);
         
     }
     /**

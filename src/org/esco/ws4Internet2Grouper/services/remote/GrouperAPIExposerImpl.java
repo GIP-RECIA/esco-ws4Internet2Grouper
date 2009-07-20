@@ -59,10 +59,7 @@ import org.esco.ws4Internet2Grouper.domain.beans.GrouperDTO;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
 import org.jasig.portal.groups.IGroupConstants;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 /**
  * Implementation used to expose some methods of the grouper API.
  * @author GIP RECIA - A. Deman
