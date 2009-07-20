@@ -225,10 +225,11 @@ public class GrouperUtil  {
                         try {
                             if (Right.ADMIN.equals(privDef.getPrivilege())) {
                                 addAdminPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
-                                addReadPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
-                                addViewPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                            } else if (Right.UPDATE.equals(privDef.getPrivilege())) {
+                                addUpdatePrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
                             } else if (Right.READ.equals(privDef.getPrivilege())) {
                                 addReadPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
+                            } else if (Right.VIEW.equals(privDef.getPrivilege())) {
                                 addViewPrivilege(definition.getPath(), privilegedGroupDef.getPath(), group, subj);
                             }
                         } catch (GrantPrivilegeException e) {
@@ -425,6 +426,30 @@ public class GrouperUtil  {
     }
 
     /**
+     * Adds Update privilege to a group.
+     * @param groupPath The path of the target group.
+     * @param privilegedPath The path of the group with privileges.
+     * @param group The target group.
+     * @param subject The subject that corresponds to the privileged group.
+     * @throws GrantPrivilegeException
+     * @throws InsufficientPrivilegeException
+     * @throws SchemaException
+     */
+    private void addUpdatePrivilege(final String groupPath, 
+            final String privilegedPath, 
+            final Group group, 
+            final Subject subject) 
+    throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
+
+        if (!group.hasRead(subject)) {
+            group.grantPriv(subject, Constants.UPDATE_PRIV);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding update privilege to the group: " 
+                        + privilegedPath + " on the group: " + groupPath);
+            }
+        }
+    }
+    /**
      * Adds Read privilege to a group.
      * @param groupPath The path of the target group.
      * @param privilegedPath The path of the group with privileges.
@@ -439,7 +464,7 @@ public class GrouperUtil  {
             final Group group, 
             final Subject subject) 
     throws GrantPrivilegeException, InsufficientPrivilegeException, SchemaException {
-
+        
         if (!group.hasRead(subject)) {
             group.grantPriv(subject, Constants.READ_PRIV);
             if (LOGGER.isDebugEnabled()) {

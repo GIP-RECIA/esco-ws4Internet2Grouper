@@ -43,6 +43,9 @@ public abstract class Constants {
     /** The read right for a group. */
     public static final Privilege READ_PRIV = Privilege.getInstance("read");
     
+    /** The update right for a group. */
+    public static final Privilege UPDATE_PRIV = Privilege.getInstance("update");
+    
     /** The stem privilege for the stems. */
     public static final Privilege STEM_PRIV = Privilege.getInstance("stem");
 

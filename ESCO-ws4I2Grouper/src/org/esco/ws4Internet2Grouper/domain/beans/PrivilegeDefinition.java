@@ -44,6 +44,9 @@ public class PrivilegeDefinition implements Serializable {
     public static enum Right {
         /** Admin right.*/
         ADMIN, 
+                
+        /** Update privilege. */
+        UPDATE,
         
         /** Creation of folder.*/
         FOLDER_CREATION,
@@ -51,11 +54,14 @@ public class PrivilegeDefinition implements Serializable {
         /** Creation of Group. */
         GROUP_CREATION,
         
-        /** Read privileges.*/
-        READ;
-
+        /** View privilege.*/
+        VIEW,     
+        
+        /** Read privilege.*/
+        READ;     
+        
         /**
-         * Parse a string to a Right instance.
+         * Parses a string to a Right instance.
          * @param value The value to parse.
          * @return The Right that is equal to the value if it exists,
          * null otherwise.
@@ -67,6 +73,8 @@ public class PrivilegeDefinition implements Serializable {
                 throw new WS4GrouperException("Invalid Type of privilege: " + value 
                         + ". Legal values are: "
                         + Right.ADMIN + ", " 
+                        + Right.UPDATE + ", "
+                        + Right.VIEW + ", "  
                         + Right.READ + ", "  
                         + Right.FOLDER_CREATION + ", " 
                         + Right.GROUP_CREATION + ".", e);
@@ -110,8 +118,7 @@ public class PrivilegeDefinition implements Serializable {
         return sb.toString();
     }
     
-    
-    
+       
     /**
      * Computes the hashcode for this defitinion.
      * @return The hashcode for this defintion.
