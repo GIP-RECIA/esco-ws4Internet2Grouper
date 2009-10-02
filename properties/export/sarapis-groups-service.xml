@@ -98,6 +98,7 @@
                         <privileges>
                             <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                             <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                            <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                         </privileges>
                     </group-template>
                 </folder>
@@ -121,6 +122,7 @@
                         <privileges>
                             <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                             <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                            <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                         </privileges>
                     </group-template>
                 </folder>
@@ -153,6 +155,7 @@
                        <privileges>
                           <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                           <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                        </privileges>
 					</group-template>
             </folder> 
@@ -170,6 +173,7 @@
                        <privileges>
                           <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                           <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                        </privileges>
 					</group-template>
             </folder> 
@@ -187,6 +191,7 @@
                        <privileges>
                           <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                           <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                        </privileges>
 					</group-template>
             </folder> 
@@ -204,6 +209,7 @@
                        <privileges>
                           <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                           <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                        </privileges>
 					</group-template>
             </folder> 
@@ -221,6 +227,7 @@
                        <privileges>
                           <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                           <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                        </privileges>
 					</group-template>
             </folder>  
@@ -238,6 +245,7 @@
                        <privileges>
                           <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                           <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                        </privileges>
 					</group-template>
             </folder>
@@ -255,6 +263,7 @@
                        <privileges>
                           <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                           <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                        </privileges>
 					</group-template>
             </folder>
@@ -272,6 +281,7 @@
                        <privileges>
                           <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                           <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                        </privileges>
 					</group-template>
             </folder>
@@ -295,6 +305,7 @@
                      <privileges>
                         <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                         <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                        <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                      </privileges>
 			      </group-template>
                </folder>
@@ -311,10 +322,29 @@
                      <privileges>
                         <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                         <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                        <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                      </privileges>
 			      </group-template>
                </folder>
                
+            </folder>
+            
+            <folder extension="Pronote" 
+                    display-extension="Pronote"
+                    description="Accès au canal Pronote"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal Pronote pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
             </folder>
             
             <folder extension="Sakai" 
@@ -330,6 +360,7 @@
                        <privileges>
                           <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                           <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
                        </privileges>
 					</group-template>
             </folder>
@@ -358,6 +389,7 @@
                     <privilege right="FOLDER_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                     <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                     <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
+                    <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                 </privileges>
                 
                 <folder-template extension="%NIVEAU%"

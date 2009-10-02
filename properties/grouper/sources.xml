@@ -2,7 +2,7 @@
 
 <!--
 Grouper's subject resolver configuration
-$Id: sources.xml,v 1.8 2007/08/30 15:52:22 blair Exp $
+$Id: sources.example.xml,v 1.7 2008/11/22 21:39:14 mchyzer Exp $
 -->
 
 <sources>
@@ -17,7 +17,7 @@ $Id: sources.xml,v 1.8 2007/08/30 15:52:22 blair Exp $
     <name>Grouper: Group Source Adapter</name>
     <type>group</type>
   </source>
-  <!-- Group Subject Resolver -->
+
    <source adapterClass="edu.internet2.middleware.subject.provider.JNDISourceAdapter">
       <id>esco:ldap</id>
       <name>JNDI Source Adapter</name>
@@ -85,7 +85,7 @@ $Id: sources.xml,v 1.8 2007/08/30 15:52:22 blair Exp $
          <param>
             <param-name>filter</param-name>
 	    <param-value>
-	       (&amp; (uid=%TERM%)(objectclass=inetOrgPerson))
+	       (uid=%TERM%)
 	    </param-value>
          </param>
          <param>
@@ -104,7 +104,7 @@ $Id: sources.xml,v 1.8 2007/08/30 15:52:22 blair Exp $
          <param>
             <param-name>filter</param-name>
             <param-value>
-	           (|(sn=%TERM%)(cn=%TERM%))
+	           (|(cn=%TERM%)(sn=%TERM%))
             </param-value>
         </param>
         <param>
@@ -116,15 +116,15 @@ $Id: sources.xml,v 1.8 2007/08/30 15:52:22 blair Exp $
             <param-value>ou=people,dc=esco-centre,dc=fr</param-value>
         </param>
     </search>
+
+
     <attribute>displayName</attribute>
     <attribute>ENTPersonLogin</attribute>
     <attribute>ENTTitle</attribute>
     <attribute>ENTPersonFonctions</attribute>
+    <attribute>uid</attribute>
     <attribute>cn</attribute>
     <attribute>sn</attribute>
-    <attribute>uid</attribute>
-    
-
    </source>
 
 </sources>

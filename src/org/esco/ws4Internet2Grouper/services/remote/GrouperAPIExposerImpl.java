@@ -21,25 +21,26 @@
  */
 package org.esco.ws4Internet2Grouper.services.remote;
 
+
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
-import edu.internet2.middleware.grouper.GroupNameFilter;
-import edu.internet2.middleware.grouper.GroupNotFoundException;
-import edu.internet2.middleware.grouper.GrouperQuery;
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.Member;
 import edu.internet2.middleware.grouper.MemberFinder;
-import edu.internet2.middleware.grouper.MemberNotFoundException;
 import edu.internet2.middleware.grouper.Membership;
-import edu.internet2.middleware.grouper.Owner;
-import edu.internet2.middleware.grouper.QueryException;
-import edu.internet2.middleware.grouper.QueryFilter;
 import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.Stem.Scope;
 import edu.internet2.middleware.grouper.StemFinder;
-import edu.internet2.middleware.grouper.StemNameFilter;
-import edu.internet2.middleware.grouper.StemNotFoundException;
 import edu.internet2.middleware.grouper.SubjectFinder;
+import edu.internet2.middleware.grouper.exception.GroupNotFoundException;
+import edu.internet2.middleware.grouper.exception.MemberNotFoundException;
+import edu.internet2.middleware.grouper.exception.QueryException;
+import edu.internet2.middleware.grouper.exception.StemNotFoundException;
+import edu.internet2.middleware.grouper.filter.GroupNameFilter;
+import edu.internet2.middleware.grouper.filter.GrouperQuery;
+import edu.internet2.middleware.grouper.filter.QueryFilter;
+import edu.internet2.middleware.grouper.filter.StemNameFilter;
+import edu.internet2.middleware.grouper.misc.Owner;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;
@@ -60,6 +61,7 @@ import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
 import org.jasig.portal.groups.IGroupConstants;
 import org.springframework.beans.factory.InitializingBean;
+
 /**
  * Implementation used to expose some methods of the grouper API.
  * @author GIP RECIA - A. Deman
@@ -281,13 +283,8 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
      * @return The member.
      */
     private Member fetchMember(final GrouperSession session, final Subject subject) {
-        Member m = null;
-
-        try {
-            m = MemberFinder.findBySubject(session, subject);
-        } catch (MemberNotFoundException e) {
-            LOGGER.error(e, e);
-        }
+        
+        final Member m = MemberFinder.findBySubject(session, subject);
 
         if (LOGGER.isDebugEnabled()) {
             final StringBuffer sb = new StringBuffer("Searching for member: ");
@@ -1073,7 +1070,7 @@ public class GrouperAPIExposerImpl implements IGrouperAPIExposer, InitializingBe
         } catch (QueryException e) {
             LOGGER.error(e, e);
         }
-
+         
         if (LOGGER.isDebugEnabled()) {
             final StringBuffer sb = new StringBuffer("Search for Groups, query=");
             sb.append(query);

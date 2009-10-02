@@ -18,30 +18,30 @@
 
 package org.esco.ws4Internet2Grouper.util;
 
-import edu.internet2.middleware.grouper.GrantPrivilegeException;
 import edu.internet2.middleware.grouper.Group;
-import edu.internet2.middleware.grouper.GroupAddException;
-import edu.internet2.middleware.grouper.GroupDeleteException;
 import edu.internet2.middleware.grouper.GroupFinder;
-import edu.internet2.middleware.grouper.GroupModifyException;
-import edu.internet2.middleware.grouper.GroupNotFoundException;
-import edu.internet2.middleware.grouper.GrouperRuntimeException;
 import edu.internet2.middleware.grouper.GrouperSession;
-import edu.internet2.middleware.grouper.InsufficientPrivilegeException;
 import edu.internet2.middleware.grouper.Member;
-import edu.internet2.middleware.grouper.MemberAddException;
-import edu.internet2.middleware.grouper.MemberDeleteException;
 import edu.internet2.middleware.grouper.MemberFinder;
-import edu.internet2.middleware.grouper.MemberNotFoundException;
 import edu.internet2.middleware.grouper.Membership;
-import edu.internet2.middleware.grouper.SchemaException;
 import edu.internet2.middleware.grouper.Stem;
-import edu.internet2.middleware.grouper.StemAddException;
-import edu.internet2.middleware.grouper.StemDeleteException;
 import edu.internet2.middleware.grouper.StemFinder;
-import edu.internet2.middleware.grouper.StemModifyException;
-import edu.internet2.middleware.grouper.StemNotFoundException;
 import edu.internet2.middleware.grouper.SubjectFinder;
+import edu.internet2.middleware.grouper.exception.GrantPrivilegeException;
+import edu.internet2.middleware.grouper.exception.GroupAddException;
+import edu.internet2.middleware.grouper.exception.GroupDeleteException;
+import edu.internet2.middleware.grouper.exception.GroupModifyException;
+import edu.internet2.middleware.grouper.exception.GroupNotFoundException;
+import edu.internet2.middleware.grouper.exception.GrouperRuntimeException;
+import edu.internet2.middleware.grouper.exception.InsufficientPrivilegeException;
+import edu.internet2.middleware.grouper.exception.MemberAddException;
+import edu.internet2.middleware.grouper.exception.MemberDeleteException;
+import edu.internet2.middleware.grouper.exception.MemberNotFoundException;
+import edu.internet2.middleware.grouper.exception.SchemaException;
+import edu.internet2.middleware.grouper.exception.StemAddException;
+import edu.internet2.middleware.grouper.exception.StemDeleteException;
+import edu.internet2.middleware.grouper.exception.StemModifyException;
+import edu.internet2.middleware.grouper.exception.StemNotFoundException;
 import edu.internet2.middleware.subject.Subject;
 import edu.internet2.middleware.subject.SubjectNotFoundException;
 import edu.internet2.middleware.subject.SubjectNotUniqueException;
@@ -578,6 +578,23 @@ public class GrouperUtil  {
     }
 
     /**
+     * Gives the id of the owner of a memebrship.
+     * @param membership The considered membership.
+     * @return The id of the owner of the membership if the owner is found, empty string otherwise.
+     */
+    private String retrieveMembershipOwnerIdSafe(final Membership membership) {
+        String id = "";
+        try {
+            id = membership.getCreator().getSubject().getId();
+        } catch (SubjectNotFoundException e) {
+            LOGGER.warn(e, e);
+        } catch (MemberNotFoundException e) {
+            LOGGER.warn(e, e);
+        }
+        return id;
+    }
+    
+    /**
      * Retrieves the groups managed by the module for a given user.
      * @param session The current grouper session.
      * @param userId The id of the considered user.
@@ -587,8 +604,12 @@ public class GrouperUtil  {
     public GrouperOperationResultDTO retrieveManagedGroups(final GrouperSession session, 
             final String userId, 
             final Set<String> result) {
+        
+         
+       
         try {
-            final Subject subject = SubjectFinder.findById(userId);
+            Subject subject = SubjectFinder.findById(userId);
+            final String managerId = session.getSubject().getId();
             final Member member = MemberFinder.findBySubject(session, subject);
             @SuppressWarnings("unchecked")
             final Set memberships = member.getImmediateMemberships();
@@ -596,7 +617,8 @@ public class GrouperUtil  {
             for (Object o : memberships) {
                 final Membership m = (Membership) o;
                 final Group g = m.getGroup();
-                if (session.getSubject().equals(m.getCreator().getSubject())) {
+                final String ownerId = retrieveMembershipOwnerIdSafe(m);
+                if (managerId.equals(ownerId)) {
                     result.add(g.getName());
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Group " + g.getName() + " is managed by the module for user " + userId + ".");
@@ -604,7 +626,6 @@ public class GrouperUtil  {
                 } else {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Group " + g.getName() + " is not managed by the module for user " + userId + ".");
-
                     }
                 }
             } 
@@ -617,9 +638,6 @@ public class GrouperUtil  {
             LOGGER.error(e, e);
             return new GrouperOperationResultDTO(e);
         } catch (GrouperRuntimeException e) {
-            LOGGER.error(e, e);
-            return new GrouperOperationResultDTO(e);
-        } catch (MemberNotFoundException e) {
             LOGGER.error(e, e);
             return new GrouperOperationResultDTO(e);
         } catch (SubjectNotUniqueException e) {
@@ -664,9 +682,6 @@ public class GrouperUtil  {
         } catch (SubjectNotUniqueException e) {
             LOGGER.error(e, e);
             return new GrouperOperationResultDTO(e);
-        } catch (MemberNotFoundException e) {
-            LOGGER.error(e, e);
-            return new GrouperOperationResultDTO(e);
         } catch (InsufficientPrivilegeException e) {
             LOGGER.error(e, e);
             return new GrouperOperationResultDTO(e);
@@ -689,7 +704,7 @@ public class GrouperUtil  {
     public GrouperOperationResultDTO removeFromManagedGroups(final GrouperSession session, 
             final String userId) {
         try {
-
+            final String managerId = session.getSubject().getId();
             final Subject subject = SubjectFinder.findById(userId);
             final Member member = MemberFinder.findBySubject(session, subject);
             @SuppressWarnings("unchecked")
@@ -698,7 +713,9 @@ public class GrouperUtil  {
             for (Object o : memberships) {
                 final Membership m = (Membership) o;
                 final Group g = m.getGroup();
-                if (session.getSubject().equals(m.getCreator().getSubject())) {
+                
+                final String ownerId = retrieveMembershipOwnerIdSafe(m);
+                if (managerId.equals(ownerId)) {
                     m.getGroup().deleteMember(subject);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Removes subject: " + userId 
@@ -710,7 +727,6 @@ public class GrouperUtil  {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("User " + userId + " not removed from " 
                                 + g.getName() + ": group not managed by the module.");
-
                     }
                 }
 
@@ -721,9 +737,6 @@ public class GrouperUtil  {
             LOGGER.error(e, e);
             return new GrouperOperationResultDTO(e);
         } catch (SubjectNotUniqueException e) {
-            LOGGER.error(e, e);
-            return new GrouperOperationResultDTO(e);
-        } catch (MemberNotFoundException e) {
             LOGGER.error(e, e);
             return new GrouperOperationResultDTO(e);
         } catch (InsufficientPrivilegeException e) {
@@ -766,11 +779,10 @@ public class GrouperUtil  {
                         folder.delete();
                         handlesEmptyFolderIfNeeded(session, containingFolder);
 
-
-
                         if (LOGGER.isInfoEnabled()) {
                             LOGGER.info("The folder " + folderName + " is deleted as it is empty.");
                         }
+                        
                     } else {
                         // The folder still contains children so it is not deleted.
                         if (LOGGER.isDebugEnabled()) {
@@ -991,14 +1003,14 @@ public class GrouperUtil  {
             final Group group = groupWrapper.asGroup();
             if (group.hasMember(subj)) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Subejct " + subjectId 
+                    LOGGER.debug("Subject " + subjectId 
                             + " already member of group: " 
                             + definition.getPath());
                 }
             } else {
                 group.addMember(subj);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Subejct " + subjectId 
+                    LOGGER.debug("Subject " + subjectId 
                             + " added as member of group: " 
                             + definition.getPath());
                 }

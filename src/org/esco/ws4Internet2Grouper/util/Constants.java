@@ -21,7 +21,8 @@
  */
 package org.esco.ws4Internet2Grouper.util;
 
-import edu.internet2.middleware.grouper.Privilege;
+import edu.internet2.middleware.grouper.privs.Privilege;
+
 
 /**
  * Constants.
