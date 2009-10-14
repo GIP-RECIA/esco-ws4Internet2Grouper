@@ -103,6 +103,36 @@
                     </group-template>
                 </folder>
             </folder>
+
+            <folder extension="sakai" 
+                    display-extension="Sakai"
+                    description="Racine pour les groupes d'administration de Sakai"
+                    create="true">
+                
+                <group extension="central"
+                       display-extension="Administration centrale Sakai" 
+                       description="Administrateurs centraux de Sakai"
+                       create="true"/>
+                
+                <folder extension="local" 
+                        display-extension="Administration locale Sakai"
+                        description="Administrateurs locaux de Sakai"
+                        preexisting="false"
+                        create="true">
+                    
+                    <group-template extension="sakai_%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="Sakai %NOM_ETAB%"
+                                    description="Administration de Sakai pour l'etablissement %NOM_ETAB%" 
+                                    create="true">
+                        <privileges>
+                            <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                            <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                            <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                        </privileges>
+                    </group-template>
+                </folder>
+            </folder>
+
             <!--  -->
             <folder extension="CAHIER_TEXTE_CAEN" 
                     display-extension="Cahier de texte"
@@ -326,6 +356,23 @@
                      </privileges>
 			      </group-template>
                </folder>
+               <folder extension="encyclopedies" 
+                       display-extension="Encyclopédies"
+                       description="Utilisateurs des encyclopédies dans Esup-Lecture"
+                       preexisting="false"
+                       create="true">
+					
+			      <group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                  display-extension="%NOM_ETAB%"
+                                  description="Utilisateur des encyclopedies pour l'établissement %NOM_ETAB%"
+                                  create="true">
+                     <privileges>
+                        <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                        <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                        <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                     </privileges>
+			      </group-template>
+               </folder>
                
             </folder>
             
@@ -385,12 +432,20 @@
                              display-extension="%NOM_ETAB%_%UAI_ETAB%"
                              description="Racine pour les groupes de l'établissement %NOM_ETAB%">
                 <privileges>
-                    <privilege right="GROUP_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
-                    <privilege right="FOLDER_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                     <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                     <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                     <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="true"/>
                 </privileges>
+                
+                <folder-template extension="groupes_locaux"
+                                 display-extension="Groupes Locaux"
+                                 description="Racine pour les groupes locaux de l'établissement %NOM_ETAB%"
+                                 create="true">
+                   <privileges>             
+                      <privilege right="GROUP_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                      <privilege right="FOLDER_CREATION" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                   </privileges>
+                </folder-template>
                 
                 <folder-template extension="%NIVEAU%"
                                  display-extension="Niveau %NIVEAU%"
