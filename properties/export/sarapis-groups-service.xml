@@ -120,8 +120,8 @@
                         preexisting="false"
                         create="true">
                     
-                    <group-template extension="sakai_%NOM_ETAB%_%UAI_ETAB%"
-                                    display-extension="Sakai %NOM_ETAB%"
+                    <group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
                                     description="Administration de Sakai pour l'etablissement %NOM_ETAB%" 
                                     create="true">
                         <privileges>
