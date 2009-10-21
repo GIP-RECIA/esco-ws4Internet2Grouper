@@ -243,6 +243,23 @@
                        </privileges>
 					</group-template>
             </folder> 
+            <folder extension="Courriel_Enseignants" 
+                    display-extension="Courriel pour les enseignants"
+                    description="Accès au canal Courriel pour les enseignants"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal Courriel pour les enseignants pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder> 
             
             <folder extension="Espace_Moodle" 
                     display-extension="Espace Moodle"
