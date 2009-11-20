@@ -41,7 +41,7 @@ hibernate.connection.username         = grouper
 # If you are using an empty password, depending upon your version of
 # Java and Ant you may need to specify a password of "".
 # Note: you can keep passwords external and encrypted: https://bugs.internet2.edu/jira/browse/GRP-122
-hibernate.connection.password         = grouper
+hibernate.connection.password         = password
 hibernate.connection.autocommit       = false
 
 # Use c3p0 connection pooling (since dbcp not supported in hibernate anymore)

@@ -428,6 +428,24 @@
                        </privileges>
 					</group-template>
             </folder>
+            
+            <folder extension="Lecture_annonces" 
+                    display-extension="Lecture des annonces"
+                    description="Accès au canal de lecture des annonces"
+                    preexisting="false"
+                    create="true">
+					
+					<group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal de lecture des annonces pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+					</group-template>
+            </folder>
 
         </folder>
         

@@ -13,8 +13,9 @@
 		webapp/WEB-INF/lib/*
 		properties/**/*.xml
 		properties/export/*.dtd
+		properties/export/*.example
 		properties/logging/log4j.properties
-		properties/grouper/*.properties
+		properties/grouper/*.example
 		utils/uPortal/*.xml
 	" />
 	

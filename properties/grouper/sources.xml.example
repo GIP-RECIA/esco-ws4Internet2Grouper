@@ -39,12 +39,12 @@ $Id: sources.example.xml,v 1.7 2008/11/22 21:39:14 mchyzer Exp $
     
       <init-param>
          <param-name>SECURITY_PRINCIPAL</param-name>
-         <param-value>cn=grouper,ou=administrateurs,dc=esco-centre,dc=fr</param-value>
+         <param-value>cn=grouper,ou=administrateurs,dc=xxx,dc=fr</param-value>
       </init-param>
 
       <init-param>
          <param-name>SECURITY_CREDENTIALS</param-name>
-         <param-value>ptnnQVCt</param-value>
+         <param-value>password</param-value>
       </init-param>
 
       <init-param>
