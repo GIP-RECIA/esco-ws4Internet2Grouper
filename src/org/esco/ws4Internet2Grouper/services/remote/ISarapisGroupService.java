@@ -38,7 +38,7 @@ public interface ISarapisGroupService {
      * @return The result object which contains the informations about how the operation
      * has been performed.
      */
-    GrouperOperationResultDTO addToGroups(final IPersonDescription personDescription);
+    GrouperOperationResultDTO addToGroups(final IEntityDescription personDescription);
     
     /**
      * Updates the memberships of a person.
@@ -46,7 +46,7 @@ public interface ISarapisGroupService {
      * @return The result object which contains the informations about how the operation
      * has been performed.
      */
-    GrouperOperationResultDTO updateMemberships(final IPersonDescription personDescription);
+    GrouperOperationResultDTO updateMemberships(final IEntityDescription personDescription);
     
     /**
      * Removes a person from all the groups, including the groups which are not managed by this service.
@@ -62,17 +62,4 @@ public interface ISarapisGroupService {
      */
     GrouperOperationResultDTO removeFromManagedGroups(final String userId);
     
-    /**
-     * Updates the establishment groups for an administrative employee.
-     * @param establishmentUAI The UAI of the establishment.
-     * @param establishmentName The name of the establishment.
-     * @param userId The id of the employee.
-     * @param function The function of the employee.
-     * @return The result object which contains the informations about how the operation
-     * has been performed.
-     */
-    GrouperOperationResultDTO updateAdministrativeToEstablishment(final String establishmentUAI,
-            final String establishmentName,
-            final String userId,
-            final String function);
 }
