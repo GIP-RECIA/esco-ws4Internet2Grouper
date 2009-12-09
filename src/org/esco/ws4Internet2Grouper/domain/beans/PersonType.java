@@ -28,7 +28,7 @@ import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
  * 4 déc. 08
  */
 public enum PersonType implements Serializable {
-    /** All type.*/
+    /** All types.*/
     ALL, 
     
     /** The members are the teachers.*/
@@ -44,7 +44,23 @@ public enum PersonType implements Serializable {
     TOS,
 
     /** The members are the parents. */
-    PARENT;
+    PARENT,
+    
+    /** Custom type for a specific local use. */
+    LOCAL1,
+    
+    /** Custom type for a specific local use. */
+    LOCAL2,
+    
+    /** Custom type for a specific local use. */
+    LOCAL3,
+    
+    /** Custom type for a specific local use. */
+    LOCAL4,
+    
+    /** Custom type for a specific local use. */
+    LOCAL5;
+    
 
     /**
      * Parse a string to a PersonType Instance.
@@ -63,6 +79,11 @@ public enum PersonType implements Serializable {
                     + PersonType.PARENT + ", " 
                     + PersonType.ADMINISTRATIVE + ", " 
                     + PersonType.TOS + ", " 
+                    + PersonType.LOCAL1 + ", " 
+                    + PersonType.LOCAL2 + ", " 
+                    + PersonType.LOCAL3 + ", " 
+                    + PersonType.LOCAL4 + ", " 
+                    + PersonType.LOCAL5 + ", " 
                     + PersonType.ALL + ".", e);
         }
     } 
