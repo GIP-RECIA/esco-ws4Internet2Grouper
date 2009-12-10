@@ -37,11 +37,66 @@
 	<bean id="DefinitionsManager"
 		class="org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager"
 		scope="singleton"/>
+		
+		
+		<bean name="grouperDelimCleaner" class="org.esco.ws4Internet2Grouper.domain.beans.Cleaner">
+			  <property name="replacedChar" value=":"/>
+			  <property name="regex" value="\s*:\s*"/>
+			  <property name="replacementString" value=" "/>
+		</bean>
+		<bean name="uPortalCleaner" class="org.esco.ws4Internet2Grouper.domain.beans.Cleaner">
+			  <property name="replacedChar" value="."/>
+			  <property name="regex" value="\s*\.\s*"/>
+			  <property name="replacementString" value=" "/>
+		</bean>
+		<bean name="ampersandCleaner" class="org.esco.ws4Internet2Grouper.domain.beans.Cleaner">
+			  <property name="replacedChar" value="&amp;"/>
+			  <property name="regex" value="\s*&amp;\s*"/>
+			  <property name="replacementString" value=" et "/>
+		</bean>
+		<bean name="commaCleaner" class="org.esco.ws4Internet2Grouper.domain.beans.Cleaner">
+			  <property name="replacedChar" value=","/> 
+			  <property name="regex" value="\s*,\s*"/>
+			  <property name="replacementString" value=" "/>
+		</bean>
+		<bean name="semicolonCleaner" class="org.esco.ws4Internet2Grouper.domain.beans.Cleaner">
+			  <property name="replacedChar" value=";"/>
+			  <property name="regex" value="\s*;\s*"/>
+			  <property name="replacementString" value=" "/>
+		</bean>
+		<bean name="slashCleaner" class="org.esco.ws4Internet2Grouper.domain.beans.Cleaner">
+			  <property name="replacedChar" value="/"/>
+			  <property name="regex" value="\s*\/\s*"/>
+			  <property name="replacementString" value=" "/>
+		</bean>
+		<bean name="singleQuoteCleaner" class="org.esco.ws4Internet2Grouper.domain.beans.Cleaner">
+			  <property name="replacedChar" value="'"/>
+			  <property name="regex" value="\s*'\s*"/>
+			  <property name="replacementString" value=" "/>
+		</bean>
+		<bean name="stringCleaner" class="org.esco.ws4Internet2Grouper.domain.beans.StringCleanersAggregator">
+			<property name="cleaners">
+				<list>
+					<ref bean = "grouperDelimCleaner"/>
+					<ref bean = "uPortalCleaner"/>
+					<ref bean = "ampersandCleaner"/>
+					<ref bean = "commaCleaner"/>
+					<ref bean = "semicolonCleaner"/>
+					<ref bean = "slashCleaner"/>
+					<ref bean = "singleQuoteCleaner"/>
+				</list>
+			</property>
+		</bean>		
 	
-	<bean id="GrouperUtil"
-		class="org.esco.ws4Internet2Grouper.util.GrouperUtil"
+	<bean name="disabledCleaner" class="org.esco.ws4Internet2Grouper.domain.beans.EmptyCleaner"/>
+	
+	<bean id="GrouperDAO"
+		class="org.esco.ws4Internet2Grouper.dao.GrouperDAO"
 		scope="singleton">
 		<property name="definitionsManager" ref="DefinitionsManager"/>		
+		<property name="extensionCleaner" ref="stringCleaner"/>		
+		<property name="displayExtensionCleaner" ref="disabledCleaner"/>		
+		<property name="descriptionCleaner" ref="disabledCleaner"/>		
 	</bean>
 		
 	<bean id="ParsingUtil"
@@ -50,7 +105,7 @@
 		<property name="definitionsManager" ref="DefinitionsManager"/>	
 		<property name="definitionsFileURI" value="properties/export/sarapis-groups-service.xml"/>
 		<property name="grouperSessionUtil" ref="GrouperSessionUtil"/>	
-		<property name="grouperUtil" ref="GrouperUtil"/>	
+		<property name="GrouperDAO" ref="GrouperDAO"/>	
 	</bean>
 	
 	<bean id="SGSXFire"
@@ -63,7 +118,7 @@
 		class="org.esco.ws4Internet2Grouper.services.remote.SarapisGroupServiceImpl"
 		scope="singleton">
 		<property name="grouperSessionUtil" ref="GrouperSessionUtil"/>		
-		<property name="grouperUtil" ref="GrouperUtil"/>		
+		<property name="GrouperDAO" ref="GrouperDAO"/>		
 		<property name="parsingUtil" ref="ParsingUtil"/>		
 		<property name="definitionsManager" ref="DefinitionsManager"/>		
 	</bean>
