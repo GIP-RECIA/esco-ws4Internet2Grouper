@@ -16,7 +16,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package org.esco.ws4Internet2Grouper.util;
+package org.esco.ws4Internet2Grouper.dao;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -55,25 +55,38 @@ import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
 import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
+import org.esco.ws4Internet2Grouper.domain.beans.IStringCleaner;
 import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition.Right;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
+import org.esco.ws4Internet2Grouper.util.Constants;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 /**
- * Util class for the grouper groups or stems manipulations.
+ * DAO for the Grouper groups or stems manipulations.
  * @author GIP RECIA - A. Deman
  * 29 juil. 08
  * 
  */
-public class GrouperUtil  {
+public class GrouperDAO implements InitializingBean {
 
     /** Logger. */
-    private static final Logger LOGGER = Logger.getLogger(GrouperUtil.class);
+    private static final Logger LOGGER = Logger.getLogger(GrouperDAO.class);
 
     /** The definition manager. */
     private GroupOrFolderDefinitionsManager definitionsManager;
+    
+    /** Cleaner for the groups and stem extension.*/
+    private IStringCleaner extensionCleaner;
+    
+    /** Cleaner for the display extensions.*/
+    private IStringCleaner displayExtensionCleaner;
+    
+    /** Cleaner for the description. */
+    private IStringCleaner descriptionCleaner;
 
-    /** Flag to detemine the behaviour for the empty groups when removing
+    /** Flag to determine the behavior for the empty groups when removing
      * a member. */
     private boolean deleteEmptyGroups;
 
@@ -86,7 +99,7 @@ public class GrouperUtil  {
     /**
      * Builds an instance of GrouperUtil.
      */
-    public GrouperUtil() {
+    public GrouperDAO() {
         super();
     }
 
@@ -103,7 +116,7 @@ public class GrouperUtil  {
 
     /**
      * Handles the privileges for a folder.
-     * This privileges are added if the folder is empty and is not a preexistiong one.
+     * This privileges are added if the folder is empty and is not a pre-existing one.
      * @param session The grouper session.
      * @param groupOrStem The folder.
      * @param definition The folder definition which contains the privileges
@@ -192,7 +205,6 @@ public class GrouperUtil  {
 
         if (!definition.isPreexisting()) {
 
-
             final Group group = groupOrStem.asGroup();
             final String groupName = group.getName();
             
@@ -261,8 +273,8 @@ public class GrouperUtil  {
 
 
     /**
-     * Handles the memeberships of a group.
-     * The group is added as member of the groups sepecified in the group definition
+     * Handles the memberships of a group.
+     * The group is added as member of the groups specified in the group definition
      * if it is empty and is not a preexisting group. 
      * @param session The grouper session.
      * @param groupOrStem The group.
@@ -498,6 +510,23 @@ public class GrouperUtil  {
             }
         }
     }
+    
+    /**
+     * Checks the beans injection.
+     * @throws Exception
+     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+     */
+	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(this.extensionCleaner, "The property extensionCleaner in the class " 
+				+ getClass().getName() + " cannot be null.");
+		
+		Assert.notNull(this.displayExtensionCleaner, "The property displayExtensionCleaner in the class " 
+				+ getClass().getName() + " cannot be null.");
+		
+		Assert.notNull(this.descriptionCleaner, "The property descriptionCleaner in the class " 
+				+ getClass().getName() + " cannot be null.");
+		
+	}
 
     /**
      * Creates a group or a folder.
@@ -526,12 +555,17 @@ public class GrouperUtil  {
             handlePrivilegesForFolder(session, containingFolderWrapper, containingDef, values);
             final Stem containingFolder = containingFolderWrapper.asStem();
 
-            // The defintion denotes a folder to create.
+            // Cleans the extension, displayExtention and description of the created
+            // group or folder.
+            final String extension = extensionCleaner.clean(definition.getExtension());
+            final String dispExtension = displayExtensionCleaner.clean(definition.getDisplayExtension());
+            final String description = descriptionCleaner.clean(definition.getDescription());
+            
+            // The definition denotes a folder to create.
             if (definition.isFolder()) {
 
-                final Stem folder = containingFolder.addChildStem(definition.getExtension(), 
-                        definition.getDisplayExtension());
-                folder.setDescription(definition.getDescription());
+                final Stem folder = containingFolder.addChildStem(extension, dispExtension); 
+                folder.setDescription(description);
 
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info(">>> Folder " + definition.getPath() + " created.");
@@ -543,9 +577,8 @@ public class GrouperUtil  {
             }
 
             // The definition denotes a group to create.
-            final Group group = containingFolder.addChildGroup(definition.getExtension(), 
-                    definition.getDisplayExtension());
-            group.setDescription(definition.getDescription());
+            final Group group = containingFolder.addChildGroup(extension, dispExtension);
+            group.setDescription(description);
 
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info(">>> Group " + definition.getPath() + " created.");
@@ -1173,4 +1206,52 @@ public class GrouperUtil  {
     public void setForcePrivileges(final boolean forcePrivileges) {
         this.forcePrivileges = forcePrivileges;
     }
+
+	/**
+	 * Getter for extensionCleaner.
+	 * @return extensionCleaner.
+	 */
+	public IStringCleaner getExtensionCleaner() {
+		return extensionCleaner;
+	}
+
+	/**
+	 * Setter for extensionCleaner.
+	 * @param extensionCleaner the new value for extensionCleaner.
+	 */
+	public void setExtensionCleaner(final IStringCleaner extensionCleaner) {
+		this.extensionCleaner = extensionCleaner;
+	}
+
+	/**
+	 * Getter for displayExtensionCleaner.
+	 * @return displayExtensionCleaner.
+	 */
+	public IStringCleaner getDisplayExtensionCleaner() {
+		return displayExtensionCleaner;
+	}
+
+	/**
+	 * Setter for displayExtensionCleaner.
+	 * @param displayExtensionCleaner the new value for displayExtensionCleaner.
+	 */
+	public void setDisplayExtensionCleaner(final IStringCleaner displayExtensionCleaner) {
+		this.displayExtensionCleaner = displayExtensionCleaner;
+	}
+
+	/**
+	 * Getter for descriptionCleaner.
+	 * @return descriptionCleaner.
+	 */
+	public IStringCleaner getDescriptionCleaner() {
+		return descriptionCleaner;
+	}
+
+	/**
+	 * Setter for descriptionCleaner.
+	 * @param descriptionCleaner the new value for descriptionCleaner.
+	 */
+	public void setDescriptionCleaner(final IStringCleaner descriptionCleaner) {
+		this.descriptionCleaner = descriptionCleaner;
+	}
 }

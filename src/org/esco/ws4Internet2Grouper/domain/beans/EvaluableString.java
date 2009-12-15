@@ -16,9 +16,6 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-/**
- * 
- */
 package org.esco.ws4Internet2Grouper.domain.beans;
 
 import java.io.Serializable;

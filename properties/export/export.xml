@@ -105,7 +105,7 @@
 		<property name="definitionsManager" ref="DefinitionsManager"/>	
 		<property name="definitionsFileURI" value="properties/export/sarapis-groups-service.xml"/>
 		<property name="grouperSessionUtil" ref="GrouperSessionUtil"/>	
-		<property name="GrouperDAO" ref="GrouperDAO"/>	
+		<property name="grouperDAO" ref="GrouperDAO"/>	
 	</bean>
 	
 	<bean id="SGSXFire"
@@ -118,7 +118,7 @@
 		class="org.esco.ws4Internet2Grouper.services.remote.SarapisGroupServiceImpl"
 		scope="singleton">
 		<property name="grouperSessionUtil" ref="GrouperSessionUtil"/>		
-		<property name="GrouperDAO" ref="GrouperDAO"/>		
+		<property name="grouperDAO" ref="GrouperDAO"/>		
 		<property name="parsingUtil" ref="ParsingUtil"/>		
 		<property name="definitionsManager" ref="DefinitionsManager"/>		
 	</bean>

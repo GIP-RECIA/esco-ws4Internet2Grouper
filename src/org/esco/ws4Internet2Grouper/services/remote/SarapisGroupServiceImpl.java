@@ -30,6 +30,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.esco.ws4Internet2Grouper.cache.SGSCache;
+import org.esco.ws4Internet2Grouper.dao.GrouperDAO;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
@@ -38,7 +39,6 @@ import org.esco.ws4Internet2Grouper.domain.beans.PersonType;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.esco.ws4Internet2Grouper.parsing.SGSParsingUtil;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
-import org.esco.ws4Internet2Grouper.util.GrouperUtil;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -64,8 +64,8 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 	/** The grouper session util class. */
 	private GrouperSessionUtil grouperSessionUtil;
 
-	/** The Grouper util class. */
-	private GrouperUtil grouperUtil;
+	/** The Grouper DAO class. */
+	private GrouperDAO grouperDAO;
 
 	/** Parsing Util. */
 	private SGSParsingUtil parsingUtil;
@@ -88,7 +88,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 				"property definitionManager of class " + this.getClass().getName() 
 				+ " can not be null");
 
-		Assert.notNull(this.grouperUtil, 
+		Assert.notNull(this.grouperDAO, 
 				"property grouperUtil of class " + this.getClass().getName() 
 				+ " can not be null");
 
@@ -116,7 +116,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
 		while (preexitingIt.hasNext()) {
 			final GroupOrFolderDefinition definition = preexitingIt.next();
-			if (grouperUtil.exists(session, definition)) {
+			if (grouperDAO.exists(session, definition)) {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Preexisting definition " + definition.getPath() + " checked.");
 				}
@@ -149,7 +149,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 		final Iterator<GroupOrFolderDefinition> createIt = definitionsManager.getGroupsOrFoldersToCreate();
 		while (createIt.hasNext()) {
 			final GroupOrFolderDefinition def = createIt.next();
-			final GroupOrStem result = grouperUtil.retrieveOrCreate(session, def);
+			final GroupOrStem result = grouperDAO.retrieveOrCreate(session, def);
 
 			if (result == null) {
 				// Error : One group or folder definition can't be retrieved or created.
@@ -201,7 +201,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 					LOGGER.debug("Definition: " + def + ".");
 				}
 
-				final GroupOrStem result = grouperUtil.retrieveOrCreate(session, def, attributes);
+				final GroupOrStem result = grouperDAO.retrieveOrCreate(session, def, attributes);
 				if (result == null) {
 					final StringBuilder msg = new StringBuilder("Error while creating empty ");
 					msg.append("group or folder template for the definition: ");
@@ -247,7 +247,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 		final GrouperSession session = grouperSessionUtil.createSession();
 		final Set<String> previousManagedGroups =  new HashSet<String>();
 		GrouperOperationResultDTO result = 
-			grouperUtil.retrieveManagedGroups(session, userId, previousManagedGroups);
+			grouperDAO.retrieveManagedGroups(session, userId, previousManagedGroups);
 
 		if (result.isError()) {
 			LOGGER.error("Error while retrieving the previous managed groups for user: " + userId);
@@ -315,7 +315,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 			definitionsManager.getMemberships(type, attributes);
 
 		while (specificMemberships.hasNext()) {
-			final GrouperOperationResultDTO result = grouperUtil.addMember(session, 
+			final GrouperOperationResultDTO result = grouperDAO.addMember(session, 
 					specificMemberships.next(), userId, attributes);
 			if (result.isError()) {
 				return result;
@@ -327,7 +327,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 			definitionsManager.getMemberships(PersonType.ALL, attributes);
 
 		while (allMemberships.hasNext()) {
-			final GrouperOperationResultDTO result = grouperUtil.addMember(session, 
+			final GrouperOperationResultDTO result = grouperDAO.addMember(session, 
 					allMemberships.next(), userId, attributes);
 			if (result.isError()) {
 				return result;
@@ -372,7 +372,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 							+ groupDefinition.getPath());
 				}
 			} else {
-				final GrouperOperationResultDTO result = grouperUtil.addMember(session, 
+				final GrouperOperationResultDTO result = grouperDAO.addMember(session, 
 						groupDefinition, userId, attributes);
 
 				if (result.isError()) {
@@ -399,7 +399,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 							+ groupDefinition.getPath());
 				}
 			} else {
-				final GrouperOperationResultDTO result = grouperUtil.addMember(session, 
+				final GrouperOperationResultDTO result = grouperDAO.addMember(session, 
 						groupDefinition, userId, attributes);
 				if (result.isError()) {
 					return result;
@@ -414,7 +414,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 
 		// Removes the user from its old managed groups.
 		final GrouperOperationResultDTO result = 
-			grouperUtil.removeFromGroups(session, userId, previousManagedGroups);
+			grouperDAO.removeFromGroups(session, userId, previousManagedGroups);
 		if (result.isError()) {
 			return result;
 		}
@@ -439,19 +439,19 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 	}
 
 	/**
-	 * Getter for grouperUtil.
-	 * @return grouperUtil.
+	 * Getter for grouperDAO.
+	 * @return grouperDAO.
 	 */
-	public GrouperUtil getGrouperUtil() {
-		return grouperUtil;
+	public GrouperDAO getGrouperDAO() {
+		return grouperDAO;
 	}
 
 	/**
 	 * Setter for grouperUtil.
-	 * @param grouperUtil the new value for grouperUtil.
+	 * @param grouperDAO the new value for grouperDAO.
 	 */
-	public void setGrouperUtil(final GrouperUtil grouperUtil) {
-		this.grouperUtil = grouperUtil;
+	public void setGrouperDAO(final GrouperDAO grouperDAO) {
+		this.grouperDAO = grouperDAO;
 	}
 
 	/**
@@ -495,11 +495,10 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 	 */
 	public GrouperOperationResultDTO addToGroups(final IEntityDescription personDescription) {
 		GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
-		Iterator<String[]> it = personDescription.iterator();
-		while (it.hasNext()) {
+		for (String[] attrValues : personDescription.getValuesList()) {
 			result =  addToGroups(personDescription.getType(), 
 					personDescription.getId(),
-					it.next());
+					attrValues);
 			if (result.isError()) {
 				return result;
 			}
@@ -515,10 +514,9 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 	 */
 	public GrouperOperationResultDTO updateMemberships(final IEntityDescription personDescription) {
 		GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
-		Iterator<String[]> it = personDescription.iterator();
-		while (it.hasNext()) {
+		for (String[] attrValues : personDescription.getValuesList()) {
 			result =  updateGroups(personDescription.getType(), 
-					personDescription.getId(), it.next());
+					personDescription.getId(), attrValues);
 			if (result.isError()) {
 				return result;
 			}
@@ -540,7 +538,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 			LOGGER.debug(SEP);
 		}
 		final GrouperSession session = grouperSessionUtil.createSession();
-		GrouperOperationResultDTO result = grouperUtil.removeFromAllGroups(session, userId);
+		GrouperOperationResultDTO result = grouperDAO.removeFromAllGroups(session, userId);
 
 		if (result.isError()) {
 			LOGGER.error("Error while removing from groups for user: " + userId);
@@ -570,7 +568,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 			LOGGER.debug(SEP);
 		}
 		final GrouperSession session = grouperSessionUtil.createSession();
-		GrouperOperationResultDTO result = grouperUtil.removeFromManagedGroups(session, userId);
+		GrouperOperationResultDTO result = grouperDAO.removeFromManagedGroups(session, userId);
 
 		if (result.isError()) {
 			LOGGER.error("Error while removing from groups for user: " + userId);

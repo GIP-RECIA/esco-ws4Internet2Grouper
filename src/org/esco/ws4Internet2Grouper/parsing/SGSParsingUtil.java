@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.esco.ws4Internet2Grouper.dao.GrouperDAO;
 import org.esco.ws4Internet2Grouper.domain.beans.EvaluableString;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
@@ -44,7 +45,6 @@ import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.TemplateElement;
 import org.esco.ws4Internet2Grouper.exceptions.UnknownTemplateElementTempateElement;
 import org.esco.ws4Internet2Grouper.util.GrouperSessionUtil;
-import org.esco.ws4Internet2Grouper.util.GrouperUtil;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 import org.xml.sax.Attributes;
@@ -118,7 +118,7 @@ implements InitializingBean, EntityResolver {
     /** Locator. */
     private Locator locator;
 
-    /** Recursive administrating paths. */
+    /** Recursive administration paths. */
     private Set<PrivilegeDefinition> recPrivileges = new HashSet<PrivilegeDefinition>();
 
     /** Starting path of recursive privileges. */
@@ -144,8 +144,8 @@ implements InitializingBean, EntityResolver {
     /** The grouper session util to parameter. */
     private GrouperSessionUtil grouperSessionUtil;
     
-    /** The Grouper Util instance to parameter. */
-    private GrouperUtil grouperUtil;
+    /** The Grouper dao instance to parameter. */
+    private GrouperDAO grouperDAO;
 
     /**
      * Builds an instance of SGSParsingUtil.
@@ -169,7 +169,7 @@ implements InitializingBean, EntityResolver {
                 "property grouperSessionUtil of class " + this.getClass().getName() 
                 + " can not be null.");
         
-        Assert.notNull(this.grouperUtil, 
+        Assert.notNull(this.grouperDAO, 
                 "property grouperUtil of class " + this.getClass().getName() 
                 + " can not be null.");
         
@@ -587,19 +587,19 @@ implements InitializingBean, EntityResolver {
 
                 // Deletion of the empty folders.
                 LOGGER.debug("Setting delete empty folders to: " + attributeHandler.getValue());
-                grouperUtil.setDeleteEmptyFolders(attributeHandler.getValue());
+                grouperDAO.setDeleteEmptyFolders(attributeHandler.getValue());
                 
             } else if (DEL_EMPTY_GROUPS_TAG.equals(localName)) {
              
                 // Deletion of the empty groups.                
                 LOGGER.debug("Setting delete empty groups to: " + attributeHandler.getValue());
-                grouperUtil.setDeleteEmptyGroups(attributeHandler.getValue());
+                grouperDAO.setDeleteEmptyGroups(attributeHandler.getValue());
                 
             } else if (FORCE_PRIV_TAG.equals(localName)) {
 
                 // Force privileges flag.
                 LOGGER.debug("Setting force privileges to: " + attributeHandler.getValue());
-                grouperUtil.setForcePrivileges(attributeHandler.getValue());
+                grouperDAO.setForcePrivileges(attributeHandler.getValue());
                 
             } else if (TEMPLATE_ELT_TAG.equals(localName)) {
 
@@ -736,7 +736,7 @@ implements InitializingBean, EntityResolver {
         saxReader.setEntityResolver(this);
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("---------------------------------");
-            LOGGER.info("++Parsing definition file: "); 
+            LOGGER.info("Parsing definition file: "); 
             LOGGER.info(definitionsFileURI);
             LOGGER.info("---------------------------------");
         }
@@ -806,19 +806,19 @@ implements InitializingBean, EntityResolver {
     }
 
     /**
-     * Getter for grouperUtil.
-     * @return grouperUtil.
+     * Getter for grouperDAO.
+     * @return grouperDAO.
      */
-    public GrouperUtil getGrouperUtil() {
-        return grouperUtil;
+    public GrouperDAO getGrouperDAO() {
+        return grouperDAO;
     }
 
     /**
-     * Setter for grouperUtil.
-     * @param grouperUtil the new value for grouperUtil.
+     * Setter for grouperDAO.
+     * @param grouperDAO the new value for grouperDAO.
      */
-    public void setGrouperUtil(final GrouperUtil grouperUtil) {
-        this.grouperUtil = grouperUtil;
+    public void setGrouperDAO(final GrouperDAO grouperDAO) {
+        this.grouperDAO = grouperDAO;
     }
 
 

@@ -20,6 +20,7 @@ package org.esco.ws4Internet2Grouper.services.remote;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 import org.esco.ws4Internet2Grouper.domain.beans.PersonType;
 
@@ -30,7 +31,7 @@ import org.esco.ws4Internet2Grouper.domain.beans.PersonType;
  * 9 December 2009
  *
  */
-public interface IEntityDescription extends Serializable, Iterable<String[]> {
+public interface IEntityDescription extends Serializable {
 
 	  
     /**
@@ -101,15 +102,45 @@ public interface IEntityDescription extends Serializable, Iterable<String[]> {
     void setGroupedAttributeValues(final int position, final Collection<String> groupedAttributeValues);
     
     /**
+     * The grouped attributes can be used when only one attribute has different values. The aim is to reduce
+     * the requests.
+     * For instance if an entity has those attributes values: <br/>
+     * 1 => v1<br/>
+     * 2 => v2.1, v2.2<br/>
+     * 3 => None
+     * 4 => v4<br/>
+     * 
+     * Using setGroupedAttributeValues(2, &lt;v2.1, v2.2&gt; while produce the result:
+     * [v1, v2.1, "", v4] and [v1, v2.2, "", v4]<br/> 
+     * @param position The position of the grouped attribute values.
+     * @param groupedAttributeValues The distinct values for the attribute at the position index.
+     */
+    void setGroupedAttributeValues(final int position, final String[] groupedAttributeValues);
+    
+    
+    /**
      * Gives the grouped attribute values.
      * @return The values for the attribute.
      */
-    Collection<String> getGroupedAttributeValues();
+    String[] getGroupedAttributeValues();
     
     /**
      * Tests if a grouped attribute values is used.
      * @return True if a grouped attribute values is used.
      */
     boolean hasGroupedAttributeValues();
+    
+    /**
+     * Test is an attribute is set for a given position.
+     * @param position The position to test.
+     * @return True if the attribute is set for the given position.
+     */
+    boolean hasAttributeValue(final int position);
+    
+    /**
+     * Gives the values.
+     * @return The values.
+     */
+    String[][]  getValuesList();
 	
 }

@@ -530,7 +530,7 @@
 			<ispropertytrue property="devel" />
 			<then>
 				<copy todir="${build.classes}/properties" >
-					<fileset dir="${commons.props.dir}" />
+					<fileset dir="${commons.props.dir}" excludes="**/logging/*example.properties"/>
 				</copy>
 				<copy todir="${build.dir}" >
 					<fileset dir="${commons.webapp.dir}" />

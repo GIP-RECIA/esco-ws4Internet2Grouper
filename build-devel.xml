@@ -14,7 +14,7 @@
 		properties/**/*.xml
 		properties/export/*.dtd
 		properties/export/*.example
-		properties/logging/log4j.properties
+		properties/logging/*.example
 		properties/grouper/*.example
 		utils/uPortal/*.xml
 	" />
@@ -59,9 +59,14 @@
 		tmp/**/* 
 		website/**/*
 		apache-tomcat-*/**/* 
+		properties/export/sarapis-groups-service.xml
+		properties/grouper/*.xml
+		properties/grouper/*.properties
+		properties/logging/log4j.properties
 		properties/i18n/bundles/Custom_*.properties
 	" />
-		
+	<property name="commons.zip-files.exclude" value="**/logging/*example.properties"/>
+	
 	<property name="commons.basedir" value="${basedir}/../esup-commons"/>
 	
 	<import file="${commons.basedir}/build-commons-devel.xml"/>
@@ -80,7 +85,7 @@
 		
 	<target name="_restart" depends="_stop,_start" description="deploy and restart Tomcat" />
 
-	<target name="_dist" depends="_commons-dist" description="build ZIP archives" />
+	<target name="_dist" depends="_commons-dist, sgs-ws-client.lib" description="build ZIP archives" />
 
 	<target name="_doc" depends="_commons-doc" description="build the web site" />
 
@@ -108,8 +113,59 @@
 		<echo>Refactoring done.</echo>
 	</target>
 
+	<target name="sgs-ws-client.lib"  depends="compile">
+			<property file="${basedir}/version.properties" />
+			<property name="dist.dir" value="${basedir}/dist"/>
+			<delete file="${dist.dir}/sgs-ws-client-${app.version}.jar"/>	
+			<copy todir="${build.classes}">
+				<fileset dir="${src.dir}" 
+					includes="org/esco/ws4Internet2Grouper/services/remote/ISarapisGroupService.java, 
+	                   org/esco/ws4Internet2Grouper/services/remote/IEntityDescription.java,
+			           org/esco/ws4Internet2Grouper/services/remote/EntityDescriptionImpl.java,
+			           org/esco/ws4Internet2Grouper/services/remote/EntityDescriptionValuesIterator.java,
+			           org/esco/ws4Internet2Grouper/exceptions/WS4GrouperException.java,
+			           org/esco/ws4Internet2Grouper/domain/beans/GrouperOperationResultDTO.java,
+		               org/esco/ws4Internet2Grouper/domain/beans/PersonType.java"/>
+			</copy>
+			<jar destfile="${dist.dir}/sgs-ws-client-${app.version}.jar"
+	       		 basedir="${build.classes}"
+	       		 includes="org/esco/ws4Internet2Grouper/services/remote/ISarapisGroupService.class, 
+		                   org/esco/ws4Internet2Grouper/services/remote/IEntityDescription.class,
+				           org/esco/ws4Internet2Grouper/services/remote/EntityDescriptionValuesIterator.class,
+				           org/esco/ws4Internet2Grouper/services/remote/EntityDescriptionImpl.class,
+				           org/esco/ws4Internet2Grouper/exceptions/WS4GrouperException.class,
+				           org/esco/ws4Internet2Grouper/domain/beans/GrouperOperationResultDTO.class,
+			               org/esco/ws4Internet2Grouper/domain/beans/PersonType.class,
+                           org/esco/ws4Internet2Grouper/services/remote/ISarapisGroupService.java, 
+					       org/esco/ws4Internet2Grouper/services/remote/IEntityDescription.java,
+					       org/esco/ws4Internet2Grouper/services/remote/EntityDescriptionValuesIterator.java,
+                           org/esco/ws4Internet2Grouper/services/remote/EntityDescriptionImpl.java,
+                           org/esco/ws4Internet2Grouper/exceptions/WS4GrouperException.java,
+                           org/esco/ws4Internet2Grouper/domain/beans/GrouperOperationResultDTO.java,
+                           org/esco/ws4Internet2Grouper/domain/beans/PersonType.java" />
+		</target>
 	
-
+	<target name="weaving" description="Performs the weaving" >
+			<if>
+				
+					
+			<ispropertytrue property="profiling" />	
+			<then>					
+				<echo >
+	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	Profiling Activated
+	Should not be used in production environment
+	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	
+				</echo>
+						
+				
+			<taskdef name="awc" classname="org.codehaus.aspectwerkz.compiler.AspectWerkzCTask"/>
+			<awc verbose="true" taskverbose="true" details="true" definition="webapp/WEB-INF/aop.xml" classpathref="compile.classpath">
+					<target path="build/WEB-INF/classes/"/>
+			</awc>
+			</then>
+		</if>					
+		</target>
 	
 </project>
 
