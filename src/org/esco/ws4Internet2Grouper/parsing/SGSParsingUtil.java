@@ -91,7 +91,7 @@ implements InitializingBean, EntityResolver {
     /** Group template tag. */
     private static final String GROUP_TEMPL_TAG = "group-template";
 
-    /** Administrated by tag. */
+    /** Privilege tag. */
     private static final String PRIVILEGE_TAG = "privilege";
 
     /** Member of tag. */
@@ -603,7 +603,7 @@ implements InitializingBean, EntityResolver {
                 
             } else if (TEMPLATE_ELT_TAG.equals(localName)) {
 
-                // Defintion of a template element.
+                // Definition of a template element.
                 handleTemplateElement();
 
             } else if (PRIVILEGE_TAG.equals(localName)) {

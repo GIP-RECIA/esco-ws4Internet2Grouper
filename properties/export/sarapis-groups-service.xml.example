@@ -446,6 +446,25 @@
                        </privileges>
 					</group-template>
             </folder>
+            
+            <folder extension="Scolarite_net"
+                    display-extension="Scolarite.net"
+                    description="Accès au canal scolarite.net"
+                    preexisting="false"
+                    create="true">
+
+                   <group-template extension="%NOM_ETAB%_%UAI_ETAB%"
+                                    display-extension="%NOM_ETAB%"
+                                    description="Utilisateurs du canal scolarite.net pour l'établissement %NOM_ETAB%"
+                                    create="true">
+                       <privileges>
+                          <privilege right="Update" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="Read" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                          <privilege right="View" path="esco:admin:local:admin_%NOM_ETAB%_%UAI_ETAB%" recursive="false"/>
+                       </privileges>
+                  </group-template>
+            </folder>
+            
 
         </folder>
         

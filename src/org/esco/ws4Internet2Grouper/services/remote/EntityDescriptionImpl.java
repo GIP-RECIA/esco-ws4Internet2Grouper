@@ -151,8 +151,15 @@ public class EntityDescriptionImpl implements IEntityDescription {
 	private void handleNewPosition(final int position) {
 		if (position > maxPostionValue) {
 			if (maxPostionValue > 0) {
-				for (int i = maxPostionValue + 1; i < position; i++) {
-					values.set(i, "");
+				
+				// The test i <= position is for the case of a groupedAttributeValuesPosition
+				// In the last position.
+				for (int i = maxPostionValue + 1; i <= position; i++) {
+					if (i < values.size()) {
+						values.set(i, "");
+					} else {
+						values.add("");
+					}
 				}	
 			}
 			maxPostionValue = position;
@@ -180,7 +187,7 @@ public class EntityDescriptionImpl implements IEntityDescription {
 	public void setGroupedAttributeValues(final int position, final String[] groupedAttributeValues) {
 		
 		// Checks that the position is not already used for a single attribute value.
-		if (position <= maxPostionValue) {
+		if (position <= maxPostionValue && position < values.size()) {
 			if (!"".equals(values.get(position))) {
 				throw new IllegalStateException("The position " + position 
 						+ " is already used for an attribute value.");
@@ -188,6 +195,7 @@ public class EntityDescriptionImpl implements IEntityDescription {
 		}
 		
 		handleNewPosition(position);
+		groupedAttributeValuesPosition = position;
 		this.groupedAttributeValues = groupedAttributeValues;
 	}
 	
@@ -205,7 +213,13 @@ public class EntityDescriptionImpl implements IEntityDescription {
 	 * @see org.esco.ws4Internet2Grouper.services.remote.IEntityDescription#hasGroupedAttributeValues()
 	 */
 	public boolean hasGroupedAttributeValues() {
-		return groupedAttributeValues != null;
+		if (groupedAttributeValuesPosition < 0) {
+			return false;
+		}
+		if (groupedAttributeValues == null) {
+			return false;
+		}
+		return groupedAttributeValues.length > 0;
 	}
 
 
@@ -228,15 +242,15 @@ public class EntityDescriptionImpl implements IEntityDescription {
 
 	/**
 	 * {@inheritDoc}
-	 * @see org.esco.ws4Internet2Grouper.services.remote.IEntityDescription#getValuesList()
+	 * @see org.esco.ws4Internet2Grouper.services.remote.IEntityDescription#getValuesArrays()
 	 */
-	public String[][] getValuesList() {
+	public String[][] getValuesArrays() {
 		String[][] valuesList;
 		if (hasGroupedAttributeValues()) {
 			valuesList = new String[groupedAttributeValues.length][];
 			int index = 0;
 			for (String attrValue : groupedAttributeValues) {
-				final String[]  attValArr = values.toArray(new String[values.size()]);
+				final String[]  attValArr = values.toArray(new String[maxPostionValue]);
 				attValArr[groupedAttributeValuesPosition] = attrValue;
 				valuesList[index++] = attValArr;
 			}
@@ -255,6 +269,7 @@ public class EntityDescriptionImpl implements IEntityDescription {
 	 * @see org.esco.ws4Internet2Grouper.services.remote.IEntityDescription#hasAttributeValue(int)
 	 */
 	public boolean hasAttributeValue(final int position) {
+		
 		if (position > maxPostionValue) {
 			return false;
 		}

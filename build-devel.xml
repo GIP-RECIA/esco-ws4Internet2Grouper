@@ -1,8 +1,7 @@
 <project name="ws4Internet2Grouper-devel" default="_compile" basedir=".">
 
 	<property name="app.zip-files.shared.include" value="
-    	build.xml 
-		build.properties
+    	build.xml
 		version.properties
 		src/**/*.java src/**/*.html 
     	webapp/media/**/*

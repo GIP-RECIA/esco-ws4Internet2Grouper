@@ -24,7 +24,7 @@ import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
 /**
  * Interface for the use of groups in an establishment.
  * @author GIP RECIA - A. Deman
- * 3 juin 08
+ * 3 June 08
  *
  */
 public interface ISarapisGroupService {

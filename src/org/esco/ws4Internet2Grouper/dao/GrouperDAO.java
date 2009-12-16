@@ -55,13 +55,11 @@ import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrFolderDefinitionsManager;
 import org.esco.ws4Internet2Grouper.domain.beans.GroupOrStem;
 import org.esco.ws4Internet2Grouper.domain.beans.GrouperOperationResultDTO;
-import org.esco.ws4Internet2Grouper.domain.beans.IStringCleaner;
 import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition;
 import org.esco.ws4Internet2Grouper.domain.beans.PrivilegeDefinition.Right;
 import org.esco.ws4Internet2Grouper.exceptions.WS4GrouperException;
 import org.esco.ws4Internet2Grouper.util.Constants;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
 
 /**
  * DAO for the Grouper groups or stems manipulations.
@@ -76,15 +74,7 @@ public class GrouperDAO implements InitializingBean {
 
     /** The definition manager. */
     private GroupOrFolderDefinitionsManager definitionsManager;
-    
-    /** Cleaner for the groups and stem extension.*/
-    private IStringCleaner extensionCleaner;
-    
-    /** Cleaner for the display extensions.*/
-    private IStringCleaner displayExtensionCleaner;
-    
-    /** Cleaner for the description. */
-    private IStringCleaner descriptionCleaner;
+  
 
     /** Flag to determine the behavior for the empty groups when removing
      * a member. */
@@ -517,15 +507,6 @@ public class GrouperDAO implements InitializingBean {
      * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
 	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.extensionCleaner, "The property extensionCleaner in the class " 
-				+ getClass().getName() + " cannot be null.");
-		
-		Assert.notNull(this.displayExtensionCleaner, "The property displayExtensionCleaner in the class " 
-				+ getClass().getName() + " cannot be null.");
-		
-		Assert.notNull(this.descriptionCleaner, "The property descriptionCleaner in the class " 
-				+ getClass().getName() + " cannot be null.");
-		
 	}
 
     /**
@@ -557,9 +538,9 @@ public class GrouperDAO implements InitializingBean {
 
             // Cleans the extension, displayExtention and description of the created
             // group or folder.
-            final String extension = extensionCleaner.clean(definition.getExtension());
-            final String dispExtension = displayExtensionCleaner.clean(definition.getDisplayExtension());
-            final String description = descriptionCleaner.clean(definition.getDescription());
+            final String extension = definition.getExtension();
+            final String dispExtension = definition.getDisplayExtension();
+            final String description = definition.getDescription();
             
             // The definition denotes a folder to create.
             if (definition.isFolder()) {
@@ -611,7 +592,7 @@ public class GrouperDAO implements InitializingBean {
     }
 
     /**
-     * Gives the id of the owner of a memebrship.
+     * Gives the id of the owner of a membership.
      * @param membership The considered membership.
      * @return The id of the owner of the membership if the owner is found, empty string otherwise.
      */
@@ -1124,7 +1105,7 @@ public class GrouperDAO implements InitializingBean {
 
     /**
      * Retrieves or creates a group or folder.
-     * If the group or folder cant be retrieved, it is created.
+     * If the group or folder can t be retrieved, it is created.
      * @param session The grouper session.
      * @param definition The definition of the group or folder.
      * @param values The values used to evaluate templates.
@@ -1206,52 +1187,4 @@ public class GrouperDAO implements InitializingBean {
     public void setForcePrivileges(final boolean forcePrivileges) {
         this.forcePrivileges = forcePrivileges;
     }
-
-	/**
-	 * Getter for extensionCleaner.
-	 * @return extensionCleaner.
-	 */
-	public IStringCleaner getExtensionCleaner() {
-		return extensionCleaner;
-	}
-
-	/**
-	 * Setter for extensionCleaner.
-	 * @param extensionCleaner the new value for extensionCleaner.
-	 */
-	public void setExtensionCleaner(final IStringCleaner extensionCleaner) {
-		this.extensionCleaner = extensionCleaner;
-	}
-
-	/**
-	 * Getter for displayExtensionCleaner.
-	 * @return displayExtensionCleaner.
-	 */
-	public IStringCleaner getDisplayExtensionCleaner() {
-		return displayExtensionCleaner;
-	}
-
-	/**
-	 * Setter for displayExtensionCleaner.
-	 * @param displayExtensionCleaner the new value for displayExtensionCleaner.
-	 */
-	public void setDisplayExtensionCleaner(final IStringCleaner displayExtensionCleaner) {
-		this.displayExtensionCleaner = displayExtensionCleaner;
-	}
-
-	/**
-	 * Getter for descriptionCleaner.
-	 * @return descriptionCleaner.
-	 */
-	public IStringCleaner getDescriptionCleaner() {
-		return descriptionCleaner;
-	}
-
-	/**
-	 * Setter for descriptionCleaner.
-	 * @param descriptionCleaner the new value for descriptionCleaner.
-	 */
-	public void setDescriptionCleaner(final IStringCleaner descriptionCleaner) {
-		this.descriptionCleaner = descriptionCleaner;
-	}
 }

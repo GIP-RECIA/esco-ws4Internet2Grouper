@@ -27,7 +27,7 @@ import java.io.Serializable;
 /** 
  * Result of a grouper operation.
  * @author GIP RECIA - A. Deman
- * 27 mai 08
+ * 27 may 08
  *
  */
 public class GrouperOperationResultDTO implements Serializable {
@@ -48,7 +48,7 @@ public class GrouperOperationResultDTO implements Serializable {
      * Constructor for GrouperOperationResultDTO.
      */
     public GrouperOperationResultDTO() {
-        /* */
+        super();
     }
     
     /**

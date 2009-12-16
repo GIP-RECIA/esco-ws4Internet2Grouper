@@ -2,6 +2,7 @@
 	<property name="profiling" value="false"/>
 	<property name="recover.previous-versions" value="2.0.0" />
 	<property name="app.recover.files" value="
+		build.properties
 		properties/init/init.xml
 		properties/domain/domain.xml
 		properties/domain/portal.xml

@@ -495,7 +495,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 	 */
 	public GrouperOperationResultDTO addToGroups(final IEntityDescription personDescription) {
 		GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
-		for (String[] attrValues : personDescription.getValuesList()) {
+		for (String[] attrValues : personDescription.getValuesArrays()) {
 			result =  addToGroups(personDescription.getType(), 
 					personDescription.getId(),
 					attrValues);
@@ -514,7 +514,7 @@ public class SarapisGroupServiceImpl implements ISarapisGroupService, Initializi
 	 */
 	public GrouperOperationResultDTO updateMemberships(final IEntityDescription personDescription) {
 		GrouperOperationResultDTO result = GrouperOperationResultDTO.RESULT_OK;
-		for (String[] attrValues : personDescription.getValuesList()) {
+		for (String[] attrValues : personDescription.getValuesArrays()) {
 			result =  updateGroups(personDescription.getType(), 
 					personDescription.getId(), attrValues);
 			if (result.isError()) {

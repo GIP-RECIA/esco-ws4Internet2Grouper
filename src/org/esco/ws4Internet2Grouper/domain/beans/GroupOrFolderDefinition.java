@@ -90,7 +90,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
      * @param folder True if the definition denotes a folder.
      * @param preexisting The flag used to determine if the folder is built or is preexisting.
      * @param create The flag used to determine if the group has to be created even 
-     * if there is no memebers.
+     * if there is no members.
      * @param containingPath The containing path.
      * @param extension The extension of the group or folder.
      * @param displayExtension The display extension of the group or folder.
@@ -114,14 +114,12 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
         this.description = new EvaluableString(description);
     }
     
-    
     /**
      * Evaluates a template by replacing the template elements by a value.
      * @param values The values to used to perform the evaluation of the template elements.
      * @return The GroupOrFolderDefinition with the correct values.
      */
     public GroupOrFolderDefinition evaluateTemplate(final String...values) {
-        
         
         final EvaluableString newExtension = extension.evaluate(values); 
 
@@ -157,7 +155,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     }
     
     /**
-     * Comutes the has code for this instance.
+     * Computes the has code for this instance.
      * @return The hash value for this instance.
      * @see java.lang.Object#hashCode()
      */
@@ -299,7 +297,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     }
     
     /**
-     * Adda a privilege.
+     * Adds a privilege.
      * @param privilege The privilege to add.
      */
     public void addPrivilege(final PrivilegeDefinition privilege) {
@@ -310,7 +308,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     }
     
     /**
-     * Gives the number of members definitions for the group or folder definiton.
+     * Gives the number of members definitions for the group or folder definition.
      * @return The number of members definition for this group or folder
      * definition.
      */
@@ -324,7 +322,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     /**
      * Gives a specified members definition.
      * @param index The position of the target members definition.
-     * @return The members definiton at the specified position.
+     * @return The members definition at the specified position.
      */
     public MembersDefinition getMembersDefiniton(final int index) {
         return membersDefinitions.get(index);
@@ -342,7 +340,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     }
     
     /**
-     * Gives the number of path for the group or folder definiton.
+     * Gives the number of path for the group or folder definition.
      * @return The number of membership paths for this group or folder
      * definition.
      */
@@ -376,7 +374,7 @@ public class GroupOrFolderDefinition implements Serializable, Cloneable {
     }
     
     /**
-     * Gives the string representaton of this group or folder definition.
+     * Gives the string representation of this group or folder definition.
      * @return The string that represents this definition.
      * @see java.lang.Object#toString()
      */

@@ -141,6 +141,6 @@ public interface IEntityDescription extends Serializable {
      * Gives the values.
      * @return The values.
      */
-    String[][]  getValuesList();
+    String[][]  getValuesArrays();
 	
 }
