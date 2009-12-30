@@ -64,7 +64,7 @@ import org.springframework.beans.factory.InitializingBean;
 /**
  * DAO for the Grouper groups or stems manipulations.
  * @author GIP RECIA - A. Deman
- * 29 juil. 08
+ * 29 July 08
  * 
  */
 public class GrouperDAO implements InitializingBean {
@@ -74,7 +74,6 @@ public class GrouperDAO implements InitializingBean {
 
     /** The definition manager. */
     private GroupOrFolderDefinitionsManager definitionsManager;
-  
 
     /** Flag to determine the behavior for the empty groups when removing
      * a member. */

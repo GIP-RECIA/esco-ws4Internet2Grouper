@@ -46,8 +46,9 @@ import org.springframework.util.Assert;
 
 
 /** 
+ * Implementation of the groups service.
  * @author GIP RECIA - A. Deman
- * 11 août 08
+ * 11 August 08
  *
  */
 public class SarapisGroupServiceImpl implements ISarapisGroupService, InitializingBean {

@@ -34,7 +34,7 @@ import org.esco.ws4Internet2Grouper.domain.beans.PersonType;
  * Cache manager for the Sarapis Group Service.
  * This cache is a high level cache as Grouper manage its own caches.
  * @author GIP RECIA - A. Deman
- * 30 juil. 08
+ * 30 July 08
  *
  */
 public class SGSCache {
@@ -118,7 +118,7 @@ public class SGSCache {
     /**
      * Checks if the memberships for a group is in cache.
      * @param groupName The name of the group/
-     * @return True if groups name is in the groups memeberships cache.
+     * @return True if groups name is in the groups memberships cache.
      */
     public boolean hasInGroupsMembershipsCache(final String groupName) {
         return groupsMembershipsCache.get(groupName) != null;
@@ -136,7 +136,7 @@ public class SGSCache {
     /**
      * Checks if the memberships for a group is in cache.
      * @param groupName The name of the group/
-     * @return True if groups name is in the groups memeberships cache.
+     * @return True if groups name is in the groups memberships cache.
      */
     public boolean hasInGroupsPrivielgesCache(final String groupName) {
         return groupsPrivilegesCache.get(groupName) != null;
@@ -154,7 +154,7 @@ public class SGSCache {
   
 
     /**
-     * Caches the memeberships for a given type of member and a set of attributes.
+     * Caches the memberships for a given type of member and a set of attributes.
      * @param definitions The groups definitions.
      * @param type The type of members.
      * @param attributes The list of attributes.
@@ -169,7 +169,7 @@ public class SGSCache {
    
     
     /**
-     * Caches the memeberships of template groups for a given type of member and a set of attributes.
+     * Caches the memberships of template groups for a given type of member and a set of attributes.
      * @param definitions The groups definitions.
      * @param type The type of members.
      * @param attributes The list of attributes.
@@ -182,9 +182,9 @@ public class SGSCache {
     }
 
     /**
-     * Tries to retrieve the memeberships from the cache.
+     * Tries to retrieve the memberships from the cache.
      * @param type The type of the member.
-     * @param attributes The attributes of the memeber.
+     * @param attributes The attributes of the member.
      * @return The memberships if found, null otherwise
      */
     @SuppressWarnings("unchecked") 
@@ -200,7 +200,7 @@ public class SGSCache {
     }
     
     /**
-     * Tries to retrieve the memeberships for template groups from the cache.
+     * Tries to retrieve the memberships for template groups from the cache.
      * @param type The type of the member.
      * @param attributes The attributes of the member.
      * @return The memberships if found, null otherwise

@@ -54,10 +54,10 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
     private Map<String, GroupOrFolderDefinition> preexistingDefinitnonsByPath = 
         new HashMap<String, GroupOrFolderDefinition>();
     
-    /** Definitions to create wich are not template. */
+    /** Definitions to create which are not template. */
     private List<GroupOrFolderDefinition> gofToCreate = new Vector<GroupOrFolderDefinition>();
 
-    /** Definitions to create wich are template. */
+    /** Definitions to create which are template. */
     private List<GroupOrFolderDefinition> gofTemplateToCreate = new Vector<GroupOrFolderDefinition>();
     
     /** All the groups and folder definitions, by path. */
@@ -67,7 +67,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
     /** Stores the group or folder definition by members definition.*/
     private Map<MembersDefinition, List<GroupOrFolderDefinition>> definitionsByMembersDefinitions;
 
-    /** The Cache for the Sarapis Group Service. */
+    /** The Cache for the Group Service. */
     private SGSCache cache = SGSCache.instance();
 
     /**
@@ -276,7 +276,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
     }
 
     /**
-     * Initilizes the map of the groups definition by type of members.
+     * Initializes the map of the groups definition by type of members.
      */
     protected void initilizeDefinitionsByTypeOfMembers() {
 
@@ -284,7 +284,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
 
         for (GroupOrFolderDefinition gofd : definitionsByPath.values()) {
 
-            // Stores the definition by type of subject fr their membres
+            // Stores the definition by type of subject for their members
             // definition.
             for (int i = 0; i < gofd.countMembersDefinitions(); i++) {
 
@@ -308,7 +308,7 @@ public class GroupOrFolderDefinitionsManager implements Serializable {
         // Error messages.
         final List<String> errorsMsg = new ArrayList<String>();
 
-        // Browses all the definition to cheks the path.
+        // Browses all the definition to checks the path.
         for (GroupOrFolderDefinition gofd : definitionsByPath.values()) {
 
             String typeOfDef;
